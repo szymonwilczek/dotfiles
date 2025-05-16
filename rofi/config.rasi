@@ -1,0 +1,16 @@
+configuration {
+    modi:                "drun,run,window"; /* Domyślne tryby dla launchera aplikacji */
+    show-icons:          true;
+    icon-theme:          "Papirus-Dark"; /* Upewnij się, że masz ten motyw ikon i jest poprawna nazwa */
+    font:                "Hack Nerd Font 11"; /* Twoja główna czcionka dla rofi */
+
+    dynamic:             false; /* Dla bardziej stałego rozmiaru okna */
+    fixed-num-lines:     true;
+
+    /* Możesz tu dodać inne globalne ustawienia rofi, np.
+    kb-cancel:           "Escape,Control+g,Control+bracketleft";
+    terminal:            "kitty"; 
+    */
+}
+
+@theme "~/.config/rofi/themes/catppuccin-custom.rasi" // Ładujemy Twój główny motyw

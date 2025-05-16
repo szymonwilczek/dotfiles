@@ -1,0 +1,97 @@
+/* ~/.config/rofi/themes/catppuccin-custom.rasi */
+
+* {
+    bg0:     #1e1e2ee6;
+    bg1:     #181825e6;
+    bg2:     #313244ff;
+    border-color: #cba6f7ff;
+    fg0:     #cdd6f4ff;
+    accent:  #cba6f7ff;
+    red:     #f38ba8;
+    blue:    #89b4fa;
+    yellow:  #f9e2af;
+    subtext0:#a6adc8;
+
+    font: "Hack Nerd Font 11";
+
+    background-color:   transparent;
+    text-color:         @fg0;
+    margin:     0px;
+    padding:    0px;
+    spacing:    0px;
+}
+
+window {
+    background-color:   @bg0;
+    border:             2px solid;
+    border-color:       @border-color;
+    border-radius:      12px;
+    width:              500px; 
+    height:             400px; 
+    location:           center;
+    anchor:             center;
+    padding:            15px;
+}
+
+mainbox {
+    children:   [ inputbar, listview ];
+    spacing:    15px;
+}
+
+inputbar {
+    background-color:   @bg1;
+    border:             1px solid;
+    border-radius:      8px;
+    padding:            10px 15px;
+    spacing:            10px;
+    children:           [ prompt, entry ];
+    text-color:         @fg0;
+    font:               "Hack Nerd Font Bold 11";
+}
+
+prompt {
+    enabled:            true;
+    text-color:         @blue;
+    padding:            0 5px 0 0;
+}
+
+entry {
+    enabled:            true;
+    placeholder:        "Wyszukaj aplikację...";
+    placeholder-color:  @subtext0;
+    text-color:         inherit;
+}
+
+listview {
+    background-color:   transparent;
+    margin:             0px;
+    columns:            1;
+    lines:              8; /* Liczba widocznych linii w launcherze */
+    fixed-height:       true;
+    spacing:            8px;
+    scrollbar:          false;
+}
+
+element {
+    padding:            10px 15px;
+    spacing:            10px;
+    border-radius:      8px;
+    horizontal-align:   0;
+}
+
+element-icon {
+    size:               1.4em;
+    vertical-align:     0.5;
+}
+
+element-text {
+    text-color:         inherit;
+    vertical-align:     0.5;
+    horizontal-align:   0;
+    font:               inherit; /* Dzieciczy, więc będzie pogrubiony, jeśli '*' ma pogrubienie */
+}
+
+element selected {
+    background-color:   @bg2;
+    text-color:         @accent;
+}

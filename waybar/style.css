@@ -1,0 +1,122 @@
+/* ~/.config/waybar/style.css */
+
+/* Definicje kolorów Catppuccin Mocha (jak poprzednio) */
+@define-color rosewater #f5e0dc;
+@define-color flamingo #f2cdcd;
+@define-color pink #f5c2e7;
+@define-color mauve #cba6f7;
+@define-color red #f38ba8;
+@define-color maroon #eba0ac;
+@define-color peach #fab387;
+@define-color yellow #f9e2af;
+@define-color green #a6e3a1;
+@define-color teal #94e2d5;
+@define-color sky #89dceb;
+@define-color sapphire #74c7ec; /* Użyjemy dla logo Arch */
+@define-color blue #89b4fa;
+@define-color lavender #b4befe;
+
+@define-color text #cdd6f4;
+@define-color subtext1 #bac2de;
+@define-color surface0 #313244;
+@define-color surface1 #45475a;
+@define-color mantle #181825;
+@define-color base #1e1e2e;
+@define-color crust #11111b;
+
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "Hack Nerd Font", "Noto Sans Symbols2", sans-serif;
+    font-size: 15px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: alpha(@crust, 0.85); /* Bardzo ciemne tło paska z przezroczystością */
+    color: @text;
+    border-radius: 10px; /* Zaokrąglenie całego paska */
+    margin: 6px 10px;   /* Marginesy, aby pasek "pływał" */
+}
+
+/* === Ogólne style dla "pudełek" modułów === */
+#workspaces,
+#window,
+#clock,
+#clock-date, /* Poprawiony selektor dla daty */
+#pulseaudio,
+#network,
+#memory,
+#cpu,
+#temperature,
+#tray,
+#custom-power,
+#custom-archlogo {
+    background-color: @mantle;
+    color: @text;
+    padding: 2px 10px; /* Mniejszy padding góra/dół, większy boki */
+    margin: 6px 4px;   /* Marginesy między pudełkami modułów */
+    border-radius: 8px;
+    border: 1px solid @surface0;
+}
+
+/* === Style dla konkretnych modułów === */
+
+#workspaces button {
+    padding: 2px 6px; /* Mniejszy padding dla przycisków workspace */
+    margin: 0 2px;
+    background-color: transparent;
+    color: @subtext1;
+    border-radius: 6px;
+    font-size: 16px; /* Można dostosować rozmiar ikon workspace */
+}
+#workspaces button:hover { background-color: @surface0; color: @text; }
+#workspaces button.focused { background-color: @mauve; color: @crust; } /* Dla aktywnego monitora */
+#workspaces button.active { background-color: @lavender; color: @crust; } /* Dla aktywnego workspace */
+#workspaces button.urgent { background-color: @red; color: @crust; }
+
+#window {
+    font-weight: normal;
+    color: @subtext1; /* Mniej wyróżniający się kolor dla tytułu okna */
+    padding-right: 15px; /* Większy odstęp po tytule okna */
+}
+
+/* Separatory - chcemy, aby były subtelne i bez tła/ramki */
+#custom-sep_left, #custom-sep_left_alt, 
+#custom-sep_right, #custom-sep_right_alt {
+    color: @surface1; /* Ciemniejszy, subtelny kolor */
+    font-size: 18px;
+    padding: 0 6px; /* Mniejsze paddingi dla separatorów */
+    background-color: transparent;
+    border: none;
+    margin: 6px 0px; /* Marginesy tylko góra/dół, aby nie dodawać bocznych */
+}
+
+#custom-archlogo {
+    font-size: 22px; /* Większa ikona Arch */
+    padding: 0 15px; /* Większy padding dla logo */
+    background-color: transparent; /* Logo bez własnego tła "pudełka" */
+    border: none; /* Logo bez ramki */
+    color: @sapphire; /* Kolor akcentowy Catppuccin */
+}
+
+#clock { color: @peach; font-weight: bold; }
+#clock-date { color: @peach; font-size: 13px; } /* Mniejsza czcionka dla daty */
+
+#pulseaudio { color: @green; }
+#pulseaudio.muted { color: @surface1; }
+
+#network { color: @sky; }
+#network.disconnected { color: @maroon; }
+
+#memory { color: @yellow; }
+#cpu { color: @flamingo; }
+#temperature { color: @teal; }
+
+#tray { padding: 0 8px; }
+
+#custom-power {
+    color: @red; /* Ikona zasilania na czerwono */
+    font-size: 18px;
+    padding-right: 10px;
+}
