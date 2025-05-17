@@ -4,7 +4,7 @@
     bg0:     #1e1e2ee6;
     bg1:     #181825e6;
     bg2:     #313244ff;
-    border-color: #cba6f7ff;
+    border-color: #cba6f770;
     fg0:     #cdd6f4ff;
     accent:  #cba6f7ff;
     red:     #f38ba8;
@@ -22,16 +22,20 @@
 }
 
 window {
-    background-color:   @bg0;
+    background-color:   @bg0; /* Tło okna z przezroczystością dla glassmorphism */
     border:             2px solid;
     border-color:       @border-color;
     border-radius:      12px;
-    width:              500px; 
-    height:             400px; 
+    
+    width:              470px; /* Zwiększ szerokość, aby pomieścić dwie kolumny */
+    height:             401px; /* Dostosuj wysokość do liczby linii (np. 6 wierszy po 2 kolumny = 12 linii) */
+                               /* (liczba_linii_w_kolumnie * wysokość_elementu) + paddingi + wysokość_inputbara */
+    
     location:           center;
     anchor:             center;
     padding:            15px;
 }
+
 
 mainbox {
     children:   [ inputbar, listview ];
@@ -40,7 +44,7 @@ mainbox {
 
 inputbar {
     background-color:   @bg1;
-    border:             1px solid;
+    border:             2px solid;
     border-radius:      8px;
     padding:            10px 15px;
     spacing:            10px;
@@ -51,15 +55,16 @@ inputbar {
 
 prompt {
     enabled:            true;
-    text-color:         @blue;
+    text-color:         @accent;
     padding:            0 5px 0 0;
 }
 
 entry {
     enabled:            true;
-    placeholder:        "Wyszukaj aplikację...";
+    placeholder:        "Wyszukaj";
     placeholder-color:  @subtext0;
     text-color:         inherit;
+    font: 		"Hack Nerd Font Bold 11";
 }
 
 listview {

@@ -7,10 +7,13 @@ configuration {
     dynamic:             false; /* Dla bardziej stałego rozmiaru okna */
     fixed-num-lines:     true;
 
-    /* Możesz tu dodać inne globalne ustawienia rofi, np.
-    kb-cancel:           "Escape,Control+g,Control+bracketleft";
-    terminal:            "kitty"; 
-    */
+    display-drun:        " ";
+    drun-prompt:         " ";
+
+    drun { 
+        lines: 12;
+        columns: 2;
+    }
 }
 
 @theme "~/.config/rofi/themes/catppuccin-custom.rasi" // Ładujemy Twój główny motyw

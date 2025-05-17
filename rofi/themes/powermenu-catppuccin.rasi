@@ -1,46 +1,41 @@
-/* ~/.config/rofi/themes/powermenu-catppuccin.rasi */
-
 @import "~/.config/rofi/themes/catppuccin-custom.rasi"
 
-/* Nadpisania dla powermenu */
 * {
-    font: "Hack Nerd Font Bold 11"; /* Upewnij się, że tekst opcji jest pogrubiony */
+    font: "Hack Nerd Font Bold 11";
 }
 
 window {
-    width:              360px; /* Szerokość dla powermenu */
-    height:             230px; /* Stała wysokość dla 4 opcji */
-    padding:            15px;  /* Możesz dostosować globalny padding okna powermenu */
+    width:              300px;
+    height:             275px;
+    padding:            10px;
 }
 
 mainbox {
-    children: [ listview ]; /* Tylko lista, bez inputbara */
+    children: [ listview ];
 }
 
-inputbar { enabled: false; } /* Wyłącz inputbar */
+inputbar { enabled: false; }
 prompt { enabled: false; }
 entry { enabled: false; }
 
 listview {
-    lines: 4; /* Dla 4 opcji (Wyloguj, Restart, Zamknij, Anuluj) */
+    lines: 4;
     fixed-height: true;
-    spacing: 10px; /* Odstęp między elementami */
+    spacing: 10px;
 }
 
 element {
-    padding:            15px 15px; /* Padding góra/dół | boki dla elementów powermenu */
-    spacing:            12px;    /* Odstęp między ikoną a tekstem */
-    horizontal-align:   0;       /* Cały element do lewej */
+    padding:            15px;
+    horizontal-align:   0;
 }
 
 element-text {
-    horizontal-align:   0.5; /* Wycentruj tekst w dostępnej przestrzeni elementu */
+    horizontal-align:   0;
     vertical-align:     0.5;
-    expand:             true; /* Pozwól tekstowi zająć dostępną przestrzeń */
+    expand:             true;
 }
 
 element-icon {
     size: 1.4em;
     vertical-align: 0.5;
-    /* Nie potrzebujemy tu bocznych marginesów, jeśli tekst jest centrowany */
 }
