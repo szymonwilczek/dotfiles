@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Arch/Windows Dual Boot systemd-boot configuration.md",
+                "file": "Arch/Arch Secure Boot Enabling.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Windows Dual Boot systemd-boot configuration"
+              "title": "Arch Secure Boot Enabling"
             }
           }
         ]
@@ -44,7 +44,7 @@
                 "autoReveal": false
               },
               "icon": "lucide-folder-closed",
-              "title": "Przeglądarka plików"
+              "title": "Files"
             }
           },
           {
@@ -61,7 +61,7 @@
                 "sortOrder": "alphabetical"
               },
               "icon": "lucide-search",
-              "title": "Szukaj"
+              "title": "Search"
             }
           },
           {
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Arch/Windows Dual Boot systemd-boot configuration.md",
+                "file": "Arch/Arch Secure Boot Enabling.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Linki zwrotne do Windows Dual Boot systemd-boot configuration"
+              "title": "Linki zwrotne do Arch Secure Boot Enabling"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Arch/Windows Dual Boot systemd-boot configuration.md",
+                "file": "Arch/Arch Secure Boot Enabling.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Łącza wychodzące z Windows Dual Boot systemd-boot configuration"
+              "title": "Łącza wychodzące z Arch Secure Boot Enabling"
             }
           },
           {
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Arch/Windows Dual Boot systemd-boot configuration.md",
+                "file": "Arch/Arch Secure Boot Enabling.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Konspekt Windows Dual Boot systemd-boot configuration"
+              "title": "Konspekt Arch Secure Boot Enabling"
             }
           }
         ]
@@ -160,14 +160,16 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:Otwórz okno szybkiego wyboru": false,
-      "graph:Otwórz graf": false,
-      "canvas:Stwórz nową tablicę": false,
-      "daily-notes:Otwórz codzienną notatkę": false,
-      "templates:Wstaw szablon": false,
-      "command-palette:Otwórz listę poleceń": false
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
     }
   },
-  "active": "33d3a83fb1f515dc",
-  "lastOpenFiles": []
+  "active": "3ca9480548fc8ed3",
+  "lastOpenFiles": [
+    "Arch/Windows Dual Boot systemd-boot configuration.md"
+  ]
 }
