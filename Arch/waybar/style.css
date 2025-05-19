@@ -28,22 +28,21 @@
     border: none;
     border-radius: 0;
     font-family: "Hack Nerd Font", "Noto Sans Symbols2", sans-serif;
-    font-size: 15px;
+    font-size: 14.5px;
     min-height: 0;
 }
 
 window#waybar {
-    background-color: alpha(@crust, 0.85); /* Bardzo ciemne tło paska z przezroczystością */
+    background-color: alpha(@crust, 0.55); /* Bardzo ciemne tło paska z przezroczystością */
     color: @text;
-    border-radius: 10px; /* Zaokrąglenie całego paska */
-    border: 1.5px solid alpha(@lavender, 0.2);
-    margin: 10px 12px 0px 12px;   /* Marginesy, aby pasek "pływał" */
+    border-radius: 12px; /* Zaokrąglenie całego paska */
+    border: 2px solid alpha(@lavender, 0.08);
 }
 
 /* === Ogólne style dla "pudełek" modułów === */
 #window,
 #clock,
-#clock-date, /* Poprawiony selektor dla daty */
+#clock-date,
 #pulseaudio,
 #network,
 #memory,
@@ -51,12 +50,12 @@ window#waybar {
 #temperature,
 #tray,
 #custom-power {
-    background-color: @mantle;
+    background-color: alpha(@mantle, 0.45);
     color: @text;
     padding: 2px 10px; /* Mniejszy padding góra/dół, większy boki */
     margin: 6px 4px;   /* Marginesy między pudełkami modułów */
     border-radius: 8px;
-    border: 1px solid @surface0;
+    border: 1px solid alpha(@surface0, 0.8);
 }
 
 #custom-archlogo {
@@ -65,19 +64,14 @@ window#waybar {
 	background-color: transparent;
 	border: none;
 	color: @lavender;
-
-
 }
 
+
 #workspaces {
-    /* Usuń tło, obramowanie, padding i border-radius z kontenera */
     background-color: transparent;
     border: none;
     padding: 0;
     border-radius: 0;
-
-    /* Zachowaj marginesy, które odpychają cały moduł od krawędzi paska i od innych modułów */
-    /* Pamiętaj, że te marginesy zostały zmienione w poprzednich krokach */
     margin-left: 4px; /* Margines z lewej strony modułu workspaces */
     margin-top: 6px;
     margin-bottom: 6px;
@@ -88,13 +82,14 @@ window#waybar {
 #workspaces button {
     /* Te style definiują wygląd pojedynczego przycisku (tło, obramowanie, rozmiar, zaokrąglenie) */
     background-color: @mantle; /* Domyślne tło przycisku (ciemniejsze) */
-    color: @subtext1; /* Domyślny kolor numeru */
+    color: @lavender; /* Domyślny kolor numeru */
     padding: 4px 8px; /* Reguluj padding, aby uzyskać pożądany rozmiar "kwadratu" */
     border-radius: 8px; /* Zaokrąglenie rogów przycisku */
     border: 1px solid @surface0; /* Opcjonalne obramowanie przycisku */
     font-size: 16px; /* Rozmiar numeru */
     min-width: 30px; /* Opcjonalnie: minimalna szerokość dla bardziej kwadratowego wyglądu */
     transition: all 0.2s ease-in-out; /* Opcjonalnie: płynne przejście przy zmianie stanu */
+    font-weight: bold;
 }
 
 /* Style dla aktywnego/skupionego przycisku - zmieniają tło i kolor tekstu całego przycisku */
@@ -107,7 +102,7 @@ window#waybar {
     color: @crust;
 }
 #workspaces button.active {
-    background-color: @lavender; /* Tło przycisku aktywnej przestrzeni roboczej (kolor akcentowy) */
+    background-color: #9aa3d9; /* Tło przycisku aktywnej przestrzeni roboczej (kolor akcentowy) */
     color: @crust; /* Kolor numeru na aktywnym przycisku */
 }
 
@@ -123,60 +118,41 @@ window#waybar {
 #custom-sep_left, #custom-sep_left_alt, 
 #custom-sep_right, #custom-sep_right_alt {
     color: @surface1; /* Ciemniejszy, subtelny kolor */
-    font-size: 18px;
-    padding: 0 1px; /* Mniejsze paddingi dla separatorów */
+    font-size: 8px;
+    padding: 0 0px; /* Mniejsze paddingi dla separatorów */
     background-color: transparent;
     border: none;
-    margin: 2px 0px; /* Marginesy tylko góra/dół, aby nie dodawać bocznych */
+    margin: 1px 0px; /* Marginesy tylko góra/dół, aby nie dodawać bocznych */
     opacity: 0;  
 }
 
-#custom-archlogo {
-    font-size: 22px; /* Większa ikona Arch */
-    padding: 0 15px; /* Większy padding dla logo */
-    background-color: transparent; /* Logo bez własnego tła "pudełka" */
-    border: none; /* Logo bez ramki */
-    color: @sapphire; /* Kolor akcentowy Catppuccin */
-}
+#clock { color: @lavender; 
+ }
+#clock-date {
+        color: @lavender;
+    }
 
-#clock { color: @peach; font-weight: bold; }
-#clock-date { color: @peach; font-size: 13px; } /* Mniejsza czcionka dla daty */
-
-#pulseaudio { color: @green; }
+#pulseaudio { color: @lavender; }
 #pulseaudio.muted { color: @surface1; }
 
-#network { color: @sky; }
+#network { color: @lavender; }
 #network.disconnected { color: @maroon; }
 
-#memory { color: @yellow; }
-#cpu { color: @flamingo; }
+#memory { color: @lavender; }
+#cpu { color: @lavender; }
 #temperature { color: @teal; }
 
 #tray { padding: 0 8px; }
 
 #custom-power {
-    /* ... istniejące style dla #custom-power ... */
     background-color: @mantle; /* Z ogólnej sekcji */
     color: @red; /* Specyficzny kolor */
     padding: 2px 10px; /* Z ogólnej sekcji (zakładamy) */
-    /* margin: 6px 4px; */ /* Ten margines zaraz nadpiszemy */
     border-radius: 8px; /* Z ogólnej sekcji */
     border: 1px solid @surface0; /* Z ogólnej sekcji */
     font-size: 18px; /* Specyficzny rozmiar czcionki */
-    /* padding-right: 10px; */ /* To było w Twoim configu, ale lepiej kontrolować odstępy marginesami */
-
-    /* Dodajemy specyficzny margines z prawej strony dla modułu power */
     margin-right: 4px; /* Możesz dostosować tę wartość */
     margin-top: 6px; /* Zachowaj marginesy góra/dół z ogólnej sekcji */
     margin-bottom: 6px;
     margin-left: 4px; /* Zachowaj domyślny margines z lewej, aby był odstęp od poprzedniego modułu */
-
-    /* Upewnij się, że padding wewnątrz pudełka custom/power jest poprawny.
-       Jeśli chcesz mieć 10px paddingu tylko po prawej stronie ikony,
-       możesz wrócić do poprzedniej konfiguracji z padding-right,
-       ale wtedy musisz usunąć domyślny padding z ogólnej sekcji dla #custom-power
-       i ustawić padding np. na "padding: 2px 0px;" a następnie dodać padding-right.
-       Prostszym podejściem jest utrzymanie paddingu 2px 10px (góra/dół 2px, boki 10px)
-       z ogólnej sekcji i tylko manipulować marginesami.
-    */
 }
