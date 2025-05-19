@@ -7,8 +7,8 @@
         "width": 30,
         "padding": {
             "top": 2,
-            "left": 5,
-	    "right": 8,
+            "left": 2,
+	    "right": 4,
         }
     },
     "modules": [
