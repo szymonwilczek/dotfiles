@@ -1,0 +1,87 @@
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
+* {
+    font:            "JetBrains Mono 11";
+    background-color: transparent;
+    text-color:       @foreground;
+    margin:           0px;
+    padding:          0px;
+    spacing:          0px;
+}
+
+window {
+    background-color:   @background;
+    border:             2px solid;
+    border-color:       @active-background;
+    border-radius:      12px;
+    width:              470px;
+    height:             425px;
+    location:           center;
+    anchor:             center;
+    padding:            15px;
+}
+
+mainbox {
+    children:   [ inputbar, listview ];
+    spacing:    15px;
+}
+
+inputbar {
+    background-color:   @background;
+    border:             2px solid;
+    border-color:       @active-background;
+    border-radius:      8px;
+    padding:            10px 15px;
+    spacing:            10px;
+    children:           [ prompt, entry ];
+    text-color:         @foreground;
+    font:               "Hack Nerd Font Bold 11";
+}
+
+prompt {
+    enabled:      true;
+    text-color:   @active-background;
+    padding:      0 5px 0 0;
+}
+
+entry {
+    enabled:            true;
+    placeholder:        "Wyszukaj";
+    placeholder-color:  @active-foreground;
+    text-color:         inherit;
+    font:               "JetBrains Mono Bold 11";
+}
+
+listview {
+    background-color:   transparent;
+    margin:             0px;
+    columns:            1;
+    lines:              8;
+    fixed-height:       true;
+    spacing:            8px;
+    scrollbar:          false;
+}
+
+element {
+    padding:            10px 15px;
+    spacing:            10px;
+    border-radius:      8px;
+    horizontal-align:   0;
+}
+
+element-icon {
+    size:               1.4em;
+    vertical-align:     0.5;
+}
+
+element-text {
+    text-color:         inherit;
+    vertical-align:     0.5;
+    horizontal-align:   0;
+    font:               inherit;
+}
+
+element selected {
+    background-color:   @background;
+    text-color:         @foreground;
+}

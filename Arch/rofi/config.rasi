@@ -1,10 +1,10 @@
 configuration {
-    modi:                "drun,run,window"; /* Domyślne tryby dla launchera aplikacji */
+    modi:                "drun,run,window";
     show-icons:          true;
-    icon-theme:          "Papirus-Dark"; /* Upewnij się, że masz ten motyw ikon i jest poprawna nazwa */
-    font:                "Hack Nerd Font 11"; /* Twoja główna czcionka dla rofi */
+    icon-theme:          "Papirus-Dark";
+    font:                "JetBrains Mono 11";
 
-    dynamic:             false; /* Dla bardziej stałego rozmiaru okna */
+    dynamic:             false;
     fixed-num-lines:     true;
 
     display-drun:        " ";
@@ -12,8 +12,8 @@ configuration {
 
     drun { 
         lines: 12;
-        columns: 2;
+        columns: 1;
     }
 }
 
-@theme "~/.config/rofi/themes/catppuccin-custom.rasi" // Ładujemy Twój główny motyw
+@theme "~/.config/rofi/themes/pywal-theme.rasi"

@@ -2,15 +2,18 @@
   "layer": "top",
   "position": "top",
   "exclusive": true,
-  "height": 40,
+  "height": 43,
   "spacing": 4,
+  "margin-left": 20,
+  "margin-top": 0,
+  "margin-right": 20,
 
   // === LEWA STRONA ===
   "modules-left": [
     "custom/sep_left_alt",
     "clock#date",
     "clock",
-
+    "custom/weather",
     "hyprland/workspaces"
   ],
 
@@ -20,7 +23,6 @@
   // === PRAWA STRONA ===
   "modules-right": [
     "tray",
-
     "cpu",
     "memory",
     "pulseaudio",
@@ -35,6 +37,16 @@
   ],
 
   // === MODUŁY ===
+
+  "custom/weather": {
+    "format": "{text}",
+    "return-type": "json",
+    "tooltip": true,
+    "exec": "~/.config/waybar/scripts/weather.sh",
+    "interval": 1800, // Aktualizuj co 30 minut (30 * 60 = 1800s)
+    "on-click": "xdg-open https://wttr.in/Radzionkow"
+  },
+
   "network": {
     "format-wifi": "󰖩 {essid}",
 
@@ -79,8 +91,7 @@
   },
 
   "custom/archlogo": {
-    "format": "<span color='#cdd6f4' font_weight='bold' size='medium'></span>",
-
+    "format": "<span font_weight='bold' size='medium'></span>",
     "tooltip": false
   },
 
@@ -93,7 +104,7 @@
   },
 
   "clock#date": {
-    "format": "  {:L%A, %d %B}",
+    "format": "  {:L%a, %d %b}",
     "locale": "pl_PL.UTF-8",
     "tooltip": true,
     "tooltip-format": "<tt>{calendar}</tt>",
@@ -140,6 +151,6 @@
 
     "tooltip": false,
 
-    "on-click": "~/.config/hypr/scripts/powermenu.sh"
+    "on-click": "~/.config/hypr/scripts/powermenu_pywal.sh"
   }
 }

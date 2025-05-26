@@ -1,15 +1,13 @@
 {
     "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
     "logo": {
-        "type": "kitty",
-	"source": "/home/wolfie/Pulpit/Personalne/fastfetch/wolf.png",
-        "height": 15,
-        "width": 30,
-        "padding": {
-            "top": 2,
-            "left": 2,
-	    "right": 4,
-        }
+        "type": "auto",
+	"source": "~/.config/fastfetch/wolf.png",
+	"width": 30,
+	"padding": {
+	"top": 3,
+	"left": 2,
+	},
     },
     "modules": [
         "break",
@@ -42,12 +40,6 @@
             "keyColor": "yellow"
         },
         {
-            "type": "wm",
-            "key": "  manager",
-            "keyColor": "yellow",
-	    "format": "{1}"
-        },
-        {
             "type": "custom",
             "format": "\u001b[90m└───────────────────────────────────────────────┘"
         },
@@ -61,13 +53,13 @@
             "type": "cpu",
             "key": "  cpu",
             "keyColor": "green",
-	    "format": "AMD Ryzen Threadripper 3990X @ 4.30 GHz"
+	    "format": "{vendor} {name}"
         },
         {
             "type": "gpu",
             "key": "󰢮  gpu",
             "keyColor": "green",
-	    "format": "NVIDIA GeForce RTX 3060Ti Rev. A",
+	    "format": "{vendor} {name}",
         },
         {
             "type": "memory",
@@ -95,7 +87,7 @@
             "keyColor": "magenta",
 	    "format": "{day-in-month}.{month-pretty}.{year} {hour-pretty}:{minute-pretty}",
         },
-        {
+	{
             "type": "custom",
             "format": "\u001b[90m└───────────────────────────────────────────────┘"
         },

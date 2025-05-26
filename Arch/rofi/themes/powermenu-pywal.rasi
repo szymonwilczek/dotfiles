@@ -1,0 +1,41 @@
+@import "~/.config/rofi/themes/pywal-theme.rasi"
+
+* {
+    font: "JetBrains Mono Bold 11";
+}
+
+window {
+    width:              280px;
+    height:             290px;
+    padding:            10px;
+}
+
+mainbox {
+    children: [ listview ];
+}
+
+inputbar { enabled: false; }
+prompt { enabled: false; }
+entry { enabled: false; }
+
+listview {
+    lines: 4;
+    fixed-height: true;
+    spacing: 10px;
+}
+
+element {
+    padding:            15px;
+    horizontal-align:   0;
+}
+
+element-text {
+    horizontal-align:   0;
+    vertical-align:     0.5;
+    expand:             true;
+}
+
+element-icon {
+    size: 1.4em;
+    vertical-align: 0.5;
+}
