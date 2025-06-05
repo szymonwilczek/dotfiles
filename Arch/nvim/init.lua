@@ -49,3 +49,5 @@ else
 	loadPlugins()
 	loadBase46Cache()
 end
+
+vim.opt.clipboard = "unnamedplus"

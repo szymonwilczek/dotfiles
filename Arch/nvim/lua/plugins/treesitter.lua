@@ -1,6 +1,6 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
-	event = { "BufReadPost", "BufNewFile", "VeryLazy" },
+	event = {"BufReadPre", "BufReadPost", "BufNewFile", "VeryLazy" },
 	cmd = { "TSInstall", "TSBufEnable", "TSBufDisable", "TSModuleInfo" },
 	build = ":TSUpdate",
 	dependencies = {
@@ -13,6 +13,10 @@ return {
 		treesitter.setup({
 			ensure_installed = {
 				"tsx",
+				"c",
+				"cpp",
+				"rust",
+				"javascript",
 				"typescript",
 				"toml",
 				"json",
