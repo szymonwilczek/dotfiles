@@ -1,53 +1,43 @@
-require("core")
+vim.g.base46_cache = vim.fn.stdpath "data" .. "/base46/"
+vim.g.mapleader = " "
 
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+-- disable netrw at the very start of your init.lua
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
 
-local function shell_call(args)
-	local output = vim.fn.system(args)
-	assert(vim.v.shell_error == 0, "External call failed with error code: " .. vim.v.shell_error .. "\n" .. output)
+-- bootstrap lazy and all plugins
+local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
+
+if not vim.uv.fs_stat(lazypath) then
+  local repo = "https://github.com/folke/lazy.nvim.git"
+  vim.fn.system { "git", "clone", "--filter=blob:none", repo, "--branch=stable", lazypath }
 end
 
-local function echo(str)
-	vim.cmd("redraw")
-	vim.api.nvim_echo({ { str, "Bold" } }, true, {})
-end
+vim.opt.rtp:prepend(lazypath)
 
-local function loadPlugins()
-	vim.opt.rtp:prepend(lazypath)
-	require("lazy").setup("plugins", {
-		change_detection = {
-			notify = false,
-		},
-	})
-end
+local lazy_config = require "configs.lazy"
 
-local function setup()
-	--------- lazy.nvim ---------------
-	echo("  Installing lazy.nvim & plugins ...")
-	local repo = "https://github.com/folke/lazy.nvim.git"
-	shell_call({ "git", "clone", "--depth=1", "--branch=stable", repo, lazypath })
+-- load plugins
+require("lazy").setup({
+  {
+    "NvChad/NvChad",
+    lazy = false,
+    branch = "v2.5",
+    import = "nvchad.plugins",
+  },
 
-	--------- load plugins ---------------
-	loadPlugins()
+  { import = "plugins" },
+}, lazy_config)
 
-	--------- install mason packages ---------------
-	vim.cmd("MasonToolsInstall")
-end
+-- load theme
+dofile(vim.g.base46_cache .. "defaults")
+dofile(vim.g.base46_cache .. "statusline")
 
-local function loadBase46Cache()
-	-- Load all base46 cache files
-	for _, v in ipairs(vim.fn.readdir(vim.g.base46_cache)) do
-		dofile(vim.g.base46_cache .. v)
-	end
-end
+require "options"
+require "autocmds"
 
-vim.g.base46_cache = vim.fn.stdpath("data") .. "/base46_cache/"
-local hasLazy = vim.loop.fs_stat(lazypath)
-if not hasLazy then
-	setup()
-else
-	loadPlugins()
-	loadBase46Cache()
-end
+vim.schedule(function()
+  require "mappings"
+end)
 
-vim.opt.clipboard = "unnamedplus"
+require("nvim-tree").setup()
