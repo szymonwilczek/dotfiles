@@ -3,14 +3,12 @@ return {
     "stevearc/conform.nvim",
     opts = require "configs.conform",
   },
-
   {
     "neovim/nvim-lspconfig",
     config = function()
       require "configs.lspconfig"
     end,
   },
-
   {
     "hrsh7th/nvim-cmp",
     event = "InsertEnter",
@@ -21,27 +19,47 @@ return {
       "hrsh7th/cmp-buffer",
       "L3MON4D3/LuaSnip",
       "onsails/lspkind.nvim",
-      "zbirenbaum/copilot-cmp",
+      "hrsh7th/cmp-cmdline",
     },
     config = function()
       local cmp = require "cmp"
       local lspkind = require "lspkind"
+      local luasnip = require "luasnip"
 
       cmp.setup {
         snippet = {
           expand = function(args)
-            require("luasnip").lsp_expand(args.body)
+            luasnip.lsp_expand(args.body)
           end,
         },
         mapping = cmp.mapping.preset.insert {
+          ["<C-p>"] = cmp.mapping.select_prev_item(),
+          ["<C-n>"] = cmp.mapping.select_next_item(),
           ["<C-b>"] = cmp.mapping.scroll_docs(-4),
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<C-e>"] = cmp.mapping.abort(),
           ["<CR>"] = cmp.mapping.confirm { select = true },
+          ["<Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_next_item()
+            elseif luasnip.expand_or_jumpable() then
+              luasnip.expand_or_jump()
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
+          ["<S-Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.select_prev_item()
+            elseif luasnip.jumpable(-1) then
+              luasnip.jump(-1)
+            else
+              fallback()
+            end
+          end, { "i", "s" }),
         },
         sources = cmp.config.sources {
-          { name = "copilot" },
           { name = "nvim_lsp" },
           { name = "luasnip" },
           { name = "path" },
@@ -55,87 +73,45 @@ return {
             show_labelDetails = true,
           },
         },
+        window = {
+          completion = cmp.config.window.bordered(),
+          documentation = cmp.config.window.bordered(),
+        },
       }
-
-      cmp.setup.cmdline("/", {
-        mapping = cmp.mapping.preset.cmdline(),
-        sources = { { name = "buffer" } },
-      })
-      cmp.setup.cmdline(":", {
-        mapping = cmp.mapping.preset.cmdline(),
-        sources = cmp.config.sources({
-          { name = "path" },
-        }, {
-          { name = "cmdline" },
-        }),
-      })
     end,
   },
   {
-
     "nvim-treesitter/nvim-treesitter",
-
     event = { "BufReadPre", "BufNewFile", "VeryLazy" },
-
     cmd = { "TSInstall", "TSBufEnable", "TSBufDisable", "TSModuleInfo" },
-
     build = ":TSUpdate",
-
-    dependencies = {
-
-      { "windwp/nvim-ts-autotag" },
-
-    },
-
+    dependencies = { { "windwp/nvim-ts-autotag" }, },
     config = function()
       require("nvim-ts-autotag").setup {}
 
       local treesitter = require "nvim-treesitter.configs"
 
-
       treesitter.setup {
-
         ensure_installed = {
-
           "tsx",
-
           "typescript",
-
           "toml",
-
           "json",
-
           "yaml",
-
           "go",
-
           "css",
-
           "html",
-
           "lua",
-
           "vim",
-
           "vimdoc",
-
           "bash",
-
           "java",
-
         },
-
         highlight = {
-
           enable = true,
-
           use_languagetree = true,
-
         },
-
-
         auto_install = true,
-
         disable = function(_, buf)
           local max_filesize = 100 * 1024
 
@@ -146,18 +122,20 @@ return {
           end
         end,
 
-
         indent = {
-
           enable = true,
-
           disable = {},
-
         },
-
       }
     end,
-
+  },
+  {
+    "vyfor/cord.nvim",
+    lazy = false,
+    build = ":Cord update",
+    config = function()
+      require("cord").setup()
+    end,
   },
   {
     "nvim-tree/nvim-tree.lua",
@@ -168,92 +146,7 @@ return {
       require("nvim-tree").setup {}
     end,
   },
-
-  {
-    "zbirenbaum/copilot.lua",
-    cmd = "Copilot",
-    event = "InsertEnter",
-    config = function()
-      require("copilot").setup {
-        suggestion = {
-          enabled = true,
-          auto_trigger = true,
-          keymap = {
-            accept = "<Tab>",
-          },
-        },
-        panel = { enabled = false },
-        filetypes = {
-          javascript = true,
-          typescript = true,
-          python = true,
-          lua = true,
-          cpp = true,
-          c = true,
-        },
-        server_opts = {
-          telemetry = {
-            telemetryLevel = "off",
-          },
-        },
-      }
-    end,
-  },
-  {
-    "zbirenbaum/copilot-cmp",
-    dependencies = "copilot.lua",
-    config = function()
-      require("copilot_cmp").setup()
-    end,
-  },
-
-  { "wakatime/vim-wakatime",       lazy = false },
-  { "szymonwilczek/vim-be-better", lazy = false },
-  {
-    "folke/flash.nvim",
-    event = "VeryLazy",
-    opts = {},
-
-    config = function(_, opts)
-      require("flash").setup(opts)
-
-      local keymap = vim.keymap.set
-      local flash = require("flash")
-      keymap({ "n", "x", "o" }, "s", flash.jump, { desc = "Flash" })
-      keymap({ "n", "x", "o" }, "S", flash.treesitter, { desc = "Flash Treesitter" })
-      keymap("o", "r", flash.remote, { desc = "Remote Flash" })
-      keymap({ "o", "x" }, "R", flash.treesitter_search, { desc = "Treesitter Search" })
-      keymap("c", "<C-s>", flash.toggle, { desc = "Toggle Flash Search" })
-    end,
-  },
-  {
-    "kdheepak/lazygit.nvim",
-    lazy = false,
-    cmd = {
-      "LazyGit",
-      "LazyGitConfig",
-      "LazyGitCurrentFile",
-      "LazyGitFilter",
-      "LazyGitFilterCurrentFile",
-    },
-    keys = {
-      { "<leader>lg", "<cmd>LazyGit<cr>", desc = "Open LazyGit" },
-      {
-        "<leader>lgt",
-        function()
-          require("telescope").extensions.lazygit.lazygit()
-        end,
-        desc = "LazyGit Telescope",
-      },
-    },
-    dependencies = {
-      "nvim-telescope/telescope.nvim",
-      "nvim-lua/plenary.nvim",
-    },
-    config = function()
-      require("telescope").load_extension "lazygit"
-    end,
-  },
+  { "wakatime/vim-wakatime", lazy = false },
   {
     "rmagatti/auto-session",
     lazy = false,
@@ -268,9 +161,48 @@ return {
     lazy = false,
     ---@type snacks.Config
     opts = {
+      scroll = {
+        animate = {
+          duration = { step = 5, total = 200 },
+          easing = "linear",
+        },
+        filter = function(buf)
+          return vim.g.snacks_scroll ~= false
+            and vim.b[buf].snacks_scroll ~= false
+            and vim.bo[buf].buftype ~= "terminal"
+            and vim.bo[buf].filetype ~= "alpha"
+        end,
+      },
       lazygit = {
         configure = true,
-      }
-    }
-  }
+        config = {
+          os = { editPreset = "nvim-remote" },
+          gui = {
+            nerdFontsVersion = "3",
+            showIcons = false,
+          },
+          git = {
+            overrideGpg = true,
+          },
+        },
+      },
+    },
+    keys = {
+      {
+        "<leader>lg",
+        function()
+          Snacks.lazygit()
+        end,
+        desc = "Lazygit (Snacks)",
+      },
+    },
+  },
+  {
+    "thekylehuang/cole.nvim",
+    lazy = false,
+    priority = 1000,
+    config = function()
+      vim.cmd.colorscheme "cole"
+    end,
+  },
 }
