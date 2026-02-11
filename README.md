@@ -18,7 +18,7 @@ For quick installation script for Arch Hyprland please refer to [this issue](htt
 
 ### Fedora
 
-<img width="1908" height="1076" alt="obraz" src="https://github.com/user-attachments/assets/02144eb5-54c5-4328-a7cc-14a86c6454e0" />
+<img width="1920" height="1080" alt="Zrzut ekranu z 2026-02-11 22-27-36" src="https://github.com/user-attachments/assets/b643fc74-2028-4343-bc52-b668355c0960" />
 
 
 
