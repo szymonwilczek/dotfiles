@@ -1,0 +1,86 @@
+[
+  {
+    "output": "DP-2",
+    "layer": "top",
+    "position": "top",
+    "height": 36,
+    "spacing": 4,
+    "margin-top": 6,
+    "margin-left": 10,
+    "margin-right": 10,
+    
+    "modules-left": ["custom/fedora", "hyprland/window"],
+    "modules-center": ["clock"],
+    "modules-right": ["tray", "network", "pulseaudio", "custom/power"],
+
+    "custom/fedora": {
+        "format": "",
+        "tooltip": false,
+        "on-click": "wofi --show drun"
+    },
+    
+    "hyprland/window": {
+      "format": "{}", 
+      "separate-outputs": false,
+      "rewrite": {
+          "^.*(Mozilla Firefox).*$": "Firefox",
+          "^.*(discord|Discord).*$": "Discord",
+          "^$": "Pulpit"
+      },
+      "max-length": 35
+    },
+
+    "clock": {
+      "locale": "pl_PL.UTF-8",
+      "format": "{:%a, %d %b  %H:%M}",
+      "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+      "on-click": "gnome-calendar"
+    },
+
+    "network": {
+        "format-wifi": "  {essid}",
+        "format-ethernet": "󰌗    LAN",
+        "format-disconnected": "⚠  Brak sieci",
+        "tooltip-format": "{ipaddr}",
+        "on-click": "env XDG_CURRENT_DESKTOP=GNOME gnome-control-center"
+    },
+
+    "pulseaudio": {
+        "format": "{icon}   {volume}%",
+        "format-muted": "󰝟  Wyciszony",
+        "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "on-click": "pavucontrol -t 3"
+    },
+
+    "tray": {
+        "spacing": 10
+    },
+
+    "custom/power": {
+      "format": "⏻",
+      "tooltip": false,
+      "on-click": "wlogout"
+    }
+  },
+
+  {
+    "output": ["DP-1", "HDMI-A-1"],
+    "layer": "top",
+    "position": "bottom",
+    "exclusive": false,
+    "passthrough": true,
+    "margin-bottom": 15,
+    "margin-right": 15,
+    "modules-left": [],
+    "modules-center": [],
+    "modules-right": ["clock"],
+
+    "clock": {
+        "format": "{:%H:%M}",
+        "locale": "pl_PL.UTF-8",
+        "tooltip": false
+    }
+  }
+]
