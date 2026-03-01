@@ -161,18 +161,6 @@ return {
     lazy = false,
     ---@type snacks.Config
     opts = {
-      scroll = {
-        animate = {
-          duration = { step = 5, total = 200 },
-          easing = "linear",
-        },
-        filter = function(buf)
-          return vim.g.snacks_scroll ~= false
-            and vim.b[buf].snacks_scroll ~= false
-            and vim.bo[buf].buftype ~= "terminal"
-            and vim.bo[buf].filetype ~= "alpha"
-        end,
-      },
       lazygit = {
         configure = true,
         config = {
