@@ -36,4 +36,6 @@ echo "\$color2 = $C2" >> "$WAL_FILE"
 hyprctl reload
 pkill -USR2 waybar
 
+bash ~/.config/hypr/scripts/gtk4-pywal.sh
+
 notify-send -a "Menedżer Tapet" "🎨 Nowa tapeta" "Tapeta została zmieniona!"
