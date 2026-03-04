@@ -26,14 +26,31 @@ window#waybar {
   padding-left: 8px;
 }
 
+#workspaces {
+    margin: 0;
+    padding: 0;
+}
+
 #workspaces button {
-  color: #a6a6a6;
+    color: @color3;
+    font-size: 16px;
+    font-weight: 800;
+    padding: 0px 2px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+#workspaces button:hover {
+    background: transparent;
+    border: none;
+    box-shadow: none;
 }
 
 #window {
   color: #ffffff;
   padding-right: 10px;
-  padding-left: 10px;
+  padding-left: 4px;
 }
 
 #clock {
@@ -58,12 +75,10 @@ window#waybar {
 
 window#waybar.bottom {
   background: transparent;
-  /* Usuwamy tło całego paska */
   border: none;
   box-shadow: none;
 }
 
-/* Usuwamy styl "pigułki" z kontenerów modułów dla paska na dole */
 window#waybar.bottom .modules-left,
 window#waybar.bottom .modules-center,
 window#waybar.bottom .modules-right {
@@ -73,7 +88,6 @@ window#waybar.bottom .modules-right {
   margin: 0;
 }
 
-/* Nadajemy styl pigułki SAMEMU zegarowi */
 window#waybar.bottom #clock {
   background-color: rgba(30, 30, 30, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.1);

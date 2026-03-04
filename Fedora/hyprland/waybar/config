@@ -1,5 +1,5 @@
 [
-  {
+{
     "output": "DP-2",
     "layer": "top",
     "position": "top",
@@ -9,7 +9,7 @@
     "margin-left": 10,
     "margin-right": 10,
     
-    "modules-left": ["custom/fedora", "hyprland/window"],
+    "modules-left": ["custom/fedora", "hyprland/workspaces","hyprland/window"],
     "modules-center": ["clock"],
     "modules-right": ["tray", "network", "pulseaudio", "custom/power"],
 
@@ -17,6 +17,13 @@
         "format": "",
         "tooltip": false,
         "on-click": "wofi --show drun"
+    },
+
+    "hyprland/workspaces": {
+        "format": "{name}",
+        "active-only": true,
+        "all-outputs": false,
+        "disable-scroll": true
     },
     
     "hyprland/window": {
@@ -62,25 +69,30 @@
       "format": "⏻",
       "tooltip": false,
       "on-click": "wlogout"
-    }
-  },
-
-  {
-    "output": ["DP-1", "HDMI-A-1"],
-    "layer": "top",
-    "position": "bottom",
-    "exclusive": false,
-    "passthrough": true,
-    "margin-bottom": 15,
-    "margin-right": 15,
-    "modules-left": [],
-    "modules-center": [],
-    "modules-right": ["clock"],
-
-    "clock": {
-        "format": "{:%H:%M}",
-        "locale": "pl_PL.UTF-8",
-        "tooltip": false
-    }
   }
-]
+},
+
+{
+        "output": ["DP-1", "HDMI-A-1"], // Podmień na swoje nazwy
+        "layer": "top",
+        "position": "bottom",
+        "exclusive": false,
+        "passthrough": true,
+        // Kotwiczymy pasek do dołu i do prawej:
+        "margin-bottom": 15,
+        "margin-right": 15,
+
+        // Moduły wrzucamy tylko do prawej sekcji:
+        "modules-left": [],
+        "modules-center": [],
+        "modules-right": ["clock"],
+
+        "clock": {
+            "format": "{:%H:%M}",
+            "locale": "pl_PL.UTF-8",
+            "tooltip": false
+        }
+    }
+
+
+    ]
