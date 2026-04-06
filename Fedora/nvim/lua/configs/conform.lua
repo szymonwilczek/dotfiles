@@ -7,6 +7,7 @@ local options = {
     cpp = { "clang_format" },
     rust = { "rustfmt "},
     go = { "gofumpt", "goimports" },
+    cs = { "csharpier" },
   },
 }
 

@@ -85,11 +85,11 @@ return {
     event = { "BufReadPre", "BufNewFile", "VeryLazy" },
     cmd = { "TSInstall", "TSBufEnable", "TSBufDisable", "TSModuleInfo" },
     build = ":TSUpdate",
-    dependencies = { { "windwp/nvim-ts-autotag" }, },
+    dependencies = { { "windwp/nvim-ts-autotag" } },
     config = function()
       require("nvim-ts-autotag").setup {}
 
-      local treesitter = require "nvim-treesitter.configs"
+      local treesitter = require "nvim-treesitter"
 
       treesitter.setup {
         ensure_installed = {
@@ -162,25 +162,23 @@ return {
     ---@type snacks.Config
     opts = {
       scroll = {
-          animate = {
-            duration = { step = 5, total = 80 },
-            easing = "linear",
-          },
-          animate_repeat = {
-            delay = 50,
-            duration = { step = 3, total = 30 },
-          },
+        animate = {
+          duration = { step = 5, total = 80 },
+          easing = "linear",
+        },
+        animate_repeat = {
+          delay = 50,
+          duration = { step = 3, total = 30 },
+        },
       },
       lazygit = {
         configure = true,
         config = {
           os = { editPreset = "nvim-remote" },
-          gui = {
-            nerdFontsVersion = "3",
-            showIcons = false,
-          },
+          gui = { nerdFontsVersion = "3", showIcons = true },
           git = {
             overrideGpg = true,
+            paging = { colorArg = "always", pager = "delta --paging=never" },
           },
         },
       },
