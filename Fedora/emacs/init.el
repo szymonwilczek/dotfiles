@@ -120,34 +120,28 @@
   :hook ((c-mode . eglot-ensure)
          (go-mode . eglot-ensure)))
 
-;; 2. Zabij UI zanim zdąży się narysować (zero mrugania)
+;; kill ui before draw 
 (push '(menu-bar-lines . 0) default-frame-alist)
 (push '(tool-bar-lines . 0) default-frame-alist)
 (push '(vertical-scroll-bars) default-frame-alist)
 
-
-
-;; Zrób z Emacsa w terminalu Neovima (przejęcie myszy)
+;; mouse control 
 (xterm-mouse-mode 1)
-
-;; Upewnij się, że kółko myszy jest globalnie włączone
 (mouse-wheel-mode 1)
-
-;; (Opcjonalnie) Krok scrollowania: 1 linijka zamiast przeskakiwania o pół ekranu
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
-(setq mouse-wheel-progressive-speed nil) ; Wyłącza przyspieszanie scrolla
+(setq mouse-wheel-progressive-speed nil) ; acceleration off 
 
 
 
+;; =========
+;; clipboard 
+;; =========
 
-;; --- Prawdziwy, systemowy schowek w terminalu i GUI ---
-
-;; 1. Powiedz Emacsowi, żeby domyślnie ufał schowkowi systemowemu
 (setq select-enable-clipboard t)
 (setq select-enable-primary t)
 (setq evil-kill-on-visual-paste nil)
 
-;; 2. Most dla terminala (-nw) (automatycznie użyje wl-clipboard na Waylandzie)
+;; bridge for terminal 
 (setq interprogram-cut-function
       (lambda (text)
 	(let* ((process-connection-type nil)
@@ -160,20 +154,18 @@
 	(shell-command-to-string "wl-paste -n")))
 
 
-
+;; ======
+;; socket 
+;; ======
+;; Mostly tied with my personal "power-user" configuration for switching theme for ALL using one keybind.
 
 (require 'server)
 (unless (server-running-p)
   (server-start))
+
+
+
 (custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
  '(package-selected-packages nil))
 (custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
  )
