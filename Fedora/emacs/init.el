@@ -1,6 +1,6 @@
-;; ==========
-;; fast start 
-;; ==========
+;; ====================
+;; engine (quick start) 
+;; ====================
 (setq gc-cons-threshold (* 50 1024 1024))
 (add-hook 'emacs-startup-hook
           (lambda () (setq gc-cons-threshold (* 2 1024 1024))))
@@ -23,24 +23,21 @@
 (scroll-bar-mode -1)
 (setq ring-bell-function 'ignore)
 
-;; static line numbers
+;; static line numbers 
 (setq display-line-numbers-type t)
 (global-display-line-numbers-mode t)
 
 (setq jit-lock-chunk-size 256000)
-
-;; bidi off 
 (setq-default bidi-display-reordering 'left-to-right)
 (setq bidi-inhibit-bpa t)
-
 (blink-cursor-mode -1)
 (setq resize-mini-windows nil)
 
-(recentf-mode 1)
+(recentf-mode 1) ;; for fzf
 (setq recentf-max-saved-items 50)
 
 ;; =======
-;; modules 
+;; modules
 ;; =======
 (add-to-list 'load-path (expand-file-name "modules" user-emacs-directory))
 
@@ -55,9 +52,10 @@
 (require 'modeline-config)
 (require 'whichkey-config)
 (require 'org-config)
+(require 'wakatime-config)
 
 ;; ==========
-;; treesitter 
+;; treesitter
 ;; ==========
 (setq treesit-font-lock-level 4)
 
@@ -82,7 +80,7 @@
         (yaml-mode . yaml-ts-mode)
         (tsx-mode . tsx-ts-mode)))
 
-;; manual bindng
+;; manual binding
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
@@ -94,12 +92,9 @@
   :ensure t
   :mode ("\\.md\\'" . markdown-mode))
 
-
-;; ======
-;; tweaks 
-;; ======
-
-;; native bg for terminal usage 
+;; =======
+;; theming
+;; =======
 (use-package ef-themes
   :config
   (load-theme 'ef-day t))
@@ -110,38 +105,32 @@
             (setq gc-cons-threshold (* 16 1024 1024))))
 
 ;; silence ui 
-(setq inhibit-startup-screen t)        ; no log 
-(setq initial-scratch-message nil)     ; empty scratch 
-(setq ring-bell-function 'ignore)      ; silence 
+(setq inhibit-startup-screen t)        ; Brak loga
+(setq initial-scratch-message nil)     ; Czysty scratch
+(setq ring-bell-function 'ignore)      ; POPRAWIONE: Cisza
 
-;; eglot
 (use-package eglot
   :ensure nil
   :hook ((c-mode . eglot-ensure)
          (go-mode . eglot-ensure)))
 
-;; kill ui before draw 
-(push '(menu-bar-lines . 0) default-frame-alist)
-(push '(tool-bar-lines . 0) default-frame-alist)
-(push '(vertical-scroll-bars) default-frame-alist)
 
-;; mouse control 
 (xterm-mouse-mode 1)
 (mouse-wheel-mode 1)
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
-(setq mouse-wheel-progressive-speed nil) ; acceleration off 
+(setq mouse-wheel-progressive-speed nil)
+
 
 
 
 ;; =========
-;; clipboard 
+;; clipboard
 ;; =========
 
 (setq select-enable-clipboard t)
 (setq select-enable-primary t)
 (setq evil-kill-on-visual-paste nil)
 
-;; bridge for terminal 
 (setq interprogram-cut-function
       (lambda (text)
 	(let* ((process-connection-type nil)
@@ -155,14 +144,15 @@
 
 
 ;; ======
-;; socket 
+;; socket
 ;; ======
-;; Mostly tied with my personal "power-user" configuration for switching theme for ALL using one keybind.
+
+;; This is mostly tied with my own personal configuration
+;; for "power-user" one click theme switch
 
 (require 'server)
 (unless (server-running-p)
   (server-start))
-
 
 
 (custom-set-variables
