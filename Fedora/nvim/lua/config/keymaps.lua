@@ -30,5 +30,17 @@ vim.keymap.set('n', '<leader>tt', function()
   else
     vim.o.background = 'dark'
   end
-  print("Motyw: " .. (vim.o.background == 'dark' and 'Ciemny 🍂' or 'Jasny ☀️'))
+  print('Motyw: ' .. (vim.o.background == 'dark' and 'Ciemny 🍂' or 'Jasny ☀️'))
 end, { desc = '[T]oggle [T]heme' })
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'gitcommit',
+  callback = function()
+    vim.keymap.set('n', '<leader>s', function()
+      local name = vim.fn.systemlist('git config user.name')[1] or 'User'
+      local email = vim.fn.systemlist('git config user.email')[1] or 'email@example.com'
+      local signoff = string.format('Signed-off-by: %s <%s>', name, email)
+      vim.api.nvim_buf_set_lines(0, -1, -1, false, { '', signoff })
+    end, { buffer = true, desc = 'Git: Add Signed-off-by' })
+  end,
+})

@@ -106,7 +106,7 @@ return {
           treesitter = true,
           mini = true,
           semantic_tokens = true,
-          orgmode = true
+          orgmode = true,
         },
       }
       vim.cmd.colorscheme 'ef-theme'
