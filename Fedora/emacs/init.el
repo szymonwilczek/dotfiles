@@ -88,19 +88,19 @@
 
 
 (custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-    '("749a7bb14efeb8b6c9b251c7a771ab7de500b247eb35f69bfccbdfca27e0602c"
-       "546f3e8c4cb46043df1f646322c4b57049fc4c31fdf96e41db077c3408660057"
-       "0a8cf72fd94bfb67dd72dc085538b39ea47aeae8bfc2b8545c0d3c99c339c204"
-       default))
- '(package-selected-packages nil))
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+  '(custom-safe-themes
+     '("749a7bb14efeb8b6c9b251c7a771ab7de500b247eb35f69bfccbdfca27e0602c"
+	"546f3e8c4cb46043df1f646322c4b57049fc4c31fdf96e41db077c3408660057"
+	"0a8cf72fd94bfb67dd72dc085538b39ea47aeae8bfc2b8545c0d3c99c339c204"
+	default))
+  '(package-selected-packages nil))
 (custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+  )
