@@ -1,161 +1,106 @@
-;; ====================
-;; engine (quick start) 
-;; ====================
-(setq gc-cons-threshold (* 50 1024 1024))
-(add-hook 'emacs-startup-hook
-          (lambda () (setq gc-cons-threshold (* 2 1024 1024))))
-
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-(require 'use-package)
-(setq use-package-always-ensure t)
-
-;; ================
-;; ui & performance
-;; ================
-(setq inhibit-startup-message t)
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(setq ring-bell-function 'ignore)
-
-;; static line numbers 
-(setq display-line-numbers-type t)
-(global-display-line-numbers-mode t)
-
-(setq jit-lock-chunk-size 256000)
-(setq-default bidi-display-reordering 'left-to-right)
-(setq bidi-inhibit-bpa t)
-(blink-cursor-mode -1)
-(setq resize-mini-windows nil)
-
-(recentf-mode 1) ;; for fzf
-(setq recentf-max-saved-items 50)
-
-;; =======
-;; modules
-;; =======
 (add-to-list 'load-path (expand-file-name "modules" user-emacs-directory))
 
-(require 'evil-config)
-(require 'keybinds-config)
-(require 'treemacs-config)
-(require 'tabs-config)
-(require 'fuzzy-config)
-(require 'format-config)
-(require 'completion-config)
-(require 'git-config)
-(require 'modeline-config)
-(require 'whichkey-config)
-(require 'org-config)
-(require 'wakatime-config)
+(require 'core)
+(require 'setup-vim)
+(require 'setup-ui)
+(require 'setup-projects)
+(require 'setup-completion)
+(require 'setup-tabs)
+(require 'setup-dashboard)
+(require 'setup-format)
+(require 'setup-lsp)
+(require 'setup-wakatime)
+(require 'setup-autocomplete)
+(require 'setup-magit)
+(require 'setup-org)
+(require 'setup-terminal)
 
-;; ==========
-;; treesitter
-;; ==========
-(setq treesit-font-lock-level 4)
+(defun my/open-scratch ()
+  "Opens or creates clear *scratch* buffer."
+  (interactive)
+  (switch-to-buffer "*scratch*"))
 
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (setq treesit-auto-langs '(c cpp java javascript typescript tsx html css json yaml))
-  (global-treesit-auto-mode))
+(defun my/consult-fd-in-project ()
+  "Searches for files in current project (or current dir if not in project)."
+  (interactive)
+  (let ((root (projectile-project-root)))
+    (if root
+      (consult-fd root)
+      (consult-fd))))
 
-(setq major-mode-remap-alist
-      '((c-mode . c-ts-mode)
-        (c++-mode . c++-ts-mode)
-        (c-or-c++-mode . c-or-c++-ts-mode)
-        (typescript-mode . typescript-ts-mode)
-        (javascript-mode . js-ts-mode)
-        (js-mode . js-ts-mode)
-        (css-mode . css-ts-mode)
-        (java-mode . java-ts-mode)
-        (html-mode . html-ts-mode)
-        (json-mode . json-ts-mode)
-        (yaml-mode . yaml-ts-mode)
-        (tsx-mode . tsx-ts-mode)))
+(defun my/consult-rg-in-project ()
+  "Ripgrep text in current project (or dir)."
+  (interactive)
+  (let ((root (projectile-project-root)))
+    (if root
+      (consult-ripgrep root)
+      (consult-ripgrep))))
 
-;; manual binding
-(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.js\\'" . js-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.jsx\\'" . tsx-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
-
-(use-package markdown-mode
-  :ensure t
-  :mode ("\\.md\\'" . markdown-mode))
-
-;; =======
-;; theming
-;; =======
-(use-package ef-themes
-  :config
-  (load-theme 'ef-day t))
-
-;; restore garbage collection
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold (* 16 1024 1024))))
-
-;; silence ui 
-(setq inhibit-startup-screen t)        ; Brak loga
-(setq initial-scratch-message nil)     ; Czysty scratch
-(setq ring-bell-function 'ignore)      ; POPRAWIONE: Cisza
-
-(use-package eglot
-  :ensure nil
-  :hook ((c-mode . eglot-ensure)
-         (go-mode . eglot-ensure)))
+(defun my/open-folder (dir)
+  "Pick any directory. Emacs will make it a project and will load it into Treemacs."
+  (interactive "DOpen folder: ")
+  (let ((default-directory dir))
+    (projectile-add-known-project dir)
+    (when (featurep 'treemacs)
+      (treemacs-display-current-project-exclusively)
+      (treemacs-select-window))))
 
 
-(xterm-mouse-mode 1)
-(mouse-wheel-mode 1)
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
-(setq mouse-wheel-progressive-speed nil)
+(with-eval-after-load 'general
+  (my-leader-def
+    ;; F - Files (Find)
+    "f" '(:ignore t :which-key "Files")
+    "ff" '(my/consult-fd-in-project :which-key "Find File (Project)")
+    "fw" '(my/consult-rg-in-project :which-key "Find Word (Project)")
+    "bb" '(consult-project-buffer :which-key "Project Buffers")
+    
+    ;; Tools 
+    "tt" '(load-theme :which-key "Toggle Theme")
+    "b" (lambda () (interactive) 
+          (switch-to-buffer (generate-new-buffer "untitled"))
+          (text-mode))
+    "x" '(kill-current-buffer :which-key "Kill Buffer")
+    
+    ;; E - Explorer
+    "e"  '(:ignore t :which-key "Explorer")
+    "ee" '(treemacs :which-key "Toggle Treemacs")
+    "ef" '(treemacs-find-file :which-key "Find current file in tree")
 
+    ;; O - Open
+    "o"  '(:ignore t :which-key "Open")
+    "os" '(my/open-scratch :which-key "Scratch Buffer")
 
-
-
-;; =========
-;; clipboard
-;; =========
-
-(setq select-enable-clipboard t)
-(setq select-enable-primary t)
-(setq evil-kill-on-visual-paste nil)
-
-(setq interprogram-cut-function
-      (lambda (text)
-	(let* ((process-connection-type nil)
-	       (proc (start-process "wl-copy" nil "wl-copy")))
-	  (process-send-string proc text)
-	  (process-send-eof proc))))
-
-(setq interprogram-paste-function
-      (lambda()
-	(shell-command-to-string "wl-paste -n")))
-
-
-;; ======
-;; socket
-;; ======
-
-;; This is mostly tied with my own personal configuration
-;; for "power-user" one click theme switch
-
-(require 'server)
-(unless (server-running-p)
-  (server-start))
+    ;; G - Git related
+    "g"  '(:ignore t :which-key "Git / Code") ;; 'g' mieliśmy w LSP, tu dodajemy Git
+    "gs" '(my/magit-status-treemacs-project :which-key "Magit Status (Treemacs Sync)")
+    "gl" '(magit-log-current :which-key "Magit Log")
+    "gb" '(magit-blame-addition :which-key "Magit Blame")
+    "gf" '(magit-fetch :which-key "Magit Fetch")
+    "gP" '(magit-push-current :which-key "Magit Push")
+    "gp" '(magit-pull-branch :which-key "Magit Pull")
+    
+    ;; P - Projects
+    "p"  '(:ignore t :which-key "Projects")
+    "po" '(projectile-switch-project :which-key "Open Project (List)")
+    "pf" '(my/open-folder :which-key "Open Folder (Anywhere)") ; <--- TWOJA NOWA SUPERBROŃ
+    "pa" '(treemacs-add-project-to-workspace :which-key "Add Project to Tree")
+    "pd" '(treemacs-remove-project-from-workspace :which-key "Remove Project from Tree")))
 
 
 (custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+    '("749a7bb14efeb8b6c9b251c7a771ab7de500b247eb35f69bfccbdfca27e0602c"
+       "546f3e8c4cb46043df1f646322c4b57049fc4c31fdf96e41db077c3408660057"
+       "0a8cf72fd94bfb67dd72dc085538b39ea47aeae8bfc2b8545c0d3c99c339c204"
+       default))
  '(package-selected-packages nil))
 (custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  )

@@ -3,4 +3,4 @@
   :config
   (global-wakatime-mode))
 
-(provide 'wakatime-config)
+(provide 'setup-wakatime)
