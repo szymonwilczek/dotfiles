@@ -1,0 +1,5 @@
+((forge-add-repository nil)
+ (forge-topic-menu nil)
+ (forge-topics-menu nil)
+ (magit-fetch nil)
+ (magit-stash nil))
