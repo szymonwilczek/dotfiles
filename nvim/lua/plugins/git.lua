@@ -56,7 +56,6 @@ return {
               if ft == 'gitcommit' then
                 local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
                 vim.api.nvim_buf_set_lines(0, row, row, false, { coauthor })
-                vim.notify 'Wstawiono tekst do bufora'
               else
                 local line = vim.api.nvim_get_current_line()
                 local commit_hash = line:match '(%x%x%x%x%x%x%x+)'
@@ -82,13 +81,11 @@ return {
                   )
                 end
 
-                print('WYKONUJĘ: ' .. cmd)
                 local out = vim.fn.system(cmd)
 
                 if vim.v.shell_error ~= 0 then
                   vim.notify('Git error: ' .. out, 'error')
                 else
-                  vim.notify 'Zmieniono commit!'
                   require('neogit').refresh()
                 end
               end
@@ -96,7 +93,6 @@ return {
           end,
         }, function() end)
       end
-
       vim.api.nvim_create_autocmd('FileType', {
         pattern = { 'NeogitLogView', 'NeogitStatus', 'gitcommit' },
         callback = function()

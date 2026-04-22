@@ -12,6 +12,7 @@ vim.keymap.set('i', '<A-j>', '<Down>', { desc = 'Przesuń w dół' })
 vim.keymap.set('i', '<A-k>', '<Up>', { desc = 'Przesuń w górę' })
 vim.keymap.set('i', '<A-b>', '<C-o>b', { desc = 'Skocz słowo w tył' })
 vim.keymap.set('n', ';', ':', { desc = 'Tryb komend przez ;' })
+vim.keymap.set('n', '<A-x>', require('telescope.builtin').commands, { desc = 'Telescope: [M]-x (Commands)' }) -- straight from emacs, love that
 
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
