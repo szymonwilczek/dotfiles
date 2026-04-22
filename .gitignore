@@ -2,3 +2,5 @@
 /.obsidian
 /.obsidian
 /.obsidian/themes
+nvim/spell/*
+nvim/*.json
