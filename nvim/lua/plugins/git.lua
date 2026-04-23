@@ -32,75 +32,78 @@ return {
         integrations = { diffview = true },
       }
 
-      local function add_coauthor_workflow()
-        local ft = vim.bo.filetype
-        local author_cmd = "(git log --format='%aN <%aE>'; git log --all --format='%(trailers:key=Co-authored-by,valueonly=true)') | sed '/^$/d' | sort -u"
+      local function git_sign_off()
+        local name = vim.fn.systemlist('git config user.name')[1] or ''
+        local email = vim.fn.systemlist('git config user.email')[1] or ''
+        local signoff = string.format('Signed-off-by: %s <%s>', name, email)
+
+        local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+        local insert_pos = #lines
+        for i, line in ipairs(lines) do
+          if line:match '^#' then
+            insert_pos = i - 1
+            break
+          end
+        end
+
+        if insert_pos > 0 and lines[insert_pos] ~= '' and not lines[insert_pos]:match '^#' then
+          vim.api.nvim_buf_set_lines(0, insert_pos, insert_pos, false, { '', signoff })
+        else
+          vim.api.nvim_buf_set_lines(0, insert_pos, insert_pos, false, { signoff })
+        end
+      end
+
+      local function add_coauthor_picker()
+        local target_buf = vim.api.nvim_get_current_buf()
+
+        -- after signed-off-by
+        local lines = vim.api.nvim_buf_get_lines(target_buf, 0, -1, false)
+        local signoff_idx = nil
+
+        for i, line in ipairs(lines) do
+          if line:match '^Signed%-off%-by:' then signoff_idx = i end
+        end
+
+        if not signoff_idx then
+          vim.notify('Error: You have to sign commit first!', vim.log.levels.ERROR)
+          return
+        end
+
+        local author_cmd = "git log --all --format='%aN <%aE>' | sort -u"
         local authors = vim.fn.systemlist(author_cmd)
 
         if #authors == 0 then
-          vim.notify('Brak autorów w historii!', 'error')
+          vim.notify('No other authors in commit history!', 'error')
           return
         end
 
         local Snacks = require 'snacks'
         Snacks.picker.select(authors, {
-          prompt = 'Dodaj współautora: ',
-          confirm = function(picker, item)
-            picker:close()
+          prompt = 'Pick co-author: ',
+        }, function(item)
+          if not item then return end
 
-            vim.schedule(function()
-              if not item then return end
-
-              local coauthor = 'Co-authored-by: ' .. item
-
-              if ft == 'gitcommit' then
-                local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-                vim.api.nvim_buf_set_lines(0, row, row, false, { coauthor })
-              else
-                local line = vim.api.nvim_get_current_line()
-                local commit_hash = line:match '(%x%x%x%x%x%x%x+)'
-
-                if not commit_hash then
-                  vim.notify('Nie widzę hasha pod kursorem!', 'error')
-                  return
-                end
-
-                local branch = vim.fn.systemlist('git branch --show-current')[1]
-                local cmd = string.format('git commit --amend --no-edit --trailer "Co-authored-by: %s"', item)
-
-                local head_hash = vim.fn.systemlist('git rev-parse HEAD')[1]
-                local is_head = (commit_hash:sub(1, 7) == head_hash:sub(1, 7))
-
-                if not is_head then
-                  cmd = string.format(
-                    'git checkout %s && git commit --amend --no-edit --trailer "Co-authored-by: %s" && git rebase --onto HEAD %s %s',
-                    commit_hash,
-                    item,
-                    commit_hash,
-                    branch
-                  )
-                end
-
-                local out = vim.fn.system(cmd)
-
-                if vim.v.shell_error ~= 0 then
-                  vim.notify('Git error: ' .. out, 'error')
-                else
-                  require('neogit').refresh()
-                end
-              end
-            end)
-          end,
-        }, function() end)
+          vim.schedule(function()
+            local coauthor = 'Co-authored-by: ' .. item
+            vim.api.nvim_buf_set_lines(target_buf, signoff_idx, signoff_idx, false, { coauthor, '' })
+            vim.api.nvim_win_set_cursor(0, { signoff_idx + 2, 0 })
+          end)
+        end)
       end
+
       vim.api.nvim_create_autocmd('FileType', {
-        pattern = { 'NeogitLogView', 'NeogitStatus', 'gitcommit' },
+        pattern = 'gitcommit',
         callback = function()
-          vim.keymap.set('n', '<leader>w', add_coauthor_workflow, {
-            buffer = true,
-            desc = 'Git: Add Co-author',
-            nowait = true,
-          })
+          local opts = { buffer = true, noremap = true, silent = true }
+
+          -- yeah, emacs bindings
+
+          -- C-c C-s (Sign-off)
+          vim.keymap.set({ 'n', 'i' }, '<C-c><C-s>', git_sign_off, opts)
+          vim.keymap.set('n', '<leader>s', git_sign_off, vim.tbl_extend('force', opts, { desc = 'Git: Sign-off' }))
+
+          -- C-c C-w (Co-author)
+          vim.keymap.set({ 'n', 'i' }, '<C-c><C-w>', add_coauthor_picker, opts)
         end,
       })
     end,

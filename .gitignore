@@ -4,3 +4,4 @@
 /.obsidian/themes
 nvim/spell/*
 nvim/*.json
+nvim/lazy-lock.json
