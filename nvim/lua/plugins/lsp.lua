@@ -149,6 +149,7 @@ return {
           typescriptreact = true,
           json = true,
           yaml = true,
+          python = true,
           -- lua = true,
           -- python = true,
         }
@@ -169,6 +170,7 @@ return {
         json = { 'prettierd', 'prettier', stop_after_first = true },
         c = { 'clang-format' },
         cpp = { 'clang-format' },
+        python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
       },
     },
   },

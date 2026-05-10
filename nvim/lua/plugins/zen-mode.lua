@@ -6,8 +6,9 @@ return {
   },
   opts = {
     window = {
-      backdrop = 0.95,
-      -- width = 100,
+      backdrop = 1,
+      width = 0.8,
+      height = 1,
       options = {
         signcolumn = 'no',
         number = true,
@@ -21,7 +22,9 @@ return {
         enabled = true,
         ruler = false,
         showcmd = false,
+        laststatus = 0,
       },
+      twilight = { enabled = false },
       gitsigns = { enabled = true },
       tmux = { enabled = true },
     },

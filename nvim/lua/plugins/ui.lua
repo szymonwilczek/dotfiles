@@ -85,33 +85,6 @@ return {
       },
     },
   },
-
-  {
-    'oonamo/ef-themes.nvim',
-    priority = 1000,
-    config = function()
-      require('ef-themes').setup {
-        on_colors = function(_, _) end,
-        on_highlights = function(_, _, _) return {} end,
-        dark = 'ef-autumn',
-        light = 'ef-day',
-        transparent = false,
-        styles = {
-          comments = { italic = false },
-          keywords = { bold = true },
-        },
-
-        modules = {
-          snacks = true,
-          treesitter = true,
-          mini = true,
-          semantic_tokens = true,
-          orgmode = true,
-        },
-      }
-      vim.cmd.colorscheme 'ef-theme'
-    end,
-  },
   {
     's1n7ax/nvim-window-picker',
     name = 'window-picker',

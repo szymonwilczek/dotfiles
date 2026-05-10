@@ -49,14 +49,14 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 -- Theme
-vim.keymap.set('n', '<leader>tt', function()
-  if vim.o.background == 'dark' then
-    vim.o.background = 'light'
-  else
-    vim.o.background = 'dark'
-  end
-  print('Motyw: ' .. (vim.o.background == 'dark' and 'Ciemny 🍂' or 'Jasny ☀️'))
-end, { desc = '[T]oggle [T]heme' })
+-- vim.keymap.set('n', '<leader>tt', function()
+--   if vim.o.background == 'dark' then
+--     vim.o.background = 'light'
+--   else
+--     vim.o.background = 'dark'
+--   end
+--   print('Motyw: ' .. (vim.o.background == 'dark' and 'Ciemny 🍂' or 'Jasny ☀️'))
+-- end, { desc = '[T]oggle [T]heme' })
 
 -- Relative Line Numbers
 vim.keymap.set('n', '<leader>r', function() vim.wo.relativenumber = not vim.wo.relativenumber end, { desc = '[R]elative line numbers toggle' })
