@@ -58,6 +58,7 @@ return {
       ---@type table<string, vim.lsp.Config>
       local servers = {
         clangd = {},
+        bashls = {},
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -106,7 +107,8 @@ return {
 
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
-        -- Mason to install
+        'shfmt',
+        'shellcheck',
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -150,6 +152,8 @@ return {
           json = true,
           yaml = true,
           python = true,
+          sh = true,
+          bash = true,
           -- lua = true,
           -- python = true,
         }
@@ -171,6 +175,8 @@ return {
         c = { 'clang-format' },
         cpp = { 'clang-format' },
         python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
+        sh = { 'shfmt' },
+        bash = { 'shfmt' },
       },
     },
   },
@@ -247,6 +253,8 @@ return {
           'javascript',
           'typescript',
           'tsx',
+          'bash',
+          'tmux',
         },
         auto_install = true,
         highlight = {
