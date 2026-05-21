@@ -5,7 +5,6 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
 vim.o.number = true
--- vim.o.relativenumber = true
 vim.o.mouse = 'a'
 vim.o.showmode = false
 
@@ -30,6 +29,7 @@ vim.o.inccommand = 'split'
 
 vim.o.cursorline = true
 vim.o.scrolloff = 10
+vim.opt.guicursor = 'n-v-c-sm-i-ci-ve:block,r-cr-o:hor20'
 
 vim.o.confirm = true
 

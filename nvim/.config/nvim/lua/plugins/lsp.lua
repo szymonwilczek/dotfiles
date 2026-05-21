@@ -59,7 +59,18 @@ return {
       local servers = {
         clangd = {},
         bashls = {},
-        -- gopls = {},
+        gopls = {
+          settings = {
+            gopls = {
+              analyses = {
+                unusedparams = true,
+                shadow = true,
+              },
+              staticcheck = true,
+              gofumpt = true,
+            },
+          },
+        },
         -- pyright = {},
         -- rust_analyzer = {},
         --
@@ -154,6 +165,7 @@ return {
           python = true,
           sh = true,
           bash = true,
+          go = true,
           -- lua = true,
           -- python = true,
         }
@@ -177,6 +189,7 @@ return {
         python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
         sh = { 'shfmt' },
         bash = { 'shfmt' },
+        go = { 'goimports', 'gofmt' },
       },
     },
   },
@@ -235,27 +248,8 @@ return {
     'nvim-treesitter/nvim-treesitter',
     lazy = false,
     build = ':TSUpdate',
-    branch = 'master',
     config = function()
       require('nvim-treesitter.configs').setup {
-        ensure_installed = {
-          'bash',
-          'c',
-          'diff',
-          'html',
-          'lua',
-          'luadoc',
-          'markdown',
-          'markdown_inline',
-          'query',
-          'vim',
-          'vimdoc',
-          'javascript',
-          'typescript',
-          'tsx',
-          'bash',
-          'tmux',
-        },
         auto_install = true,
         highlight = {
           enable = true,
@@ -263,7 +257,6 @@ return {
         },
         indent = { enable = true },
       }
-
       vim.opt.foldmethod = 'expr'
       vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
       vim.opt.foldtext = ''
