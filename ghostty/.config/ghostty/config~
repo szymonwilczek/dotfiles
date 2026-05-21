@@ -1,0 +1,28 @@
+window-subtitle = working-directory
+window-height = 40
+window-width = 165
+window-padding-x = 5
+window-padding-y = 5
+window-position-x = 10
+window-position-y = 10
+
+window-padding-balance = true
+
+font-size = 12
+font-family = JetBrainsMono Nerd Font
+font-style = SemiBold
+font-feature = -calt
+adjust-cell-width = -1
+adjust-cell-height = 1
+
+cursor-opacity = .8
+cursor-text = #000000
+cursor-style = block
+cursor-style-blink = false
+mouse-scroll-multiplier = 2
+
+shell-integration = none
+confirm-close-surface = false
+app-notifications = false
+
+config-file = themes/current.conf
