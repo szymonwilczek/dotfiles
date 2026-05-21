@@ -8,9 +8,24 @@ _Personal configuration of dotfiles for Linux (multiple distros)_
 
 </div>
 
-## 📂 Installation
+## 📂 Installation & Management with GNU Stow
 
-For quick installation script for Arch Hyprland please refer to [this issue](https://github.com/szymonwilczek/dotfiles/issues/1) or [this pull request](https://github.com/szymonwilczek/dotfiles/pull/2).
+These dotfiles are managed using **GNU Stow**, which automatically creates symbolic links from your home directory pointing to the repository.
+
+### Prerequisites
+Make sure GNU Stow is installed on your system (`sudo dnf install stow` on Fedora).
+
+### Applying Configurations
+To install or refresh the symbolic links in your home directory, run the following command from the root of the repository:
+```bash
+stow -v -R -t ~ nvim emacs ghostty zathura tmux
+```
+
+### Removing Configurations
+To safely remove the symbolic links, run:
+```bash
+stow -v -D -t ~ nvim emacs ghostty zathura tmux
+```
 
 ## 📸 Screenshots
 
