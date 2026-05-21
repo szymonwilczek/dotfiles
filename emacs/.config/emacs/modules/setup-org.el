@@ -31,7 +31,9 @@
     'org-babel-load-languages
     '((emacs-lisp . t)
        (js . t)
-       (python . t))))
+       (python . t)
+       (C . t)
+       )))
 
 (use-package org-superstar
   :ensure t

@@ -61,4 +61,4 @@
   :after (marginalia nerd-icons)
   :config (nerd-icons-completion-mode))
 
-(provide 'setup-completion)
+(provide 'setup-find)

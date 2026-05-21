@@ -1,20 +1,21 @@
 (use-package company
   :ensure t
   :hook ((prog-mode . company-mode)
-          (conf-mode . company-mode))
+         (conf-mode . company-mode))
   :config
-  (setq company-minimum-prefix-length 2   ;; after 2 chars
-    company-idle-delay 0.1                ;; 100ms delay
-    company-selection-wrap-around t       ;; cycling
-    company-tooltip-limit 10              ;; 10 suggestions
-    company-tooltip-align-annotations t
-    company-dabbrev-downcase nil
-    company-dabbrev-ignore-case t
-    company-require-match nil
-    company-frontends '(company-pseudo-tooltip-frontend)
-    company-backends '(company-capf company-dabbrev))
+  (setq company-minimum-prefix-length 1 
+        company-idle-delay 0.1                 ;; 100ms delay
+        company-selection-wrap-around t        ;; Looping menu
+        company-tooltip-limit 10               ;; 10 hints
+        company-tooltip-align-annotations t    ;; Align to right side
+        company-dabbrev-downcase nil           ;; Camel Case
+        company-dabbrev-ignore-case t
+        company-require-match nil
+        company-frontends '(company-pseudo-tooltip-frontend))
 
   (setq company-global-modes '(not minibuffer-mode))
+
+  (setq company-backends '((company-capf :with company-dabbrev)))
 
   (define-key company-active-map (kbd "M-j") #'company-select-next)
   (define-key company-active-map (kbd "M-k") #'company-select-previous)

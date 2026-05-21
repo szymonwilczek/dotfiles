@@ -40,6 +40,7 @@
   (general-evil-setup)
   (general-define-key
     :states 'normal
+    "TAB" 'tab-line-switch-to-next-tab
     "<tab>" 'tab-line-switch-to-next-tab      ; :BufferLineCycleNext
     "<backtab>" 'tab-line-switch-to-prev-tab  ; :BufferLineCyclePrev
     "S-<tab>" 'tab-line-switch-to-prev-tab)
