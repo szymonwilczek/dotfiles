@@ -1,0 +1,25 @@
+set database "sqlite"
+set selection-clipboard "clipboard"
+set synctex true
+
+set adjust-open "best-fit"
+set zoom-min 10
+set zoom-max 400
+set zoom 60
+set page-padding 10
+set pages-per-row 1
+set scroll-step 60
+
+set guioptions ""
+set selection-notification false
+
+# Ascetic high-contrast invert settings
+set recolor-keephue false
+set recolor-reverse-video false
+set recolor-lightcolor "#000000"
+set recolor-darkcolor "#ffffff"
+
+map i recolor
+map <C-i> recolor
+map R reload
+map [normal] F follow
