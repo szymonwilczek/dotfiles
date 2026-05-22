@@ -43,12 +43,17 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   callback = function() vim.hl.on_yank() end,
 })
 
--- Theme
--- vim.keymap.set('n', '<leader>tt', function()
---   if vim.o.background == 'dark' then
---     vim.o.background = 'light'
---   else
---     vim.o.background = 'dark'
---   end
---   print('Motyw: ' .. (vim.o.background == 'dark' and 'Ciemny 🍂' or 'Jasny ☀️'))
--- end, { desc = '[T]oggle [T]heme' })
+-- toggle Cursor and Cursorline visibility
+local original_guicursor = vim.o.guicursor
+local original_cursorline = vim.o.cursorline
+vim.keymap.set('n', '<leader>tc', function()
+  if vim.o.guicursor == 'a:hor1-Ignore' then
+    vim.o.guicursor = original_guicursor
+    vim.o.cursorline = original_cursorline
+  else
+    original_guicursor = vim.o.guicursor
+    original_cursorline = vim.o.cursorline
+    vim.o.guicursor = 'a:hor1-Ignore'
+    vim.o.cursorline = false
+  end
+end, { desc = '[T]oggle [C]ursor visibility' })
