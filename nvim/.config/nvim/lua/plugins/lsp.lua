@@ -246,28 +246,43 @@ return {
 
   {
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
     lazy = false,
     build = ':TSUpdate',
     config = function()
-      require('nvim-treesitter.configs').setup {
-        auto_install = true,
-        highlight = {
-          enable = true,
-          additional_vim_regex_highlighting = false,
-        },
-        indent = { enable = true },
+      require('nvim-treesitter').install {
+        'lua',
+        'markdown',
+        'markdown_inline',
+        'vim',
+        'vimdoc',
+        'query',
+        'bash',
+        'latex',
+        'javascript',
+        'typescript',
+        'python',
+        'tmux',
+        'yaml',
+        'toml',
+        'json',
+        'html',
+        'css',
       }
+
       vim.opt.foldmethod = 'expr'
       vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
       vim.opt.foldtext = ''
 
       vim.api.nvim_create_autocmd('FileType', {
-        pattern = { 'javascript', 'typescript', 'typescriptreact', 'javascriptreact' },
-        callback = function(event)
-          vim.api.nvim_buf_call(event.buf, function()
-            vim.opt_local.foldmethod = 'expr'
-            vim.opt_local.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-          end)
+        callback = function(args)
+          local lang = vim.treesitter.language.get_lang(args.match)
+          if lang and pcall(vim.treesitter.start, args.buf, lang) then
+            if vim.treesitter.query.get(lang, 'folds') then
+              vim.opt_local.foldmethod = 'expr'
+              vim.opt_local.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+            end
+          end
         end,
       })
     end,
