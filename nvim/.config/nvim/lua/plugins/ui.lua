@@ -56,66 +56,7 @@ return {
       { '<leader>fr', function() Snacks.picker.recent() end, desc = 'Find (R)ecent' },
       { '<leader>lg', function() Snacks.lazygit() end, desc = 'Lazygit' },
     },
-    config = function(_, opts)
-      require('snacks').setup(opts)
-
-      local function apply_picker_hl()
-        local palette = nil
-        local ok, ef_themes = pcall(require, 'ef-themes')
-        if ok and vim.g.colors_name == 'ef-theme' then
-          local cache_path = vim.fn.stdpath 'data' .. '/last_theme.txt'
-          local f = io.open(cache_path, 'r')
-          local theme_name = 'ef-autumn'
-          if f then
-            theme_name = f:read('*all'):gsub('%s+', '')
-            f:close()
-          end
-          palette = ef_themes.get_palette(theme_name)
-        end
-
-        local function get_hl_color(group, attr)
-          local hl = vim.api.nvim_get_hl(0, { name = group, link = false })
-          local val = hl[attr]
-          if val then return string.format('#%06x', val) end
-          return nil
-        end
-
-        local bg = 'none'
-        local border_fg = (palette and (palette.cyan_cooler or palette.cyan)) or get_hl_color('FloatBorder', 'fg') or '#316c71'
-        local accent = (palette and palette.cyan) or get_hl_color('Identifier', 'fg') or '#316c71'
-        local match = (palette and (palette.accent_1 or palette.yellow)) or get_hl_color('Special', 'fg') or '#c48702'
-        local selected_bg = (palette and (palette.bg_active or palette.bg_hover)) or get_hl_color('Visual', 'bg') or '#56524f'
-        local fg_dim = (palette and palette.fg_dim) or get_hl_color('Comment', 'fg') or '#887c8a'
-
-        vim.api.nvim_set_hl(0, 'SnacksPicker', { bg = bg, nocombine = true })
-        vim.api.nvim_set_hl(0, 'SnacksPickerBorder', { fg = border_fg, bg = bg, nocombine = true })
-        vim.api.nvim_set_hl(0, 'SnacksPickerTitle', { fg = accent, bold = true, bg = bg })
-
-        vim.api.nvim_set_hl(0, 'SnacksPickerInput', { bg = bg, nocombine = true })
-        vim.api.nvim_set_hl(0, 'SnacksPickerInputBorder', { fg = border_fg, bg = bg, nocombine = true })
-        vim.api.nvim_set_hl(0, 'SnacksPickerInputTitle', { fg = accent, bold = true, bg = bg })
-
-        vim.api.nvim_set_hl(0, 'SnacksPickerList', { bg = bg, nocombine = true })
-        vim.api.nvim_set_hl(0, 'SnacksPickerListBorder', { fg = border_fg, bg = bg, nocombine = true })
-
-        vim.api.nvim_set_hl(0, 'SnacksPickerPreview', { bg = bg, nocombine = true })
-        vim.api.nvim_set_hl(0, 'SnacksPickerPreviewBorder', { fg = border_fg, bg = bg, nocombine = true })
-        vim.api.nvim_set_hl(0, 'SnacksPickerPreviewTitle', { fg = accent, bold = true, bg = bg })
-
-        vim.api.nvim_set_hl(0, 'SnacksPickerMatch', { fg = match, bold = true })
-        vim.api.nvim_set_hl(0, 'SnacksPickerSelected', { bg = selected_bg })
-        vim.api.nvim_set_hl(0, 'SnacksPickerSearch', { fg = match, bold = true })
-        vim.api.nvim_set_hl(0, 'SnacksPickerLabel', { fg = accent })
-        vim.api.nvim_set_hl(0, 'SnacksPickerDelim', { fg = fg_dim })
-      end
-
-      apply_picker_hl()
-
-      vim.api.nvim_create_autocmd('ColorScheme', {
-        pattern = '*',
-        callback = apply_picker_hl,
-      })
-    end,
+    config = function(_, opts) require('snacks').setup(opts) end,
   },
 
   {
