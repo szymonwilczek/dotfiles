@@ -35,8 +35,8 @@
   "Ensure comments are italicized and keywords/types are bolded across themes."
   (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
   (set-face-attribute 'font-lock-comment-delimiter-face nil :slant 'italic)
-  (set-face-attribute 'font-lock-keyword-face nil :weight 'bold)
-  (set-face-attribute 'font-lock-type-face nil :weight 'bold))
+  (set-face-attribute 'font-lock-keyword-face nil :weight 'demi-bold)
+  (set-face-attribute 'font-lock-type-face nil :weight 'demi-bold))
 
 (advice-add 'load-theme :after #'my/apply-custom-face-overrides)
 
