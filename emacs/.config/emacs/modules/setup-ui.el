@@ -1,7 +1,7 @@
 (use-package emacs
   :config
   (set-face-attribute 'default nil
-    :family "JetBrainsMono Nerd Font"
+    :family "Typus Mono 95"
     :height 120
     :weight (if (display-graphic-p) 'semi-bold 'normal))
   (setq-default cursor-type 'box)
@@ -48,7 +48,7 @@
 
 (use-package nerd-icons
   :custom
-  (nerd-icons-font-family "JetBrainsMono Nerd Font"))
+  (nerd-icons-font-family "Typus Mono 95"))
 
 (use-package treemacs-nerd-icons
   :ensure t
