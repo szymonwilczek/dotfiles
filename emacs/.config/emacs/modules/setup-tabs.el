@@ -109,9 +109,10 @@
            (bg-color (my/get-safe-color (face-background bg-face nil t) "#111111"))
            
            (theme-comment (ignore-errors (ef-themes-with-colors comment)))
-           (fg-main "#ffffff")
+           (keyword-color (my/get-safe-color (face-foreground 'font-lock-keyword-face nil t) "#ef7f00"))
+           (fg-main (if active keyword-color "#ffffff"))
            (fg-comment (my/get-safe-color theme-comment (my/get-safe-color (face-foreground 'font-lock-comment-face nil t) "#888888")))
-           (sep-color (my/get-safe-color (ignore-errors (ef-themes-with-colors preprocessor)) "#5dc0aa"))
+           (sep-color keyword-color)
 
            (raw-name (buffer-name buffer))
            (display-name (if (> (length raw-name) 18)
@@ -129,7 +130,7 @@
            (icon (propertize icon-str 'face `(:foreground ,icon-hex :background ,bg-color)))
 
            (text-face (if active
-                          `(:foreground ,fg-main :weight bold :slant italic :background ,bg-color)
+                          `(:foreground ,fg-main :weight demi-bold :slant italic :background ,bg-color)
                         `(:foreground ,fg-comment :weight normal :slant normal :background ,bg-color)))
            (name (propertize display-name 'face text-face))
            (pad (propertize "  " 'face `(:background ,bg-color)))
