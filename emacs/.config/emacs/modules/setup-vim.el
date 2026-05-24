@@ -21,13 +21,30 @@
 
   (define-key evil-normal-state-map (kbd ";") 'evil-ex)
   (define-key evil-visual-state-map (kbd ";") 'evil-ex)
+  (define-key evil-normal-state-map [escape] 'evil-ex-nohighlight)
   )
 
 (defun my/toggle-relative-line-numbers ()
   (interactive)
   (if (eq display-line-numbers 'relative)
-    (setq display-line-numbers t)
+      (setq display-line-numbers t)
     (setq display-line-numbers 'relative)))
+
+(defvar my/cursor-hidden-p nil
+  "Whether the cursor is currently hidden.")
+
+(defun my/toggle-cursor-visibility ()
+  "Toggle cursor and cursorline highlights."
+  (interactive)
+  (if my/cursor-hidden-p
+      (progn
+        (setq-local cursor-type t)
+        (hl-line-mode 1)
+        (setq my/cursor-hidden-p nil))
+    (progn
+      (setq-local cursor-type nil)
+      (hl-line-mode -1)
+      (setq my/cursor-hidden-p t))))
 
 (use-package evil-collection
   :after evil
@@ -49,6 +66,11 @@
     :states '(normal motion visual insert)
     "C-n" 'treemacs)
 
+  (general-define-key
+    :states '(normal motion)
+    "C-S-h" 'evil-window-move-far-left
+    "C-S-l" 'evil-window-move-far-right)
+
   (general-create-definer my-leader-def
     :states '(normal motion visual)
     :keymaps 'override
@@ -56,6 +78,11 @@
     :global-prefix "M-SPC")
 
   (my-leader-def
-    "r n" 'my/toggle-relative-line-numbers))
+    "r" 'my/toggle-relative-line-numbers
+    "s" 'evil-window-vsplit
+    "h" 'evil-window-vsplit
+    "d" '(:ignore t :which-key "Diagnostics")
+    "d q" 'flymake-show-buffer-diagnostics
+    "t v" 'my/toggle-cursor-visibility))
 
 (provide 'setup-vim)

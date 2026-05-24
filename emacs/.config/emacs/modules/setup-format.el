@@ -11,6 +11,10 @@
   (setf (alist-get 'common-lisp-mode apheleia-mode-alist) 'lisp-indent)
   )
 
+(with-eval-after-load 'general
+  (my-leader-def
+    "f m" '(apheleia-format-buffer :which-key "Format Buffer")))
+
 
 (setq-default typescript-ts-mode-indent-offset 2)
 (setq-default js-indent-level 2)

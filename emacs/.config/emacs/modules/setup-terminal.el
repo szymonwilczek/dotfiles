@@ -24,7 +24,9 @@
       (define-key vterm-mode-map (kbd "<escape>") 'evil-normal-state)
       (evil-define-key 'normal vterm-mode-map (kbd "i") 'evil-emacs-state)
       (evil-define-key 'normal vterm-mode-map (kbd "a") 'evil-emacs-state)
-      (evil-define-key 'normal vterm-mode-map (kbd "SPC") 'my-leader-def)))
+      (evil-define-key 'normal vterm-mode-map (kbd "SPC") 'my-leader-def)
+      ;; Allow Alt-f to toggle the terminal closed from within vterm itself
+      (define-key vterm-mode-map (kbd "M-f") 'my/vterm-toggle-bottom)))
 
   (add-hook 'vterm-exit-functions
     (lambda (proc _event)
@@ -58,9 +60,10 @@
   (vterm t)
   (evil-emacs-state))
 
+(global-set-key (kbd "M-f") 'my/vterm-toggle-bottom)
+
 (with-eval-after-load 'general
   (my-leader-def
-    "v" 'my/vterm-toggle-bottom
     "t" '(:ignore t :which-key "Terminal")
     "tc" '(my/vterm-new-session :which-key "New session")
     ))
