@@ -19,17 +19,26 @@
 (defun my/get-cached-theme ()
   "Reads theme from file. If the file doesnt exists, returns ef-autumn."
   (if (file-exists-p my/theme-cache-file)
-      (intern (with-temp-buffer
-                (insert-file-contents my/theme-cache-file)
-                (string-trim (buffer-string))))
+    (intern (with-temp-buffer
+              (insert-file-contents my/theme-cache-file)
+              (string-trim (buffer-string))))
     'ef-autumn))
 
 (advice-add 'load-theme :around
-            (lambda (orig-fun theme &rest args)
-              (mapc #'disable-theme custom-enabled-themes)
-              (apply orig-fun theme args)
-              (with-temp-file my/theme-cache-file
-                (insert (symbol-name theme)))))
+  (lambda (orig-fun theme &rest args)
+    (mapc #'disable-theme custom-enabled-themes)
+    (apply orig-fun theme args)
+    (with-temp-file my/theme-cache-file
+      (insert (symbol-name theme)))))
+
+(defun my/apply-custom-face-overrides (&rest _)
+  "Ensure comments are italicized and keywords/types are bolded across themes."
+  (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+  (set-face-attribute 'font-lock-comment-delimiter-face nil :slant 'italic)
+  (set-face-attribute 'font-lock-keyword-face nil :weight 'bold)
+  (set-face-attribute 'font-lock-type-face nil :weight 'bold))
+
+(advice-add 'load-theme :after #'my/apply-custom-face-overrides)
 
 (use-package ef-themes
   :config 
@@ -40,7 +49,7 @@
       (load-theme theme t)))
 
   (if (daemonp)
-      (add-hook 'server-after-make-frame-hook #'my/apply-cached-theme)
+    (add-hook 'server-after-make-frame-hook #'my/apply-cached-theme)
     (my/apply-cached-theme)))
 
 (use-package which-key
@@ -82,18 +91,18 @@
   (setq my/treemacs-theme-version (1+ my/treemacs-theme-version))
   
   (let ((bg (face-background 'default nil t))
-        (current-version my/treemacs-theme-version))
+         (current-version my/treemacs-theme-version))
     
     (when (and bg (not (string= bg "unspecified-bg")))
       (dolist (buf (buffer-list))
         (with-current-buffer buf
           (when (and (eq major-mode 'treemacs-mode)
-                     (= current-version my/treemacs-theme-version))
+                  (= current-version my/treemacs-theme-version))
             
             (setq header-line-format " ")
             (setq face-remapping-alist (assq-delete-all 'header-line face-remapping-alist))
             (face-remap-add-relative 'header-line
-                                     (list :background bg :box nil :underline nil))))))))
+              (list :background bg :box nil :underline nil))))))))
 
 (add-hook 'treemacs-mode-hook #'my/treemacs-apply-theme)
 (advice-add 'load-theme :after #'my/treemacs-apply-theme)
