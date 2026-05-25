@@ -38,6 +38,9 @@ return {
           history_bonus = false,
         },
         sources = {
+          files = {
+            hidden = true,
+          },
           grep = {
             need_search = true,
           },
