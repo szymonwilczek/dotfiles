@@ -62,11 +62,20 @@
     
     (with-selected-frame (or frame (selected-frame))
       (let* ((bg-raw (face-background 'default nil t))
-             (bg (my/get-safe-color bg-raw "#111111")))
+             (bg (my/get-safe-color bg-raw "#111111"))
+             (dark-p (eq (frame-parameter nil 'background-mode) 'dark))
+             (bg-dim (or (ignore-errors (ef-themes-with-colors bg-dim))
+                         (if dark-p
+                             (color-darken-name bg 5)
+                           (color-lighten-name bg 5))))
+             (bg-alt (or (ignore-errors (ef-themes-with-colors bg-alt))
+                         (if dark-p
+                             (color-darken-name bg 10)
+                           (color-lighten-name bg 10)))))
 
-        (set-face-attribute 'tab-line nil :background bg :height 1.0 :box nil)
-        (set-face-attribute 'tab-line-tab nil :background bg :box `(:line-width 6 :color ,bg))
-        (set-face-attribute 'tab-line-tab-inactive nil :background bg :box `(:line-width 6 :color ,bg))
+        (set-face-attribute 'tab-line nil :background bg-alt :height 1.0 :box nil)
+        (set-face-attribute 'tab-line-tab nil :background bg-dim :box `(:line-width 6 :color ,bg-dim))
+        (set-face-attribute 'tab-line-tab-inactive nil :background bg-dim :box `(:line-width 6 :color ,bg-dim))
         (set-face-attribute 'tab-line-tab-current nil :background bg :box `(:line-width 6 :color ,bg))))
 
     (dolist (f (frame-list))
@@ -107,10 +116,11 @@
            (active (if (bufferp tab) (eq tab (current-buffer)) (cdr (assq 'selected tab))))
            (bg-face (if active 'tab-line-tab-current 'tab-line-tab-inactive))
            (bg-color (my/get-safe-color (face-background bg-face nil t) "#111111"))
-           
            (theme-comment (ignore-errors (ef-themes-with-colors comment)))
            (keyword-color (my/get-safe-color (face-foreground 'font-lock-keyword-face nil t) "#ef7f00"))
-           (fg-main (if active keyword-color "#ffffff"))
+           (fg-default-raw (face-foreground 'default nil t))
+           (fg-default (my/get-safe-color fg-default-raw "#ffffff"))
+           (fg-main (if active fg-default "#ffffff"))
            (fg-comment (my/get-safe-color theme-comment (my/get-safe-color (face-foreground 'font-lock-comment-face nil t) "#888888")))
            (sep-color keyword-color)
 
