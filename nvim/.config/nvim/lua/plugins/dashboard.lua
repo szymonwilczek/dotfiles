@@ -115,6 +115,40 @@ return {
       end
     end
 
+    local function get_agenda_status()
+      local ok, agenda_data = pcall(require, 'agenda.data')
+      if not ok then return 'Agenda: not loaded' end
+
+      pcall(agenda_data.setup)
+
+      local monday_str = agenda_data.get_monday_date()
+      local week_data = agenda_data.get_week(monday_str)
+      local english_days = { 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' }
+      local today_wday = english_days[tonumber(os.date '%w') + 1]
+      local today_data = week_data[today_wday]
+
+      if not today_data then return 'Brak planów na dzisiaj' end
+
+      local projects_db = agenda_data.get_projects()
+      local proj_parts = {}
+      for _, p_name in ipairs(today_data.projects) do
+        local proj = projects_db[p_name] or { icon = '📁' }
+        table.insert(proj_parts, proj.icon .. ' ' .. p_name)
+      end
+      local proj_str = #proj_parts > 0 and table.concat(proj_parts, ', ') or 'REST / OPEN'
+
+      local total = #today_data.tasks
+      if total == 0 then return string.format('Dzisiaj: %s', proj_str) end
+
+      local done = 0
+      for _, t in ipairs(today_data.tasks) do
+        if t.done then done = done + 1 end
+      end
+
+      local pct = math.floor((done / total) * 100)
+      return string.format('Dzisiaj: %s | %d/%d zadań (%d%%)', proj_str, done, total, pct)
+    end
+
     local function draw_dashboard()
       local date_part = '󰸗 ' .. os.date '%d.%m.%Y'
       local separator = ' | '
@@ -139,6 +173,12 @@ return {
             type = 'text',
             val = get_greeting(),
             opts = { hl = 'AlphaColoryellow', position = 'center' },
+          },
+          { type = 'padding', val = 1 },
+          {
+            type = 'text',
+            val = get_agenda_status(),
+            opts = { hl = 'AlphaColorcyan', position = 'center' },
           },
           { type = 'padding', val = 2 },
           {
