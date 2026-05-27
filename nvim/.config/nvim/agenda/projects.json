@@ -1,13 +1,18 @@
 {
-  "Skrecior": { "color": "green", "icon": "" },
-  "GK": { "icon": "", "color": "blue" },
+  "GK": { "icon": "", "color": "green" },
+  "LOTA": { "color": "cyan", "icon": "" },
   "Serwis": {
     "icon": "",
-    "color": "red",
+    "color": "green",
     "type": "serwis",
-    "services": ["tmux-jot", "arete", "skrecior"]
-  },
-  "arete": { "color": "magenta", "icon": "" },
-  "tmux-jot": { "color": "green", "icon": "" },
-  "LOTA": { "color": "cyan", "icon": "" }
+    "services": [
+      "tmux-jot",
+      "arete.nvim",
+      "Skrecior",
+      "Neovim",
+      "Carmenta",
+      "Hati",
+      "Meson"
+    ]
+  }
 }
