@@ -1,13 +1,13 @@
 {
-  "tmux-jot": { "color": "green", "icon": "" },
-  "arete": { "color": "magenta", "icon": "" },
+  "Skrecior": { "color": "green", "icon": "" },
+  "GK": { "icon": "", "color": "blue" },
   "Serwis": {
+    "icon": "",
     "color": "red",
     "type": "serwis",
-    "icon": "",
     "services": ["tmux-jot", "arete", "skrecior"]
   },
-  "LOTA": { "color": "cyan", "icon": "" },
-  "GK": { "icon": "", "color": "blue" },
-  "Skrecior": { "color": "green", "icon": "" }
+  "arete": { "color": "magenta", "icon": "" },
+  "tmux-jot": { "color": "green", "icon": "" },
+  "LOTA": { "color": "cyan", "icon": "" }
 }
