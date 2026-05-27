@@ -79,7 +79,7 @@ local function add_task()
   local projects_db = data.get_projects()
 
   local day_data = week_data[day_name] or { projects = {} }
-  if #day_data.projects == 1 and day_data.projects[1] == 'OUT OF HOME (ZAJETY)' then
+  if #day_data.projects == 1 and day_data.projects[1] == 'POZA DOMEM' then
     vim.notify('agenda: Nie można dodawać zadań do statusu OUT OF HOME!', vim.log.levels.WARN)
     return
   end
@@ -328,7 +328,7 @@ local function edit_project()
   local week_data = data.get_week(ui.current_monday)
   local day_data = week_data[day_name] or { projects = {} }
 
-  if #day_data.projects == 1 and day_data.projects[1] == 'OUT OF HOME (ZAJETY)' then
+  if #day_data.projects == 1 and day_data.projects[1] == 'POZA DOMEM' then
     vim.notify('agenda: Nie można edytować statusu OUT OF HOME!', vim.log.levels.WARN)
     return
   end
@@ -637,7 +637,7 @@ local function toggle_out_of_home()
 
   local has_out_of_home = false
   for _, p_name in ipairs(day_data.projects or {}) do
-    if p_name == 'OUT OF HOME (ZAJETY)' then
+    if p_name == 'POZA DOMEM' then
       has_out_of_home = true
       break
     end
@@ -659,7 +659,7 @@ local function toggle_out_of_home()
     day_data.tasks = {}
     vim.notify('agenda: Usunięto status OUT OF HOME dla dnia ' .. polish_day, vim.log.levels.INFO)
   else
-    day_data.projects = { 'OUT OF HOME (ZAJETY)' }
+    day_data.projects = { 'POZA DOMEM' }
     day_data.tasks = {}
     vim.notify('agenda: Ustawiono status OUT OF HOME dla dnia ' .. polish_day, vim.log.levels.INFO)
   end
