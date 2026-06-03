@@ -94,7 +94,7 @@ return {
     'famiu/bufdelete.nvim',
     keys = {
       { '<C-x>', function() require('bufdelete').bufdelete(0, false) end, desc = 'Zamknij bufor (Ctrl+X)' },
-      { '<leader>q', function() require('bufdelete').bufdelete(0, false) end, desc = 'Zamknij bufor (SPC X)' },
+      { '<leader>q', function() require('bufdelete').bufdelete(0, false) end, desc = 'Zamknij bufor (SPC q)' },
     },
   },
 
