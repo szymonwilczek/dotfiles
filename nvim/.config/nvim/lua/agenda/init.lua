@@ -27,23 +27,20 @@ function M.git_sync()
   local projects_file = data.config.projects_file
   local schedule_file = data.config.schedule_file
 
-  if not projects_file or not schedule_file then
-    vim.notify('agenda: Konfiguracja nie jest załadowana. Wywołaj setup().', vim.log.levels.ERROR)
-    return
-  end
+  if not projects_file or not schedule_file then return end
 
   local resolved_projects = vim.fn.resolve(projects_file)
   local resolved_schedule = vim.fn.resolve(schedule_file)
-  local resolved_cwd = vim.fn.resolve(vim.fn.stdpath 'config')
+  local resolved_cwd = vim.fn.fnamemodify(resolved_projects, ':h')
 
-  local cmd = string.format("git add %q %q && git commit -m 'agenda: sync' && git push", resolved_projects, resolved_schedule)
-  vim.notify('agenda: Rozpoczynam synchronizację Git (push)...', vim.log.levels.INFO)
+  local cmd = string.format("git add %q %q && git commit -m 'agenda: sync'", resolved_projects, resolved_schedule)
+  vim.notify('agenda: sync...', vim.log.levels.INFO)
 
   vim.fn.jobstart(cmd, {
     cwd = resolved_cwd,
     on_exit = function(_, exit_code)
       if exit_code == 0 then
-        vim.notify('agenda: Synchronizacja ukończona pomyślnie!', vim.log.levels.INFO)
+        vim.notify('agenda: synced!', vim.log.levels.INFO)
       else
         vim.notify('agenda: Błąd synchronizacji Git (exit code: ' .. exit_code .. ')', vim.log.levels.WARN)
       end
@@ -82,6 +79,16 @@ local function add_task()
   local projects_db = data.get_projects()
 
   local day_data = week_data[day_name] or { projects = {} }
+  if #day_data.projects == 1 and day_data.projects[1] == 'POZA DOMEM' then
+    vim.notify('agenda: Nie można dodawać zadań do statusu OUT OF HOME!', vim.log.levels.WARN)
+    return
+  end
+
+  if not day_data.projects or #day_data.projects == 0 then
+    vim.notify('agenda: Zadania można dodawać tylko do dni z przypisanymi projektami!', vim.log.levels.WARN)
+    return
+  end
+
   local target_proj_name = nil
   local target_proj = nil
 
@@ -94,26 +101,30 @@ local function add_task()
     end
   end
 
-  if not target_proj then
-    vim.notify('agenda: Zadania można dodawać tylko do dni z projektami typu Serwis!', vim.log.levels.WARN)
-    return
-  end
-
-  local prompt_str = string.format('Dodaj zadanie dla [%s]: ', day_name)
+  local prompt_str = string.format('Dodaj ' .. (target_proj and 'usługę' or 'podzadanie') .. ' dla [%s]: ', day_name)
 
   local function insert_task(value)
     if not value or value == '' then return end
 
-    -- append to project services
-    target_proj.services = target_proj.services or {}
-    table.insert(target_proj.services, value)
-    data.save_project(target_proj_name, target_proj)
+    if target_proj then
+      -- append to project services
+      target_proj.services = target_proj.services or {}
+      table.insert(target_proj.services, value)
+      data.save_project(target_proj_name, target_proj)
 
-    -- self-healing aligns schedule.json
-    local new_week_data = data.get_week(ui.current_monday)
+      -- self-healing aligns schedule.json
+      data.get_week(ui.current_monday)
+    else
+      -- add as local subtask
+      day_data.tasks = day_data.tasks or {}
+      table.insert(day_data.tasks, { text = value, done = false })
+      data.save_week(ui.current_monday, week_data)
+    end
+
     ui.render(ui.current_monday)
 
     local new_line = line
+    local new_week_data = data.get_week(ui.current_monday)
     for l, m in pairs(ui.line_map) do
       if m.type == 'task' and m.day_name == day_name and m.task_idx == #new_week_data[day_name].tasks then
         new_line = l
@@ -155,7 +166,6 @@ local function delete_task()
 
     data.get_week(ui.current_monday) -- self-healing
     ui.render(ui.current_monday)
-    vim.notify('Wyczyszczono przypisanie dnia: ' .. day_polish[map.day_name], vim.log.levels.INFO)
     pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
     return
   end
@@ -192,9 +202,11 @@ local function delete_task()
     end
     target_proj.services = new_services
     data.save_project(target_proj_name, target_proj)
-
-    data.get_week(ui.current_monday) -- healing alignment
   end
+
+  -- Always remove from local day tasks and save
+  table.remove(day_data.tasks, map.task_idx)
+  data.save_week(ui.current_monday, week_data)
 
   ui.render(ui.current_monday)
   local prev_line = math.max(1, line - 1)
@@ -220,7 +232,6 @@ local function add_project()
       end
 
       data.save_project(name, { icon = icon, color = color, type = details.type, services = details.services })
-      vim.notify(string.format('Dodano %s: %s (%s)', type_label, name, color), vim.log.levels.INFO)
 
       if ui.buf and vim.api.nvim_buf_is_valid(ui.buf) then ui.render(ui.current_monday) end
     end)
@@ -238,7 +249,7 @@ local function add_project()
       prompt_color(name, icon, 'serwis', services)
     end
 
-    local prompt_text = 'Podaj usługi oddzielone przecinkami (np. skrecior, arete): '
+    local prompt_text = 'Podaj podzadania oddzielone przecinkami (np. skrecior, arete): '
     if package.loaded['snacks'] and require('snacks').input then
       require('snacks').input({ prompt = prompt_text }, parse_services)
     else
@@ -293,12 +304,10 @@ local function parse_edit_buffer(buf)
       local s_match = line:match '^%-%s*(.*)'
       if s_match then
         local svc = s_match:gsub('^%s+', ''):gsub('%s+$', '')
-        if svc ~= '' then
-          table.insert(services, svc)
-          is_serwis = true
-        end
+        if svc ~= '' then table.insert(services, svc) end
       end
 
+      -- ONLY mark as serwis if the buffer explicitly contains "Usługi:"!
       if line:match '^Usługi:' then is_serwis = true end
     end
   end
@@ -318,6 +327,11 @@ local function edit_project()
   local day_name = map.day_name
   local week_data = data.get_week(ui.current_monday)
   local day_data = week_data[day_name] or { projects = {} }
+
+  if #day_data.projects == 1 and day_data.projects[1] == 'POZA DOMEM' then
+    vim.notify('agenda: Nie można edytować statusu OUT OF HOME!', vim.log.levels.WARN)
+    return
+  end
 
   if #day_data.projects == 0 then
     vim.notify('agenda: Brak przypisanych projektów/serwisów do edycji na ten dzień!', vim.log.levels.WARN)
@@ -344,26 +358,35 @@ local function edit_project()
     local instructions = {
       '# Edycja ' .. type_label .. ': ' .. proj_name,
       "# Zmień nazwę po 'Nazwa: ' (maks. 30 znaków).",
-      "# Edytuj usługi dodając/zmieniając linie zaczynające się od '- '.",
+      '# Edytuj ' .. (is_serwis and 'usługi' or 'podzadania') .. " dodając/zmieniając linie zaczynające się od '- '.",
       '# Wykonaj :w lub :wq, aby zapisać, albo :q!, aby anulować.',
       '',
       'Nazwa: ' .. proj_name,
     }
 
+    -- Always append the tasks/services section
+    table.insert(instructions, '')
+    table.insert(instructions, is_serwis and 'Usługi:' or 'Podzadania:')
+
+    local task_list = {}
     if is_serwis then
-      table.insert(instructions, '')
-      table.insert(instructions, 'Usługi:')
-      local services = proj.services or {}
-      for _, s in ipairs(services) do
-        table.insert(instructions, '- ' .. s)
+      task_list = proj.services or {}
+    else
+      -- normal project: load the day's tasks
+      for _, t in ipairs(day_data.tasks or {}) do
+        table.insert(task_list, t.text)
       end
+    end
+
+    for _, s in ipairs(task_list) do
+      table.insert(instructions, '- ' .. s)
     end
 
     vim.api.nvim_buf_set_lines(edit_buf, 0, -1, false, instructions)
 
     -- calculate dimensions
-    local width = 60
-    local height = math.max(8, #instructions + 2)
+    local width = 80
+    local height = math.max(10, #instructions + 4)
     local edit_win = vim.api.nvim_open_win(edit_buf, true, {
       relative = 'editor',
       width = width,
@@ -373,6 +396,22 @@ local function edit_project()
       border = 'rounded',
       style = 'minimal',
     })
+    vim.api.nvim_win_set_option(edit_win, 'wrap', false)
+    vim.api.nvim_win_set_option(edit_win, 'sidescrolloff', 0)
+    vim.api.nvim_win_set_option(edit_win, 'number', true)
+    vim.api.nvim_win_set_option(edit_win, 'relativenumber', false)
+    vim.api.nvim_win_set_option(edit_win, 'statuscolumn', '')
+    vim.api.nvim_win_set_option(edit_win, 'signcolumn', 'no')
+
+    -- force options to persist after autocommands run
+    vim.schedule(function()
+      if vim.api.nvim_win_is_valid(edit_win) then
+        vim.api.nvim_win_set_option(edit_win, 'number', true)
+        vim.api.nvim_win_set_option(edit_win, 'relativenumber', false)
+        vim.api.nvim_win_set_option(edit_win, 'statuscolumn', '')
+        vim.api.nvim_win_set_option(edit_win, 'signcolumn', 'no')
+      end
+    end)
 
     -- for buffer writing
     vim.api.nvim_create_autocmd('BufWriteCmd', {
@@ -403,11 +442,29 @@ local function edit_project()
           data.save_project(proj_name, updated_details)
         end
 
+        -- Update locally or globally depending on project type
+        if is_now_serwis then
+          data.get_week(ui.current_monday) -- healing alignment
+        else
+          local new_tasks = {}
+          for _, text in ipairs(services) do
+            local done = false
+            for _, existing in ipairs(day_data.tasks or {}) do
+              if existing.text == text then
+                done = existing.done
+                break
+              end
+            end
+            table.insert(new_tasks, { text = text, done = done })
+          end
+          day_data.tasks = new_tasks
+          data.save_week(ui.current_monday, week_data)
+        end
+
         vim.notify('agenda: Zapisano ' .. type_label .. ': ' .. name, vim.log.levels.INFO)
         vim.api.nvim_buf_set_option(edit_buf, 'modified', false)
         pcall(vim.api.nvim_win_close, edit_win, true)
 
-        data.get_week(ui.current_monday) -- healing alignment
         ui.render(ui.current_monday)
       end,
     })
@@ -565,6 +622,53 @@ local function toggle_fold()
   pcall(vim.api.nvim_win_set_cursor, 0, { target_line, 0 })
 end
 
+-- Interactive Controller: Toggle OUT OF HOME (ZAJETY) status
+local function toggle_out_of_home()
+  local line = vim.api.nvim_win_get_cursor(0)[1]
+  local map = ui.line_map[line]
+  if not map or not map.day_name then
+    vim.notify('agenda: Ustaw kursor na dniu lub zadaniu, aby wstawić status OUT OF HOME.', vim.log.levels.WARN)
+    return
+  end
+
+  local day_name = map.day_name
+  local week_data = data.get_week(ui.current_monday)
+  local day_data = week_data[day_name] or { projects = {}, tasks = {} }
+
+  local has_out_of_home = false
+  for _, p_name in ipairs(day_data.projects or {}) do
+    if p_name == 'POZA DOMEM' then
+      has_out_of_home = true
+      break
+    end
+  end
+
+  local day_polish = {
+    Monday = 'Poniedziałek',
+    Tuesday = 'Wtorek',
+    Wednesday = 'Środa',
+    Thursday = 'Czwartek',
+    Friday = 'Piątek',
+    Saturday = 'Sobota',
+    Sunday = 'Niedziela',
+  }
+  local polish_day = day_polish[day_name] or day_name
+
+  if has_out_of_home then
+    day_data.projects = {}
+    day_data.tasks = {}
+    vim.notify('agenda: Usunięto status OUT OF HOME dla dnia ' .. polish_day, vim.log.levels.INFO)
+  else
+    day_data.projects = { 'POZA DOMEM' }
+    day_data.tasks = {}
+    vim.notify('agenda: Ustawiono status OUT OF HOME dla dnia ' .. polish_day, vim.log.levels.INFO)
+  end
+
+  data.save_week(ui.current_monday, week_data)
+  ui.render(ui.current_monday)
+  pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
+end
+
 -- bind interactive actions to keys inside the buffer
 function M.bind_buffer_keys(buf)
   local opts = { silent = true, buffer = buf }
@@ -580,6 +684,7 @@ function M.bind_buffer_keys(buf)
   vim.keymap.set('n', 's', shift_item, opts)
   vim.keymap.set('n', 'S', M.git_sync, opts)
   vim.keymap.set('n', 'zc', toggle_fold, opts)
+  vim.keymap.set('n', 'o', toggle_out_of_home, opts)
 end
 
 return M

@@ -138,7 +138,7 @@ return {
       local proj_str = #proj_parts > 0 and table.concat(proj_parts, ', ') or 'REST / OPEN'
 
       local total = #today_data.tasks
-      if total == 0 then return string.format('Dzisiaj: %s - nic do roboty)', proj_str) end
+      if total == 0 then return string.format('Dzisiaj: %s', proj_str) end
 
       local done = 0
       for _, t in ipairs(today_data.tasks) do

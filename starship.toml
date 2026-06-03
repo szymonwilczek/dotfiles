@@ -1,79 +1,33 @@
 "$schema" = 'https://starship.rs/config-schema.json'
-
-# =================================================================
-# PROMPT: OS + USER | DIR | TIME
-# =================================================================
 format = """
 [](color_orange)\
 $os\
 $username\
 [](bg:color_yellow fg:color_orange)\
 $directory\
-[](fg:color_yellow bg:color_bg1)\
-$time\
-[ ](fg:color_bg1)\
+[ ](fg:color_yellow)\
 $line_break$character"""
 
-# =================================================================
-# COLOR PALETTES 
-# =================================================================
-palette = 'pywal'
+palette = 'custom'
 
-[palettes.gruvbox_dark]
-color_fg0 = '#fbf1c7'
-color_bg1 = '#3c3836'
-color_bg3 = '#665c54'
-color_blue = '#458588'
-color_aqua = '#689d6a'
-color_green = '#98971a'
-color_orange = '#d65d0e'
-color_purple = '#b16286'
-color_red = '#cc241d'
-color_yellow = '#d79921'
-
-[palettes.pywal]
-color_fg0    = "bright-white"       
-color_bg1    = "bright-black" 
-color_bg3    = "black"         
-color_blue   = "blue"
-color_aqua   = "cyan"
-color_green  = "green"
-color_orange = "red"           
-color_purple = "purple"
-color_red    = "red"
-color_yellow = "yellow"     
-
-# =================================================================
-# MODULES CONFIGURATION 
-# =================================================================
+[palettes.custom]
+color_fg0    = "#ffffff"
+color_bg1    = "#3d3d3d"
+color_bg3    = "#101010"
+color_blue   = "#6179c2"
+color_aqua   = "#33919c"
+color_green  = "#2e9969"
+color_orange = "#cc5d4b"
+color_purple = "#ab78ab"
+color_red    = "#cc5d4b"
+color_yellow = "#cc9b52"
 
 [os]
 disabled = false
 style = "bg:color_orange fg:color_fg0"
 
 [os.symbols]
-Windows = "󰍲"
-Ubuntu = "󰕈"
-SUSE = ""
-Raspbian = "󰐿"
-Mint = "󰣭"
-Macos = "󰀵"
-Manjaro = ""
-Linux = "󰌽"
-Gentoo = "󰣨"
 Fedora = "󰣛"
-Alpine = ""
-Amazon = ""
-Android = ""
-AOSC = ""
-Arch = "󰣇"
-Artix = "󰣇"
-EndeavourOS = ""
-CentOS = ""
-Debian = "󰣚"
-Redhat = "󱄛"
-RedHatEnterprise = "󱄛"
-Pop = ""
 
 [username]
 show_always = true
@@ -86,19 +40,6 @@ style = "fg:color_fg0 bg:color_yellow"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
-
-[directory.substitutions]
-"Documents" = "󰈙 "
-"Downloads" = " "
-"Music" = "󰝚 "
-"Pictures" = " "
-"Developer" = "󰲋 "
-
-[time]
-disabled = false
-time_format = "%R"
-style = "bg:color_bg1"
-format = '[[  $time ](fg:color_fg0 bg:color_bg1)]($style)'
 
 [line_break]
 disabled = false

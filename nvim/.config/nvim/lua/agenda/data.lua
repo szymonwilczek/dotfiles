@@ -200,8 +200,8 @@ function M.get_week(monday_str)
         if #day_data.tasks ~= #new_tasks then modified = true end
         day_data.tasks = new_tasks
       else
-        -- no serwis projects, clear all tasks
-        if #day_data.tasks > 0 then
+        -- no serwis projects, clear all tasks only if there are no projects at all
+        if #day_data.projects == 0 and #day_data.tasks > 0 then
           day_data.tasks = {}
           modified = true
         end
