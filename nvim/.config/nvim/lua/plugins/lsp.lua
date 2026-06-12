@@ -215,21 +215,31 @@ return {
     opts = {
       keymap = {
         preset = 'default',
-        -- ALT + j/k do nawigacji
+        -- ALT + j/k to navigate
         ['<A-j>'] = { 'select_next', 'fallback' },
         ['<A-k>'] = { 'select_prev', 'fallback' },
 
-        -- Enter do potwierdzania
+        -- Enter to confirm
         ['<CR>'] = { 'accept', 'fallback' },
 
-        -- Spacja do potwierdzania (tylko gdy menu jest otwarte)
+        -- Space to confirm (when menu is open)
         ['<Space>'] = { 'accept', 'fallback' },
+
+        -- Manual toggle of autocompletion menu
+        ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
       },
 
       appearance = {
         nerd_font_variant = 'mono',
       },
       completion = {
+        menu = {
+          auto_show = false,
+        },
+        trigger = {
+          show_on_keyword = false,
+          show_on_trigger_character = false,
+        },
         list = {
           selection = { preselect = false, auto_insert = true },
         },
