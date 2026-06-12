@@ -1,35 +1,35 @@
-return {
-  -- 'folke/snacks.nvim',
-  -- opts = {
-  --   picker = {
-  --     sources = {
-  --       projects = {
-  --         confirm = function(picker, item)
-  --           picker:close()
-  --           if not item then return end
-  --
-  --           local target_dir = item.file or item.text
-  --
-  --           if type(target_dir) == 'string' then
-  --             vim.api.nvim_set_current_dir(target_dir)
-  --             Snacks.picker.files { cwd = target_dir }
-  --           else
-  --             vim.notify('Error: Could not read path directory!', vim.log.levels.ERROR)
-  --           end
-  --         end,
-  --       },
-  --     },
-  --   },
-  -- },
-  -- keys = {
-  --   { '<leader>pp', function() Snacks.picker.projects() end, desc = 'Projects Picker' },
-  -- },
-  -- init = function()
-  --   vim.api.nvim_create_autocmd('DirChanged', {
-  --     group = vim.api.nvim_create_augroup('MyNeoTreeSync', { clear = true }),
-  --     callback = function()
-  --       if package.loaded['neo-tree'] then vim.cmd 'Neotree action=show source=filesystem reveal=true' end
-  --     end,
-  --   })
-  -- end,
-}
+-- return {
+--   -- 'folke/snacks.nvim',
+--   -- opts = {
+--   --   picker = {
+--   --     sources = {
+--   --       projects = {
+--   --         confirm = function(picker, item)
+--   --           picker:close()
+--   --           if not item then return end
+--   --
+--   --           local target_dir = item.file or item.text
+--   --
+--   --           if type(target_dir) == 'string' then
+--   --             vim.api.nvim_set_current_dir(target_dir)
+--   --             Snacks.picker.files { cwd = target_dir }
+--   --           else
+--   --             vim.notify('Error: Could not read path directory!', vim.log.levels.ERROR)
+--   --           end
+--   --         end,
+--   --       },
+--   --     },
+--   --   },
+--   -- },
+--   -- keys = {
+--   --   { '<leader>pp', function() Snacks.picker.projects() end, desc = 'Projects Picker' },
+--   -- },
+--   -- init = function()
+--   --   vim.api.nvim_create_autocmd('DirChanged', {
+--   --     group = vim.api.nvim_create_augroup('MyNeoTreeSync', { clear = true }),
+--   --     callback = function()
+--   --       if package.loaded['neo-tree'] then vim.cmd 'Neotree action=show source=filesystem reveal=true' end
+--   --     end,
+--   --   })
+--   -- end,
+-- }
