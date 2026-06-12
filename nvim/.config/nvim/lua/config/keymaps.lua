@@ -56,3 +56,6 @@ vim.keymap.set('n', '<leader>tc', function()
     vim.o.cursorline = false
   end
 end, { desc = '[T]oggle [C]ursor visibility' })
+
+vim.keymap.set('n', '<TAB>', '<cmd>bnext<CR>', { desc = 'Następny bufor' })
+vim.keymap.set('n', '<S-TAB>', '<cmd>bprev<CR>', { desc = 'Poprzedni bufor' })
