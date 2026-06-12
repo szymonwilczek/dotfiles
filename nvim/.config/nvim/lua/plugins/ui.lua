@@ -40,9 +40,12 @@ return {
         sources = {
           files = {
             hidden = true,
+            ignored = true,
           },
           grep = {
             need_search = true,
+            hidden = true,
+            ignored = true,
           },
         },
       },
@@ -63,34 +66,6 @@ return {
   },
 
   {
-    'akinsho/bufferline.nvim',
-    version = '*',
-    dependencies = 'nvim-tree/nvim-web-devicons',
-    config = function()
-      require('bufferline').setup {
-        options = {
-          mode = 'buffers',
-          separator_style = 'thin',
-          show_buffer_close_icons = false,
-          show_close_icon = false,
-          offsets = {
-            {
-              filetype = 'neo-tree',
-              text = function() return '  ' .. vim.fn.fnamemodify(vim.fn.getcwd(), ':t') end,
-              highlight = 'Directory',
-              text_align = 'center',
-              separator = true,
-            },
-          },
-        },
-      }
-
-      vim.keymap.set('n', '<TAB>', ':BufferLineCycleNext<CR>', { desc = 'Następna zakładka' })
-      vim.keymap.set('n', '<S-TAB>', ':BufferLineCyclePrev<CR>', { desc = 'Poprzednia zakładka' })
-    end,
-  },
-
-  {
     'famiu/bufdelete.nvim',
     keys = {
       { '<C-x>', function() require('bufdelete').bufdelete(0, false) end, desc = 'Zamknij bufor (Ctrl+X)' },
@@ -98,24 +73,6 @@ return {
     },
   },
 
-  {
-    'folke/which-key.nvim',
-    event = 'VimEnter',
-    ---@module 'which-key'
-    ---@type wk.Opts
-    ---@diagnostic disable-next-line: missing-fields
-    opts = {
-      delay = 400,
-      icons = { mappings = vim.g.have_nerd_font },
-
-      spec = {
-        { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
-        { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-        { 'gr', group = 'LSP Actions', mode = { 'n' } },
-      },
-    },
-  },
   {
     's1n7ax/nvim-window-picker',
     name = 'window-picker',
@@ -142,3 +99,4 @@ return {
     end,
   },
 }
+
