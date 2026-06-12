@@ -19,7 +19,7 @@ cursor-opacity = .8
 cursor-text = #000000
 cursor-style = block
 cursor-style-blink = false
-mouse-scroll-multiplier = 2
+mouse-scroll-multiplier = 4
 
 shell-integration = none
 confirm-close-surface = false
