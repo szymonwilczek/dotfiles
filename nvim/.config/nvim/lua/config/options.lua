@@ -55,9 +55,26 @@ vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
 
 -- conflict markers
-local error_fg = vim.api.nvim_get_hl(0, { name = 'DiagnosticError' }).fg
-local info_fg = vim.api.nvim_get_hl(0, { name = 'DiagnosticInfo' }).fg
-local warn_fg = vim.api.nvim_get_hl(0, { name = 'DiagnosticWarn' }).fg
-vim.api.nvim_set_hl(0, 'ConflictMarkerBegin', { fg = error_fg, bold = true, reverse = true })
-vim.api.nvim_set_hl(0, 'ConflictMarkerSeparator', { fg = warn_fg, bold = true, reverse = true })
-vim.api.nvim_set_hl(0, 'ConflictMarkerEnd', { fg = info_fg, bold = true, reverse = true })
+vim.api.nvim_create_autocmd('ColorScheme', {
+  callback = function()
+    local diag_err = vim.api.nvim_get_hl(0, { name = 'DiagnosticError' })
+    local diag_warn = vim.api.nvim_get_hl(0, { name = 'DiagnosticWarn' })
+    local diag_info = vim.api.nvim_get_hl(0, { name = 'DiagnosticInfo' })
+
+    local error_fg = diag_err.fg or '#ff0000'
+    local warn_fg = diag_warn.fg or '#ffaa00'
+    local info_fg = diag_info.fg or '#00aaff'
+
+    vim.api.nvim_set_hl(0, 'GitLineOurs', { fg = error_fg, bold = true, reverse = true })
+    vim.api.nvim_set_hl(0, 'GitLineSep', { fg = warn_fg, bold = true, reverse = true })
+    vim.api.nvim_set_hl(0, 'GitLineTheirs', { fg = info_fg, bold = true, reverse = true })
+  end,
+})
+
+vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufNewFile' }, {
+  callback = function()
+    vim.fn.matchadd('GitLineOurs', '^<<<<<<<.*$')
+    vim.fn.matchadd('GitLineSep', '^=\\{7\\}$')
+    vim.fn.matchadd('GitLineTheirs', '^>>>>>>>.*$')
+  end,
+})
