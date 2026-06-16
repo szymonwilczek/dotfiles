@@ -53,3 +53,11 @@ vim.opt.foldcolumn = '0'
 vim.opt.foldtext = ''
 vim.opt.foldlevel = 99
 vim.opt.foldlevelstart = 99
+
+-- conflict markers
+local error_fg = vim.api.nvim_get_hl(0, { name = 'DiagnosticError' }).fg
+local info_fg = vim.api.nvim_get_hl(0, { name = 'DiagnosticInfo' }).fg
+local warn_fg = vim.api.nvim_get_hl(0, { name = 'DiagnosticWarn' }).fg
+vim.api.nvim_set_hl(0, 'ConflictMarkerBegin', { fg = error_fg, bold = true, reverse = true })
+vim.api.nvim_set_hl(0, 'ConflictMarkerSeparator', { fg = warn_fg, bold = true, reverse = true })
+vim.api.nvim_set_hl(0, 'ConflictMarkerEnd', { fg = info_fg, bold = true, reverse = true })
