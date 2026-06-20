@@ -1,7 +1,7 @@
 customCommands:
   - key: 'W'
     context: 'commits'
-    description: 'Dodaj współautora i edytuj'
+    description: 'Dodaj współautora (Co-authored-by)'
     prompts:
       - type: 'menuFromCommand'
         title: 'Wybierz współautora'
@@ -9,27 +9,40 @@ customCommands:
         command: "bash -c \"(git log --format='%aN <%aE>'; git log --all --format='%(trailers:key=Co-authored-by,valueonly=true)') | sed '/^$/d' | sort -u\""
     command: >
       bash -c '
-      COMMIT="{{.SelectedLocalCommit.Hash}}";
-      BRANCH=$(git branch --show-current);
-      if [ "$COMMIT" = "$(git rev-parse HEAD)" ]; then
+      COMMIT_HASH="{{.SelectedLocalCommit.Hash}}";
+      CURRENT_BRANCH=$(git branch --show-current);
+      if [ "$COMMIT_HASH" = "$(git rev-parse HEAD)" ]; then
         git commit --amend --no-edit --trailer "Co-authored-by: {{.Form.Author}}";
       else
-        git checkout "$COMMIT" &&
+        git checkout "$COMMIT_HASH" &&
         git commit --amend --no-edit --trailer "Co-authored-by: {{.Form.Author}}" &&
-        git rebase --onto HEAD "$COMMIT" "$BRANCH";
+        git rebase --onto HEAD "$COMMIT_HASH" "$CURRENT_BRANCH";
       fi'
 
   - key: 'F'
     context: 'commits'
-    description: 'Podpisz commit (własny)'
+    description: 'Podpisz commit (Signed-off-by)'
     command: >
       bash -c '
-      COMMIT="{{.SelectedLocalCommit.Hash}}";
-      BRANCH=$(git branch --show-current);
-      if [ "$COMMIT" = "$(git rev-parse HEAD)" ]; then
+      COMMIT_HASH="{{.SelectedLocalCommit.Hash}}";
+      CURRENT_BRANCH=$(git branch --show-current);
+      if [ "$COMMIT_HASH" = "$(git rev-parse HEAD)" ]; then
         git commit --amend --no-edit --signoff;
       else
-        git checkout "$COMMIT" &&
+        git checkout "$COMMIT_HASH" &&
         git commit --amend --no-edit --signoff &&
-        git rebase --onto HEAD "$COMMIT" "$BRANCH";
+        git rebase --onto HEAD "$COMMIT_HASH" "$CURRENT_BRANCH";
       fi'
+  - key: 'E'
+    context: 'commits'
+    description: 'Wypakuj pliki z commita (Mixed reset + Pusty commit)'
+    command: >
+      bash -c '
+      COMMIT_HASH="{{.SelectedLocalCommit.Hash}}";
+      if [ "$COMMIT_HASH" != "$(git rev-parse HEAD)" ]; then
+        echo "Error: Żeby to zrobić, musisz być NA TYM commicie (stan --JESTEŚ TUTAJ-- trakcie rebase!).";
+        exit 1;
+      fi;
+      git reset --mixed "$COMMIT_HASH~1" &&
+      git commit --allow-empty -C "$COMMIT_HASH"
+      '
