@@ -17,23 +17,23 @@ return {
         default_component_configs = {
           diagnostics = {
             symbols = {
-              hint = ' ',
-              info = ' ',
-              warn = ' ',
-              error = ' ',
+              hint = 'H ',
+              info = 'I ',
+              warn = 'W ',
+              error = 'E ',
             },
           },
           git_status = {
             symbols = {
-              added = 'A ',
-              deleted = 'D ',
-              modified = 'M ',
-              renamed = 'R ',
               untracked = 'U ',
               ignored = '◌ ',
               unstaged = '󰄱 ',
               staged = ' ',
               conflict = ' ',
+              added     = 'A ',
+              deleted   = 'D ',
+              modified  = 'M ',
+              renamed   = 'R ',
             },
           },
         },
