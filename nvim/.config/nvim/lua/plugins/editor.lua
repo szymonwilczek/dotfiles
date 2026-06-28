@@ -14,6 +14,29 @@ return {
     },
     config = function()
       require('neo-tree').setup {
+        default_component_configs = {
+          diagnostics = {
+            symbols = {
+              hint = ' ',
+              info = ' ',
+              warn = ' ',
+              error = ' ',
+            },
+          },
+          git_status = {
+            symbols = {
+              added = 'A ',
+              deleted = 'D ',
+              modified = 'M ',
+              renamed = 'R ',
+              untracked = 'U ',
+              ignored = '◌ ',
+              unstaged = '󰄱 ',
+              staged = ' ',
+              conflict = ' ',
+            },
+          },
+        },
         sources = {
           'filesystem',
           'buffers',

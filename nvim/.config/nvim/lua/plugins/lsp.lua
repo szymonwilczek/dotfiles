@@ -26,6 +26,8 @@ return {
           map('gd', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
+          if client then client.server_capabilities.semanticTokensProvider = nil end
+
           if client and client:supports_method('textDocument/documentHighlight', event.buf) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
@@ -213,6 +215,10 @@ return {
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
+      enabled = function()
+        local disabled_filetypes = { 'markdown', 'gfm', 'rst', 'text', 'txt', 'mail', 'gitcommit' }
+        return not vim.tbl_contains(disabled_filetypes, vim.bo.filetype) and vim.bo.buftype ~= 'prompt' and vim.b.completion ~= false
+      end,
       keymap = {
         preset = 'default',
         -- ALT + j/k to navigate
@@ -234,11 +240,12 @@ return {
       },
       completion = {
         menu = {
-          auto_show = false,
+          auto_show = true,
+          direction_priority = { 's' },
         },
         trigger = {
-          show_on_keyword = false,
-          show_on_trigger_character = false,
+          show_on_keyword = true,
+          show_on_trigger_character = true,
         },
         list = {
           selection = { preselect = false, auto_insert = true },
@@ -247,10 +254,26 @@ return {
       },
       sources = {
         default = { 'lsp', 'path', 'snippets' },
+        providers = {
+          lsp = {
+            min_keyword_length = 1,
+          },
+          path = {
+            min_keyword_length = 0,
+          },
+          snippets = {
+            min_keyword_length = 1,
+          },
+        },
       },
       snippets = { preset = 'luasnip' },
       fuzzy = { implementation = 'lua' },
-      signature = { enabled = true },
+      signature = {
+        enabled = true,
+        window = {
+          direction_priority = { 's' },
+        },
+      },
     },
   },
 
