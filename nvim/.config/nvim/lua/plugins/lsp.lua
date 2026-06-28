@@ -288,7 +288,7 @@ return {
         callback = function(args)
           local lang = vim.treesitter.language.get_lang(args.match)
           if lang and pcall(vim.treesitter.start, args.buf, lang) then
-            if vim.treesitter.query.get(lang, 'folds') then
+            if (args.match == 'markdown' or args.match == 'gfm') and vim.treesitter.query.get(lang, 'folds') then
               vim.opt_local.foldmethod = 'expr'
               vim.opt_local.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
             end

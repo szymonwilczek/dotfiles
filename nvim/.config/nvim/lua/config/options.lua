@@ -24,6 +24,7 @@ vim.o.splitbelow = true
 
 vim.o.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.opt.fillchars = { vert = '|' }
 
 vim.o.inccommand = 'split'
 
@@ -47,8 +48,8 @@ vim.diagnostic.config {
 }
 
 -- folds
-vim.opt.foldmethod = 'expr'
-vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+vim.opt.foldmethod = 'manual'
+vim.opt.foldexpr = ''
 vim.opt.foldcolumn = '0'
 vim.opt.foldtext = ''
 vim.opt.foldlevel = 99

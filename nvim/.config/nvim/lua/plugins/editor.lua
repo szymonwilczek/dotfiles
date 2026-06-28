@@ -119,6 +119,16 @@ return {
           },
         },
       }
+
+      vim.api.nvim_create_autocmd('TermClose', {
+        pattern = '*',
+        callback = function()
+          if package.loaded['neo-tree.sources.manager'] then
+            require('neo-tree.sources.manager').refresh 'filesystem'
+            require('neo-tree.sources.manager').refresh 'git_status'
+          end
+        end,
+      })
     end,
   },
 
