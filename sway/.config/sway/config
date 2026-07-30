@@ -109,6 +109,7 @@ bindsym $mod+f fullscreen
 bindsym $mod+z exec ~/.config/sway/scripts/toggle-floating.sh
 bindsym $mod+space focus mode_toggle
 bindsym $mod+p exec ~/.config/sway/scripts/audio-switcher.sh
+bindsym $mod+grave exec ~/.config/sway/scripts/scratchpad-ghostty.sh
 
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
@@ -146,6 +147,7 @@ for_window [app_id="carmenta"] floating enable, move position center
 for_window [app_id="steam"] floating enable, resize set 900 600, move position center
 for_window [app_id="dolphin"] floating enable, resize set 1100 900, move position center
 for_window [app_id="ghostty" app_id="floating_nmtui"] floating enable, resize set 750 450, move position center
+for_window [title="Scratchpad Ghostty"] floating enable, mark "scratchpad_ghostty", move scratchpad
 
 # Styling
 default_border pixel 2
