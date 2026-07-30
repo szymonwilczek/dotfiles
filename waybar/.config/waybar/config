@@ -15,10 +15,19 @@
     "modules-right": ["tray", "custom/notification", "network", "pulseaudio", "custom/power"],
 
     "sway/workspaces": {
-      "format": "{name}",
+      "format": "{icon}",
       "active-only": false,
       "all-outputs": false,
-      "disable-scroll": true
+      "disable-scroll": true,
+      "format-icons": {
+        "DP-2:1": "1", "DP-2:2": "2", "DP-2:3": "3", "DP-2:4": "4", "DP-2:5": "5",
+        "DP-2:6": "6", "DP-2:7": "7", "DP-2:8": "8", "DP-2:9": "9", "DP-2:10": "10",
+        "HDMI-A-1:1": "1", "HDMI-A-1:2": "2", "HDMI-A-1:3": "3", "HDMI-A-1:4": "4", "HDMI-A-1:5": "5",
+        "HDMI-A-1:6": "6", "HDMI-A-1:7": "7", "HDMI-A-1:8": "8", "HDMI-A-1:9": "9", "HDMI-A-1:10": "10",
+        "DP-1:1": "1", "DP-1:2": "2", "DP-1:3": "3", "DP-1:4": "4", "DP-1:5": "5",
+        "DP-1:6": "6", "DP-1:7": "7", "DP-1:8": "8", "DP-1:9": "9", "DP-1:10": "10",
+        "default": "?"
+      }
     },
 
     "clock": {
@@ -83,13 +92,31 @@
     "layer": "top",
     "position": "bottom",
     "exclusive": false,
-    "passthrough": true,
+    "passthrough": false,
     "margin-bottom": 0,
     "margin-right": 0,
 
-    "modules-left": [],
+    "modules-left": ["sway/workspaces"],
     "modules-center": [],
     "modules-right": ["clock"],
+
+    "sway/workspaces": {
+      "format": "{icon}",
+      "active-only": false,
+      "all-outputs": false,
+      "disable-scroll": true,
+      "format-icons": {
+        "1": "1", "2": "2", "3": "3", "4": "4", "5": "5",
+        "6": "6", "7": "7", "8": "8", "9": "9", "10": "10",
+        "DP-2:1": "1", "DP-2:2": "2", "DP-2:3": "3", "DP-2:4": "4", "DP-2:5": "5",
+        "DP-2:6": "6", "DP-2:7": "7", "DP-2:8": "8", "DP-2:9": "9", "DP-2:10": "10",
+        "HDMI-A-1:1": "1", "HDMI-A-1:2": "2", "HDMI-A-1:3": "3", "HDMI-A-1:4": "4", "HDMI-A-1:5": "5",
+        "HDMI-A-1:6": "6", "HDMI-A-1:7": "7", "HDMI-A-1:8": "8", "HDMI-A-1:9": "9", "HDMI-A-1:10": "10",
+        "DP-1:1": "1", "DP-1:2": "2", "DP-1:3": "3", "DP-1:4": "4", "DP-1:5": "5",
+        "DP-1:6": "6", "DP-1:7": "7", "DP-1:8": "8", "DP-1:9": "9", "DP-1:10": "10",
+        "default": "?"
+      }
+    },
 
     "clock": {
       "format": "{:%H:%M}",

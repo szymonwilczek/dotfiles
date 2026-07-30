@@ -74,6 +74,23 @@ window#waybar.bottom #clock {
   color: #ffffff;
 }
 
+window#waybar.bottom #workspaces button {
+  padding: 0 8px;
+  background-color: transparent;
+  color: #888888;
+  border: none;
+}
+
+window#waybar.bottom #workspaces button.focused {
+  background-color: rgba(76, 120, 153, 0.6);
+  color: #ffffff;
+}
+
+window#waybar.bottom #workspaces button:hover {
+  background-color: rgba(40, 85, 119, 0.5);
+  color: #ffffff;
+}
+
 #custom-notification {
   padding: 0 12px;
   background-color: #222222;
