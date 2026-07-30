@@ -11,7 +11,7 @@
     "margin-bottom": 0,
 
     "modules-left": ["sway/workspaces"],
-    "modules-center": ["clock"],
+    "modules-center": ["custom/spotify", "clock"],
     "modules-right": ["tray", "custom/notification", "network", "pulseaudio", "custom/power"],
 
     "sway/workspaces": {
@@ -44,6 +44,15 @@
           "today": "<span color='#ff5555'><b><u>{}</u></b></span>"
         }
       }
+    },
+
+    "custom/spotify": {
+      "exec": "~/.config/sway/scripts/spotify-island",
+      "return-type": "json",
+      "on-click": "playerctl -p spotify play-pause",
+      "on-scroll-up": "playerctl -p spotify next",
+      "on-scroll-down": "playerctl -p spotify previous",
+      "tooltip": true
     },
 
     "custom/notification": {
@@ -86,6 +95,7 @@
     },
 
     "tray": {
+      "icon-size": 16,
       "spacing": 8
     },
 
