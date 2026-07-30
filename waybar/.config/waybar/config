@@ -1,0 +1,99 @@
+[
+  {
+    "output": "DP-2",
+    "layer": "top",
+    "position": "top",
+    "height": 24,
+    "spacing": 0,
+    "margin-top": 0,
+    "margin-left": 0,
+    "margin-right": 0,
+    "margin-bottom": 0,
+
+    "modules-left": ["sway/workspaces"],
+    "modules-center": ["clock"],
+    "modules-right": ["tray", "custom/notification", "network", "pulseaudio", "custom/power"],
+
+    "sway/workspaces": {
+      "format": "{name}",
+      "active-only": false,
+      "all-outputs": false,
+      "disable-scroll": true
+    },
+
+    "clock": {
+      "locale": "pl_PL.UTF-8",
+      "interval": 1,
+      "format": "{:%a %d %b %H:%M}",
+      "tooltip-format": "<tt><small>{calendar}</small></tt>",
+    },
+
+    "custom/notification": {
+	    "tooltip": false,
+	    "format": "{icon}",
+	    "format-icons": {
+		    "notification": "<span foreground='red'><sup>居</sup></span>",
+		    "none": "",
+		    "dnd-notification": "<span foreground='red'><sup>居</sup></span>",
+		    "dnd-none": "",
+		    "inhibited-notification": "<span foreground='red'><sup>居</sup></span>",
+		    "inhibited-none": "",
+		    "dnd-inhibited-notification": "<span foreground='red'><sup>居</sup></span>",
+		    "dnd-inhibited-none": "",
+	    },
+	    "return-type": "json",
+	    "exec-if": "which swaync-client",
+	    "exec": "swaync-client -swb",
+	    "on-click": "swaync-client -t -sw",
+	    "on-click-right": "swaync-client -d -sw",
+	    "escape": true,
+    },
+
+    "network": {
+      "format-wifi": "   {essid}",
+      "format-ethernet": "󰌗   LAN",
+      "format-disconnected": "⚠   Brak",
+      "tooltip-format": "{ipaddr}",
+      "on-click": "ghostty --class=floating_nmtui -e nmtui"
+    },
+
+    "pulseaudio": {
+      "format": "{icon} {volume}%",
+      "format-muted": "󰝟   Wyciszony",
+      "format-icons": {
+        "default": ["󰕿  ", "󰖀  ", "󰕾  "]
+      },
+      "on-click": "pavucontrol -t 3",
+      "on-click-middle": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
+    },
+
+    "tray": {
+      "spacing": 8
+    },
+
+    "custom/power": {
+      "format": "⏻",
+      "tooltip": false,
+      "on-click": "~/.config/sway/scripts/powermenu.sh"
+    }
+  },
+
+  {
+    "output": ["DP-1", "HDMI-A-1"],
+    "layer": "top",
+    "position": "bottom",
+    "exclusive": false,
+    "passthrough": true,
+    "margin-bottom": 0,
+    "margin-right": 0,
+
+    "modules-left": [],
+    "modules-center": [],
+    "modules-right": ["clock"],
+
+    "clock": {
+      "format": "{:%H:%M}",
+      "tooltip": false
+    }
+  }
+]
