@@ -106,7 +106,7 @@ bindsym $mod+v splitv
 bindsym $mod+w layout tabbed
 
 bindsym $mod+f fullscreen
-bindsym $mod+z floating toggle
+bindsym $mod+z exec ~/.config/sway/scripts/toggle-floating.sh
 bindsym $mod+space focus mode_toggle
 
 bindsym $mod+Shift+minus move scratchpad
