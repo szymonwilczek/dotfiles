@@ -14,9 +14,16 @@ exec_always pkill waybar; env LC_TIME=pl_PL.UTF-8 waybar
 
 # Output configuration
 output * bg ~/Pulpit/Personalne/Tapety/IMG_1692_lossless.png fill
+output * subpixel rgb
+output * render_bit_depth 10
 output HDMI-A-1 mode 1920x1080@75Hz pos 0 0
 output DP-2 mode 1920x1080@179.821Hz pos 1920 0
 output DP-1 mode 1600x900@77Hz pos 3840 0
+
+
+# Gaps & Borders configuration
+smart_gaps on
+hide_edge_borders smart
 
 # Idle configuration
 # Im not using it, but maybe someday
@@ -136,9 +143,10 @@ for_window [app_id="dolphin"] floating enable, resize set 1100 900, move positio
 for_window [app_id="ghostty" app_id="floating_nmtui"] floating enable, resize set 750 450, move position center
 
 # Styling
-default_border pixel 1
-titlebar_padding 10 4
+default_border normal 1
 default_floating_border normal 1
+titlebar_padding 10 4
+title_align center
 font pango:Adwaita Sans 11
 
 exec ~/.config/sway/scripts/workspace-init.sh
