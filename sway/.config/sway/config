@@ -40,6 +40,7 @@ bindsym $mod+Shift+q kill
 bindsym $mod+a kill
 bindsym $mod+s exec $menu
 bindsym $mod+e exec $explorer
+bindsym $mod+period exec carmenta --vim --disable-gifs --close-on-select --scale 1.15
 
 floating_modifier $mod normal
 
@@ -129,6 +130,7 @@ bindsym Pause exec wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
 # Floating Rules
 for_window [app_id="pavucontrol"] floating enable, resize set 700 500, move position center
 for_window [app_id="gwenview"] floating enable, resize set 900 600, move position center
+for_window [app_id="carmenta"] floating enable, move position center
 for_window [app_id="steam"] floating enable, resize set 900 600, move position center
 for_window [app_id="dolphin"] floating enable, resize set 1100 900, move position center
 for_window [app_id="ghostty" app_id="floating_nmtui"] floating enable, resize set 750 450, move position center
