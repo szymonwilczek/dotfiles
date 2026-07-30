@@ -1,0 +1,19 @@
+font=Adwaita Sans 10
+background-color=#222222
+text-color=#ffffff
+border-color=#4c7899
+border-size=1
+border-radius=0
+padding=10
+margin=5
+
+anchor=top-right
+default-timeout=10000
+max-visible=5
+
+[urgency=low]
+border-color=#333333
+
+[urgency=critical]
+border-color=#900000
+default-timeout=0
