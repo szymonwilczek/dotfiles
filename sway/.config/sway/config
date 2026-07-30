@@ -108,6 +108,7 @@ bindsym $mod+w layout tabbed
 bindsym $mod+f fullscreen
 bindsym $mod+z exec ~/.config/sway/scripts/toggle-floating.sh
 bindsym $mod+space focus mode_toggle
+bindsym $mod+p exec ~/.config/sway/scripts/audio-switcher.sh
 
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show

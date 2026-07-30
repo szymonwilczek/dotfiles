@@ -91,6 +91,7 @@
         "default": ["󰕿  ", "󰖀  ", "󰕾  "]
       },
       "on-click": "pavucontrol -t 3",
+      "on-click-right": "~/.config/sway/scripts/audio-switcher.sh",
       "on-click-middle": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
     },
 
