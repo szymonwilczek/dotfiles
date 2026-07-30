@@ -20,6 +20,10 @@ output HDMI-A-1 mode 1920x1080@75Hz pos 0 0
 output DP-2 mode 1920x1080@179.821Hz pos 1920 0
 output DP-1 mode 1600x900@77Hz pos 3840 0
 
+# Seat & Cursor configuration
+seat * xcursor_theme Adwaita 16
+exec_always gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'
+exec_always gsettings set org.gnome.desktop.interface cursor-size 16
 
 # Gaps & Borders configuration
 smart_gaps on
@@ -147,6 +151,9 @@ default_border normal 1
 default_floating_border normal 1
 titlebar_padding 10 4
 title_align center
+for_window [title=".*"] title_format "%title"
+for_window [app_id="firefox"] title_format "Mozilla Firefox"
+for_window [class="[Ff]irefox"] title_format "Mozilla Firefox"
 font pango:Adwaita Sans 11
 
 exec ~/.config/sway/scripts/workspace-init.sh
