@@ -9,7 +9,7 @@ set $menu fuzzel
 set $explorer QT_QPA_PLATFORMTHEME=kde dolphin
 
 # Execs
-exec_always mako
+exec swaync
 exec_always pkill waybar; env LC_TIME=pl_PL.UTF-8 waybar
 
 # Output configuration

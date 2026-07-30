@@ -1,0 +1,80 @@
+* {
+  font-family: "Adwaita Sans", "JetBrainsMono Nerd Font", monospace;
+  font-size: 14px;
+  border-radius: 0px;
+}
+
+.control-center {
+  background: #222222;
+  border: 2px solid #4c7899;
+  color: #ffffff;
+}
+
+.notification {
+  background: #1a1a1a;
+  border: 1px solid #333333;
+  margin: 8px;
+}
+
+.notification-content {
+  background: transparent;
+  padding: 10px 12px;
+}
+
+.notification-content .image,
+.notification-content .app-icon,
+.image,
+.app-icon {
+  -gtk-icon-size: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  margin-left: 4px;
+  margin-right: 16px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.notification-content .text-box label {
+  color: #ffffff;
+}
+
+.notification-content .text-box .summary {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.notification-content .text-box .body {
+  font-size: 13px;
+}
+
+.close-button {
+  background: #222222;
+  color: #ffffff;
+}
+
+.close-button:hover {
+  background: #900000;
+}
+
+.widget-title {
+  color: #ffffff;
+  background: #222222;
+  padding: 10px;
+}
+
+.widget-title > button {
+  background: #222222;
+  border: 1px solid #333333;
+  color: #ffffff;
+}
+
+.widget-title > button:hover {
+  background: #4c7899;
+}
+
+.notification-group {
+  background-color: #222222;
+  border: 2px solid #4c7899;
+  border-radius: 0px;
+}
