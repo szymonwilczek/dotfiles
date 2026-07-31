@@ -31,3 +31,4 @@ emacs/.config/emacs/treemacs-persist
 nvim/.config/nvim/spell
 nvim/.config/nvim/lazy-lock.json
 tmux/.tmux/plugins
+sway/.config/sway/scripts/sys-info
