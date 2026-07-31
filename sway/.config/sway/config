@@ -147,7 +147,12 @@ bindsym $mod+grave exec ~/.config/sway/scripts/scratchpad-ghostty.sh
 # Screen recording & Drawing
 bindsym $mod+Shift+r exec ~/.config/sway/scripts/record-screen.sh
 bindsym $mod+Shift+t exec ~/.config/sway/scripts/toggle-drawing.sh
-bindsym $mod+Shift+y exec gromit-mpx --clear
+
+# Gromit-MPX
+bindsym F9 exec gromit-mpx --toggle
+bindsym Shift+F9 exec gromit-mpx --clear
+bindsym Ctrl+F9 exec gromit-mpx --visibility
+bindsym Alt+F9 exec gromit-mpx --quit
 
 for_window [app_id="Gromit-mpx"] floating enable, border none, sticky enable
 for_window [class="Gromit-mpx"] floating enable, border none, sticky enable
