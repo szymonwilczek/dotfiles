@@ -1,22 +1,29 @@
 #!/bin/bash
 # Initialize per-monitor independent workspaces
-# Renames default numbered workspaces (1, 2, 3...) to per-monitor format (DP-2:1, etc)
+# Cleans up Sway's default plain-numbered workspaces (1, 2, 3...)
+# and migrates any windows on them to proper OUTPUT:1 workspaces
 
 sleep 0.3
 
-for OUTPUT in $(swaymsg -t get_outputs | jq -r '.[].name'); do
-    # get the current workspace on this output (if any)
-    CURRENT_WS=$(swaymsg -t get_workspaces | jq -r ".[] | select(.output == \"$OUTPUT\") | .name")
+OUTPUTS=$(swaymsg -t get_outputs | jq -r '.[].name')
 
-    if [ -n "$CURRENT_WS" ] && [[ "$CURRENT_WS" != *:* ]]; then
-        # workspace exists but has a plain name (e.g "1") - rename it
-        swaymsg "rename workspace \"$CURRENT_WS\" to \"${OUTPUT}:1\""
-    elif [ -z "$CURRENT_WS" ]; then
-        # no workspace on this output yet - create one
-        swaymsg "focus output $OUTPUT"
-        swaymsg "workspace \"${OUTPUT}:1\""
-    fi
+# ensure each output has its :1 workspace
+for OUTPUT in $OUTPUTS; do
+    swaymsg "focus output $OUTPUT"
+    swaymsg "workspace \"${OUTPUT}:1\""
+done
+
+# clean up any plain-numbered workspaces left by sway's defaults
+PLAIN_WS=$(swaymsg -t get_workspaces | jq -r '.[] | select(.name | test("^[0-9]+$")) | .name + "|" + .output')
+
+for ENTRY in $PLAIN_WS; do
+    WS_NAME="${ENTRY%%|*}"
+    WS_OUTPUT="${ENTRY##*|}"
+    swaymsg "[workspace=\"$WS_NAME\"]" move container to workspace "${WS_OUTPUT}:1" 2>/dev/null || true
+    swaymsg "focus output $WS_OUTPUT"
+    swaymsg "workspace \"${WS_OUTPUT}:1\""
 done
 
 # focus back to the main monitor
 swaymsg "focus output DP-2"
+swaymsg "workspace \"DP-2:1\""

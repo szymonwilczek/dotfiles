@@ -20,6 +20,38 @@ output HDMI-A-1 mode 1920x1080@75Hz pos 0 0
 output DP-2 mode 1920x1080@179.821Hz pos 1920 0
 output DP-1 mode 1600x900@77Hz pos 3840 0
 
+# Per-monitor workspaces to outputs
+workspace "DP-2:1" output DP-2
+workspace "DP-2:2" output DP-2
+workspace "DP-2:3" output DP-2
+workspace "DP-2:4" output DP-2
+workspace "DP-2:5" output DP-2
+workspace "DP-2:6" output DP-2
+workspace "DP-2:7" output DP-2
+workspace "DP-2:8" output DP-2
+workspace "DP-2:9" output DP-2
+workspace "DP-2:10" output DP-2
+workspace "HDMI-A-1:1" output HDMI-A-1
+workspace "HDMI-A-1:2" output HDMI-A-1
+workspace "HDMI-A-1:3" output HDMI-A-1
+workspace "HDMI-A-1:4" output HDMI-A-1
+workspace "HDMI-A-1:5" output HDMI-A-1
+workspace "HDMI-A-1:6" output HDMI-A-1
+workspace "HDMI-A-1:7" output HDMI-A-1
+workspace "HDMI-A-1:8" output HDMI-A-1
+workspace "HDMI-A-1:9" output HDMI-A-1
+workspace "HDMI-A-1:10" output HDMI-A-1
+workspace "DP-1:1" output DP-1
+workspace "DP-1:2" output DP-1
+workspace "DP-1:3" output DP-1
+workspace "DP-1:4" output DP-1
+workspace "DP-1:5" output DP-1
+workspace "DP-1:6" output DP-1
+workspace "DP-1:7" output DP-1
+workspace "DP-1:8" output DP-1
+workspace "DP-1:9" output DP-1
+workspace "DP-1:10" output DP-1
+
 # Seat & Cursor configuration
 seat * xcursor_theme Adwaita 16
 exec_always gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'
@@ -168,6 +200,6 @@ client.focused_inactive #44485b #383c4a #d8dee9 #484e50   #44485b
 client.unfocused        #383c4a #2b303c #a0a8b6 #292d2e   #383c4a
 client.urgent           #e01b24 #e01b24 #ffffff #e01b24   #e01b24
 
-exec ~/.config/sway/scripts/workspace-init.sh
+exec_always ~/.config/sway/scripts/workspace-init.sh
 
 include /etc/sway/config.d/*
