@@ -213,6 +213,9 @@ client.focused_inactive #44485b #383c4a #d8dee9 #484e50   #44485b
 client.unfocused        #383c4a #2b303c #a0a8b6 #292d2e   #383c4a
 client.urgent           #e01b24 #e01b24 #ffffff #e01b24   #e01b24
 
+# Idle management
+exec swayidle -w timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"'
+
 exec_always ~/.config/sway/scripts/workspace-init.sh
 
 include /etc/sway/config.d/*
