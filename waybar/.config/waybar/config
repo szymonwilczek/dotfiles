@@ -12,7 +12,15 @@
 
     "modules-left": ["sway/workspaces"],
     "modules-center": ["custom/spotify", "clock"],
-    "modules-right": ["tray", "custom/notification", "network", "pulseaudio", "custom/power"],
+    "modules-right": ["custom/recording", "tray", "custom/notification", "network", "pulseaudio", "custom/power"],
+
+    "custom/recording": {
+      "exec": "~/.config/sway/scripts/recording-status.sh",
+      "return-type": "json",
+      "interval": 1,
+      "signal": 8,
+      "tooltip": false
+    },
 
     "sway/workspaces": {
       "format": "{icon}",

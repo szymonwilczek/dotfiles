@@ -65,6 +65,12 @@ window#waybar {
   color: #e01b24;
 }
 
+#custom-recording {
+  padding: 0 10px;
+  color: #ff5555;
+  font-size: 14px;
+}
+
 #custom-power:hover {
   background-color: #900000;
   color: #ffffff;
