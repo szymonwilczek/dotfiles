@@ -144,7 +144,14 @@ bindsym $mod+p exec ~/.config/sway/scripts/audio-switcher.sh
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
 bindsym $mod+grave exec ~/.config/sway/scripts/scratchpad-ghostty.sh
 
+# Screen recording & Drawing
 bindsym $mod+Shift+r exec ~/.config/sway/scripts/record-screen.sh
+bindsym $mod+Shift+t exec ~/.config/sway/scripts/toggle-drawing.sh
+bindsym $mod+Shift+y exec gromit-mpx --clear
+
+for_window [app_id="Gromit-mpx"] floating enable, border none, sticky enable
+for_window [class="Gromit-mpx"] floating enable, border none, sticky enable
+
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
 
