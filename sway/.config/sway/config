@@ -141,6 +141,7 @@ bindsym $mod+f fullscreen
 bindsym $mod+z exec ~/.config/sway/scripts/toggle-floating.sh
 bindsym $mod+space focus mode_toggle
 bindsym $mod+p exec ~/.config/sway/scripts/audio-switcher.sh
+bindsym $mod+Mod1+p exec ~/.config/sway/scripts/toggle-pipewire-mixer.sh
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
 bindsym $mod+grave exec ~/.config/sway/scripts/scratchpad-ghostty.sh
 
@@ -195,6 +196,7 @@ for_window [app_id="dolphin"] floating enable, resize set 1100 900, move positio
 for_window [app_id="ghostty" app_id="floating_nmtui"] floating enable, resize set 750 450, move position center
 for_window [title="Scratchpad Ghostty"] floating enable, mark "scratchpad_ghostty", move scratchpad
 for_window [title="Informacje"] floating enable, border pixel 0, move position center
+for_window [title="AudioMixer"] floating enable, border pixel 0, move position center
 
 # Styling
 default_border pixel 2
