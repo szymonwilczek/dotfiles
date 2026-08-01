@@ -1,0 +1,51 @@
+window#osd, window {
+  background-color: #141418;
+  border: 2px solid #4c7899;
+  border-radius: 0px;
+  box-shadow: none;
+  padding: 10px 18px;
+}
+
+window#osd #container {
+  margin: 8px 12px;
+}
+
+window#osd image, image {
+  color: #4c7899;
+  margin-right: 10px;
+  -gtk-icon-transform: scale(0.6);
+}
+
+window#osd label, label {
+  color: #d8dee9;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+window#osd progressbar, progressbar,
+window#osd segmentedprogress {
+  min-height: 4px;
+  border-radius: 0px;
+  background: transparent;
+  border: none;
+}
+
+window#osd trough, trough,
+window#osd segment {
+  min-height: 4px;
+  min-width: 180px;
+  border-radius: 0px;
+  border: none;
+  background: #2b303c;
+}
+
+window#osd progress, progress,
+window#osd segment.active, slider {
+  min-height: 4px;
+  min-width: 4px;
+  border-radius: 0px;
+  border: none;
+  background-color: #4c7899;
+  background: #4c7899;
+}
