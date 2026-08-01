@@ -12,10 +12,10 @@ vim.keymap.set('i', '<C-b>', '<C-o>b', { desc = 'Jump a word back' })
 vim.keymap.set('n', '<A-x>', function() require('snacks').picker.commands() end, { desc = 'Snacks: [M]-x (Commands)' }) -- straight from emacs, love that
 
 -- Move
-vim.keymap.set('n', '<C-S-h>', '<C-w>H', { desc = 'Move window to the left' })
-vim.keymap.set('n', '<C-S-l>', '<C-w>L', { desc = 'Move window to the right' })
-vim.keymap.set('n', '<C-S-j>', '<C-w>J', { desc = 'Move window to the lower' })
-vim.keymap.set('n', '<C-S-k>', '<C-w>K', { desc = 'Move window to the upper' })
+-- vim.keymap.set('n', '<C-S-h>', '<C-w>H', { desc = 'Move window to the left' })
+-- vim.keymap.set('n', '<C-S-l>', '<C-w>L', { desc = 'Move window to the right' })
+-- vim.keymap.set('n', '<C-S-j>', '<C-w>J', { desc = 'Move window to the lower' })
+-- vim.keymap.set('n', '<C-S-k>', '<C-w>K', { desc = 'Move window to the upper' })
 
 -- Resize
 -- local resize_amount = 2
@@ -32,7 +32,6 @@ vim.keymap.set('n', '<C-S-k>', '<C-w>K', { desc = 'Move window to the upper' })
 
 -- Split
 vim.keymap.set('n', '<leader>s', '<cmd>vsplit<cr>', { desc = '[S]plit Vertical' })
-vim.keymap.set('n', '<leader>h', '<cmd>vsplit<cr>', { desc = 'Split Vertical (backup)' })
 vim.keymap.set('n', '<leader>v', '<cmd>split<cr>', { desc = 'Split Horizontal' })
 
 -- Yank
