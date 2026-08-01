@@ -12,7 +12,7 @@
 
     "modules-left": ["sway/workspaces"],
     "modules-center": ["custom/spotify", "clock"],
-    "modules-right": ["custom/recording", "tray", "custom/notification", "network", "pulseaudio", "custom/power"],
+    "modules-right": ["custom/recording", "tray", "network", "pulseaudio", "custom/notification"],
 
     "custom/recording": {
       "exec": "~/.config/sway/scripts/recording-status.sh",
@@ -107,12 +107,6 @@
       "icon-size": 16,
       "spacing": 8
     },
-
-    "custom/power": {
-      "format": "⏻",
-      "tooltip": false,
-      "on-click": "~/.config/sway/scripts/powermenu.sh"
-    }
   },
 
   {
