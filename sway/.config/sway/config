@@ -141,7 +141,7 @@ bindsym $mod+f fullscreen
 bindsym $mod+z exec ~/.config/sway/scripts/toggle-floating.sh
 bindsym $mod+space focus mode_toggle
 bindsym $mod+p exec ~/.config/sway/scripts/audio-switcher.sh
-bindsym $mod+Mod1+p exec ~/.config/sway/scripts/toggle-pipewire-mixer.sh
+bindsym $mod+Mod5+p exec ~/.config/sway/scripts/toggle-pipewire-mixer.sh
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
 bindsym $mod+grave exec ~/.config/sway/scripts/scratchpad-ghostty.sh
 
