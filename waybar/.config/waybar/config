@@ -86,15 +86,15 @@
 
     "network": {
       "format-wifi": "   {essid}",
-      "format-ethernet": "󰌗   LAN",
-      "format-disconnected": "⚠   Brak",
+      "format-ethernet": "   LAN",
+      "format-disconnected": "   Offline",
       "tooltip-format": "{ipaddr}",
       "on-click": "ghostty --class=floating_nmtui -e nmtui"
     },
 
     "pulseaudio": {
       "format": "{icon} {volume}%",
-      "format-muted": "󰝟   Wyciszony",
+      "format-muted": "󰝟  ",
       "format-icons": {
         "default": ["󰕿  ", "󰖀  ", "󰕾  "]
       },

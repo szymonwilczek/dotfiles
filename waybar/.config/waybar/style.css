@@ -52,7 +52,7 @@ window#waybar {
 #network,
 #pulseaudio,
 #tray {
-  padding: 0 10px;
+  padding: 0 12px;
   background-color: #222222;
   border-left: 1px solid #333333;
   color: #ffffff;
@@ -93,7 +93,7 @@ window#waybar.bottom #workspaces button:hover {
 }
 
 #custom-notification {
-  padding: 0 12px;
+  padding: 0 15px;
   background-color: #222222;
   border-left: 1px solid #333333;
   color: #ffffff;
