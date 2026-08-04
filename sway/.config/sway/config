@@ -216,7 +216,7 @@ client.unfocused        #383c4a #2b303c #a0a8b6 #292d2e   #383c4a
 client.urgent           #e01b24 #e01b24 #ffffff #e01b24   #e01b24
 
 # SwayOSD Integration
-exec_always swayosd-server
+exec_always pkill -x swayosd-server 2>/dev/null; swayosd-server &
 
 bindsym XF86AudioRaiseVolume exec swayosd-client --output-volume raise
 bindsym XF86AudioLowerVolume exec swayosd-client --output-volume lower
