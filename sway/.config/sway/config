@@ -140,6 +140,10 @@ bindsym $mod+w layout tabbed
 bindsym $mod+f fullscreen
 bindsym $mod+z exec ~/.config/sway/scripts/toggle-floating.sh
 bindsym $mod+space focus mode_toggle
+
+# Alt-Tab
+bindsym Mod1+Tab exec ~/.config/sway/scripts/alt-tab.sh next
+bindsym Mod1+Shift+Tab exec ~/.config/sway/scripts/alt-tab.sh prev
 bindsym $mod+p exec ~/.config/sway/scripts/audio-switcher.sh
 bindsym $mod+Mod5+p exec ~/.config/sway/scripts/toggle-pipewire-mixer.sh
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
