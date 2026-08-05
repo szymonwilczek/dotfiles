@@ -72,7 +72,7 @@
       ;; O - Open
       "o"  '(:ignore t :which-key "Open")
       "os" '(my/open-scratch :which-key "Scratch Buffer")
-      "om" '(notmuch :which-key "Open Mail")
+      "om" '(my/open-mail :which-key "Open Mail")
 
       ;; G - Git / Magit
       "g"  '(:ignore t :which-key "Git")
@@ -121,6 +121,10 @@
        "546f3e8c4cb46043df1f646322c4b57049fc4c31fdf96e41db077c3408660057"
        "0a8cf72fd94bfb67dd72dc085538b39ea47aeae8bfc2b8545c0d3c99c339c204"
        default))
+ '(notmuch-hello-sections
+    '(notmuch-hello-insert-saved-searches notmuch-hello-insert-search
+       notmuch-hello-insert-recent-searches
+       notmuch-hello-insert-alltags))
  '(notmuch-saved-searches
     '((:name "📥 Wszystkie Nowe (unified [i]nbox)" :query
 	"tag:inbox and tag:unread" :key [105] :sort-order newest-first)

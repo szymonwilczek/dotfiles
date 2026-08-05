@@ -5,9 +5,43 @@
 (setq user-mail-address "szymonwilczek@outlook.com"
       user-full-name "Szymon Wilczek")
 
+(defun my/mail-sync-and-refresh ()
+  "Natychmiast odśwież widok Notmucha i pobierz nową pocztę w tle."
+  (interactive)
+  (message "Pobieranie nowej poczty...")
+  (ignore-errors
+    (if (eq major-mode 'notmuch-hello-mode)
+        (notmuch-hello-update)
+      (when (eq major-mode 'notmuch-search-mode)
+        (notmuch-search-refresh-view))))
+  (make-process
+   :name "mail-sync-async"
+   :buffer nil
+   :command '("sh" "-c" "mbsync -a && notmuch new")
+   :sentinel
+   (lambda (p _event)
+     (when (eq (process-status p) 'exit)
+       (message "Poczta zsynchronizowana.")
+       (ignore-errors
+         (when (get-buffer "*notmuch-hello*")
+           (with-current-buffer "*notmuch-hello*"
+             (notmuch-hello-update))))
+       (ignore-errors
+         (dolist (buf (buffer-list))
+           (with-current-buffer buf
+             (when (eq major-mode 'notmuch-search-mode)
+               (notmuch-search-refresh-view)))))))))
+
+(defun my/open-mail ()
+  "Otwiera pocztę Notmuch i od razu synchronizuje."
+  (interactive)
+  (notmuch)
+  (my/mail-sync-and-refresh))
+
+
 (use-package notmuch
   :ensure t
-  :bind ("<leader>om" . notmuch)
+  :bind ("<leader>om" . my/open-mail)
   :config
   (setq notmuch-search-oldest-first nil
         notmuch-show-empty-saved-searches t
@@ -21,16 +55,13 @@
           notmuch-hello-insert-footer))
 
   (setq notmuch-saved-searches
-          (:name "📥 Wszystkie Nowe (Unified [i]nbox)" :query "tag:inbox and tag:unread" :sort-order 'newest-first :key "i")
-          (:name "📬 szymonwilczek@[o]utlook.com"      :query "path:outlook-main/** and tag:inbox" :sort-order 'newest-first :key "o")
-          (:name "🎓 sw312468@student.[p]olsl.pl"      :query "path:polsl/** and tag:inbox" :sort-order 'newest-first :key "p")
-          (:name "✉️ [k]azikwilczek7@gmail.com"        :query "path:gmail-kazik/** and tag:inbox" :sort-order 'newest-first :key "k")
-          (:name "✉️ swilczek.[l]x@gmail.com"          :query "path:gmail-swilczek/** and tag:inbox" :sort-order 'newest-first :key "l")
-          (:name "📥 Wszystkie Wiadomości ([a]ll)"     :query "tag:inbox" :sort-order 'newest-first :key "a")
-          (:name "📤 Wysłane [O]utlook"                :query "path:\"outlook-main/Sent/**\"" :sort-order 'newest-first :key "O")
-          (:name "📤 Wysłane [P]OLSL"                  :query "path:\"polsl/Elementy wysłane/**\"" :sort-order 'newest-first :key "P")
-          (:name "📤 Wysłane Gmail [K]azik"            :query "path:\"gmail-kazik/[Gmail]/Wysłane/**\"" :sort-order 'newest-first :key "K")
-          (:name "📤 Wysłane Gmail Swi[L]czek"         :query "path:\"gmail-swilczek/[Gmail]/Sent Mail/**\"" :sort-order 'newest-first :key "L")))
+        '((:name "📥 Wszystkie Nowe (Unified [i]nbox)" :query "tag:inbox and tag:unread" :sort-order newest-first :key "i")
+          (:name "📬 szymonwilczek@[o]utlook.com"      :query "path:outlook-main/** and tag:inbox" :sort-order newest-first :key "o")
+          (:name "🎓 sw312468@student.[p]olsl.pl"      :query "path:polsl/** and tag:inbox" :sort-order newest-first :key "p")
+          (:name "✉️ [k]azikwilczek7@gmail.com"        :query "path:gmail-kazik/** and tag:inbox" :sort-order newest-first :key "k")
+          (:name "✉️ swilczek.[l]x@gmail.com"          :query "path:gmail-swilczek/** and tag:inbox" :sort-order newest-first :key "l")
+          (:name "🍎 szymonwilczek@iclo[u]d.com"       :query "path:icloud/** and tag:inbox" :sort-order newest-first :key "u")
+          (:name "📥 Wszystkie Wiadomości ([a]ll)"     :query "tag:inbox" :sort-order newest-first :key "a")))
 
   (setq sendmail-program "msmtp"
         send-mail-function 'smtpmail-send-it
@@ -42,11 +73,13 @@
         '("Szymon Wilczek <szymonwilczek@outlook.com>"
           "Szymon Wilczek <sw312468@student.polsl.pl>"
           "Szymon Wilczek <kazikwilczek7@gmail.com>"
-          "Szymon Wilczek <swilczek.lx@gmail.com>")
+          "Szymon Wilczek <swilczek.lx@gmail.com>"
+          "Szymon Wilczek <szymonwilczek@icloud.com>")
         message-alternative-emails
         '("sw312468@student.polsl.pl"
           "kazikwilczek7@gmail.com"
-          "swilczek.lx@gmail.com"))
+          "swilczek.lx@gmail.com"
+          "szymonwilczek@icloud.com"))
 
   (with-eval-after-load 'evil
     (evil-set-initial-state 'notmuch-hello-mode 'normal)
@@ -59,21 +92,35 @@
       "p" (lambda () (interactive) (notmuch-search "path:polsl/** and tag:inbox"))
       "k" (lambda () (interactive) (notmuch-search "path:gmail-kazik/** and tag:inbox"))
       "l" (lambda () (interactive) (notmuch-search "path:gmail-swilczek/** and tag:inbox"))
+      "u" (lambda () (interactive) (notmuch-search "path:icloud/** and tag:inbox"))
       "a" (lambda () (interactive) (notmuch-search "tag:inbox"))
       "O" (lambda () (interactive) (notmuch-search "path:\"outlook-main/Sent/**\""))
       "P" (lambda () (interactive) (notmuch-search "path:\"polsl/Elementy wysłane/**\""))
       "K" (lambda () (interactive) (notmuch-search "path:\"gmail-kazik/[Gmail]/Wysłane/**\""))
       "L" (lambda () (interactive) (notmuch-search "path:\"gmail-swilczek/[Gmail]/Sent Mail/**\""))
+      "U" (lambda () (interactive) (notmuch-search "path:\"icloud/Sent Messages/**\""))
       "c" #'notmuch-mua-new-mail
       "m" #'notmuch-mua-new-mail
+      "g" #'my/mail-sync-and-refresh
+      "r" #'my/mail-sync-and-refresh
+      "gr" #'my/mail-sync-and-refresh
       "s" #'notmuch-search
-      "g" #'notmuch-refresh-this-buffer
-      "r" #'notmuch-refresh-this-buffer
       "q" #'notmuch-bury-or-kill-this-buffer)
 
     (evil-define-key 'normal notmuch-search-mode-map
       "c" #'notmuch-mua-new-mail
       "m" #'notmuch-mua-new-mail
+      "g" #'my/mail-sync-and-refresh
+      "r" #'notmuch-search-reply-to-thread-sender
+      "R" #'notmuch-search-reply-to-thread
+      "RET" #'notmuch-search-show-thread
+      "q" #'notmuch-bury-or-kill-this-buffer)
+
+    (evil-define-key 'normal notmuch-show-mode-map
+      "c" #'notmuch-mua-new-mail
+      "m" #'notmuch-mua-new-mail
+      "r" #'notmuch-show-reply-sender
+      "R" #'notmuch-show-reply
       "q" #'notmuch-bury-or-kill-this-buffer)
 
     (evil-define-key '(normal insert) message-mode-map
