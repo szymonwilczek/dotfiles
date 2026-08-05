@@ -11,6 +11,7 @@ window-padding-balance = true
 font-size = 13
 font-family = JetBrainsMono Nerd Font
 font-style = SemiBold
+font-style-italic = Italic
 font-feature = -calt
 adjust-cell-width = -1
 adjust-cell-height = 1
