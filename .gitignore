@@ -10,6 +10,8 @@ emacs/.config/emacs/backups
 emacs/.config/emacs/eln-cache/30.2-d3a47193
 emacs/.config/emacs/elpa
 emacs/.config/emacs/lisp/private-mail.el
+emacs/.config/emacs/modules/private-mail.el
+emacs/.config/emacs/private-mail.el
 emacs/.config/emacs/lisp
 emacs/.config/emacs/not-used
 emacs/.config/emacs/persp-confs
@@ -33,3 +35,5 @@ nvim/.config/nvim/lazy-lock.json
 tmux/.tmux/plugins
 sway/.config/sway/scripts/sys-info
 emacs/.config/emacs/tramp
+emacs/.config/emacs/auto-save
+emacs/.config/emacs/scripts/mutt_oauth2.py

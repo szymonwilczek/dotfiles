@@ -20,7 +20,7 @@
 (require 'setup-markdown)
 (require 'setup-preview)
 (require 'setup-sessions)
-; (require 'setup-mail)
+(require 'setup-mail)
 
 (defun my/open-scratch ()
   "Opens or creates clear *scratch* buffer."
@@ -71,6 +71,7 @@
       ;; O - Open
       "o"  '(:ignore t :which-key "Open")
       "os" '(my/open-scratch :which-key "Scratch Buffer")
+      "om" '(notmuch :which-key "Open Mail")
 
       ;; G - Git / Magit
       "g"  '(:ignore t :which-key "Git")
@@ -119,6 +120,23 @@
        "546f3e8c4cb46043df1f646322c4b57049fc4c31fdf96e41db077c3408660057"
        "0a8cf72fd94bfb67dd72dc085538b39ea47aeae8bfc2b8545c0d3c99c339c204"
        default))
+ '(notmuch-saved-searches
+    '((:name "📥 Wszystkie Nowe (unified [i]nbox)" :query
+	"tag:inbox and tag:unread" :key [105] :sort-order newest-first)
+       (:name "📬 szymonwilczek@[o]utlook.com" :query
+	 "path:outlook-main/** and tag:inbox" :key [111] :sort-order
+	 newest-first)
+       (:name "🎓 sw312468@student.[p]olsl.pl" :query
+	 "path:polsl/** and tag:inbox" :key [112] :sort-order
+	 newest-first)
+       (:name "✉️ [k]azikwilczek7@gmail.com" :query
+	 "path:gmail-kazik/** and tag:inbox" :key [107] :sort-order
+	 newest-first)
+       (:name "✉️ swilczek.[l]x@gmail.com" :query
+	 "path:gmail-swilczek/** and tag:inbox" :key [108] :sort-order
+	 newest-first)
+       (:name "📥 Wszystkie Wiadomości ([a]ll)" :query "tag:inbox" :key [97]
+	 :sort-order newest-first)))
  '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

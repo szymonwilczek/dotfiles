@@ -100,7 +100,7 @@
   (let ((bg (face-background 'default nil t))
          (current-version my/treemacs-theme-version))
     
-    (when (and bg (not (string= bg "unspecified-bg")))
+    (when (and bg (stringp bg) (string-prefix-p "#" bg))
       (dolist (buf (buffer-list))
         (with-current-buffer buf
           (when (and (eq major-mode 'treemacs-mode)
