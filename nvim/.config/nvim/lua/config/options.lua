@@ -79,3 +79,14 @@ vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufNewFile' }, {
     vim.fn.matchadd('GitLineTheirs', '^>>>>>>>.*$')
   end,
 })
+
+if vim.highlight and vim.highlight.priorities then
+  vim.highlight.priorities.semantic_tokens = 95
+end
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'c', 'cpp', 'objc', 'objcpp' },
+  callback = function(event)
+    pcall(vim.treesitter.start, event.buf, 'c')
+  end,
+})

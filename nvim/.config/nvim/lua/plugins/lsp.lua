@@ -26,7 +26,6 @@ return {
           map('gd', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client then client.server_capabilities.semanticTokensProvider = nil end
 
           if client and client:supports_method('textDocument/documentHighlight', event.buf) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
@@ -295,7 +294,6 @@ return {
         'javascript',
         'typescript',
         'python',
-        'tmux',
         'yaml',
         'toml',
         'json',
