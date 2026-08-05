@@ -88,7 +88,7 @@ bindsym $mod+period exec carmenta --vim --disable-gifs --close-on-select --scale
 
 floating_modifier $mod normal
 
-bindsym $mod+Shift+c reload
+bindsym $mod+Shift+c exec pkill -9 -f emacs 2>/dev/null; reload
 
 bindsym $mod+$left focus left
 bindsym $mod+$down focus down
