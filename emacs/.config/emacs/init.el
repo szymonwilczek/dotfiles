@@ -1,9 +1,10 @@
 (add-to-list 'load-path (expand-file-name "modules" user-emacs-directory))
 (add-to-list 'exec-path "~/.npm-global/bin")
 (add-to-list 'load-path "~/.config/emacs/lisp")
-(require 'texfrag)
 
 (require 'core)
+(use-package texfrag :ensure t)
+
 (require 'setup-vim)
 (require 'setup-ui)
 (require 'setup-projects)

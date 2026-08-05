@@ -79,6 +79,7 @@ input type:pointer {
 
 ### Key bindings
 bindsym $mod+Return exec $term
+bindsym $mod+Shift+Return exec emacsclient -c -a ''
 bindsym $mod+Shift+q kill
 bindsym $mod+a kill
 bindsym $mod+s exec $menu

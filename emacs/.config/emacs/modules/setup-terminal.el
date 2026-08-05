@@ -1,6 +1,7 @@
 (use-package vterm
   :ensure t
   :init
+  (setq vterm-always-compile-module t)
   (with-eval-after-load 'evil
     (evil-set-initial-state 'vterm-mode 'emacs))
 
