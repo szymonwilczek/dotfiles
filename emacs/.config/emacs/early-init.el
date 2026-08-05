@@ -18,6 +18,17 @@
 (setq package-enable-at-startup nil)
 
 
+;; Disable lockfiles (.#filename) and redirect auto-saves (#filename#) away from Git repos
+(setq create-lockfiles nil)
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+(setq auto-save-list-file-prefix nil)
+
+(let ((auto-save-dir (expand-file-name "auto-save/" user-emacs-directory)))
+  (make-directory auto-save-dir t)
+  (setq auto-save-file-name-transforms `((".*" ,auto-save-dir t))))
+
+;; Startup speed, annoyance suppression
 (setq inhibit-startup-screen t
   inhibit-startup-message t
   inhibit-startup-echo-area-message user-login-name)

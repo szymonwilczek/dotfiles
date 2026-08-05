@@ -28,62 +28,77 @@
   (interactive)
   (switch-to-buffer "*scratch*"))
 
-(defun my/consult-fd-in-project ()
-  "Searches for files in current project (or current dir if not in project)."
+(defun my/new-untitled-buffer ()
+  "Creates and switches to a new untitled buffer."
   (interactive)
-  (let ((root (projectile-project-root)))
-    (if root
-      (consult-fd root)
-      (consult-fd))))
+  (let ((buf (generate-new-buffer "untitled")))
+    (switch-to-buffer buf)
+    (text-mode)))
 
-(defun my/consult-rg-in-project ()
-  "Ripgrep text in current project (or dir)."
+(defun my/open-folder ()
+  "Prompts to open a directory."
   (interactive)
-  (let ((root (projectile-project-root)))
-    (if root
-      (consult-ripgrep root)
-      (consult-ripgrep))))
+  (read-directory-name "Otwórz katalog: "))
 
-(with-eval-after-load 'general
-  (my-leader-def
-    ;; F - Files (Find)
-    "f" '(:ignore t :which-key "Files")
-    "ff" '(my/consult-fd-in-project :which-key "Find File (Project)")
-    "fw" '(my/consult-rg-in-project :which-key "Find Word (Project)")
-    "bb" '(consult-project-buffer :which-key "Project Buffers")
-    
-    ;; Tools 
-    "tt" '(load-theme :which-key "Toggle Theme")
-    "b" (lambda () (interactive) 
-          (switch-to-buffer (generate-new-buffer "untitled"))
-          (text-mode))
-    "x" '(kill-current-buffer :which-key "Kill Buffer")
-    
-    ;; E - Explorer
-    "e"  '(:ignore t :which-key "Explorer")
-    "ee" '(treemacs :which-key "Toggle Treemacs")
-    "ef" '(treemacs-find-file :which-key "Find current file in tree")
+(defun my/bind-leader-keys ()
+  "Bind all leader keybindings via general."
+  (when (fboundp 'my-leader-def)
+    (my-leader-def
+      ;; F - Files / Search
+      "f"  '(:ignore t :which-key "Files")
+      "ff" '(my/consult-fd-in-project :which-key "Find File (Project)")
+      "fw" '(my/consult-rg-in-project :which-key "Find Word (Project)")
+      "fr" '(recentf-open :which-key "Recent Files")
 
-    ;; O - Open
-    "o"  '(:ignore t :which-key "Open")
-    "os" '(my/open-scratch :which-key "Scratch Buffer")
-    "om" '(mu4e :which-key "Open Mail")
+      ;; B - Buffers
+      "b"  '(:ignore t :which-key "Buffers")
+      "bb" '(consult-project-buffer :which-key "Project Buffers")
+      "bn" '(my/new-untitled-buffer :which-key "New Buffer")
+      "bk" '(kill-current-buffer :which-key "Kill Buffer")
 
-    ;; G - Git related
-    "g"  '(:ignore t :which-key "Git / Code") ;; 'g' mieliśmy w LSP, tu dodajemy Git
-    "gs" '(my/magit-status-treemacs-project :which-key "Magit Status (Treemacs Sync)")
-    "gl" '(magit-log-current :which-key "Magit Log")
-    "gb" '(magit-blame-addition :which-key "Magit Blame")
-    "gf" '(magit-fetch :which-key "Magit Fetch")
-    "gP" '(magit-push-current :which-key "Magit Push")
-    "gp" '(magit-pull-branch :which-key "Magit Pull")
-    
-    ;; P - Projects
-    "p"  '(:ignore t :which-key "Projects")
-    "po" '(projectile-persp-switch-project :which-key "Open Project (List)")
-    "pf" '(my/open-folder :which-key "Open Folder (Anywhere)") 
-    "pa" '(treemacs-add-project-to-workspace :which-key "Add Project to Tree")
-    "pd" '(treemacs-remove-project-from-workspace :which-key "Remove Project from Tree")))
+      ;; Tools & Window
+      "tt" '(load-theme :which-key "Toggle Theme")
+      "tc" '(my/toggle-cursor-visibility :which-key "Toggle Cursor")
+      "x"  '(kill-current-buffer :which-key "Kill Buffer")
+      "s"  '(evil-window-vsplit :which-key "Split Vertical")
+      "v"  '(evil-window-split :which-key "Split Horizontal")
+      "q"  '(kill-current-buffer :which-key "Close Buffer")
+
+      ;; E - Explorer / Treemacs
+      "e"  '(:ignore t :which-key "Explorer")
+      "ee" '(treemacs :which-key "Toggle Treemacs")
+      "ef" '(treemacs-find-file :which-key "Find current file in tree")
+
+      ;; O - Open
+      "o"  '(:ignore t :which-key "Open")
+      "os" '(my/open-scratch :which-key "Scratch Buffer")
+
+      ;; G - Git / Magit
+      "g"  '(:ignore t :which-key "Git")
+      "gs" '(my/magit-status-treemacs-project :which-key "Magit Status (Treemacs Sync)")
+      "lg" '(magit-status :which-key "Magit Status")
+      "gl" '(magit-log-current :which-key "Magit Log")
+      "gb" '(magit-blame-addition :which-key "Magit Blame")
+      "gf" '(magit-fetch :which-key "Magit Fetch")
+      "gP" '(magit-push-current :which-key "Magit Push")
+      "gp" '(magit-pull-branch :which-key "Magit Pull")
+
+      ;; P - Projects
+      "p"  '(:ignore t :which-key "Projects")
+      "pp" '(projectile-switch-project :which-key "Switch Project")
+      "po" '(projectile-persp-switch-project :which-key "Open Project (List)")
+      "pf" '(my/open-folder :which-key "Open Folder")
+      "pa" '(treemacs-add-project-to-workspace :which-key "Add Project to Tree")
+      "pd" '(treemacs-remove-project-from-workspace :which-key "Remove Project from Tree")
+
+      ;; Harpoon / Bookmarks
+      "a"  '(bookmark-set :which-key "Add Bookmark")
+
+      ;; Config
+      "r"  '(my/toggle-relative-line-numbers :which-key "Relative Lines")
+      "dq" '(flymake-show-buffer-diagnostics :which-key "Diagnostics"))))
+
+(my/bind-leader-keys)
 
 
 (custom-set-variables

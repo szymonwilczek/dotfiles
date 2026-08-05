@@ -10,6 +10,18 @@
         (when projects (treemacs-project->path (car projects)))))
     default-directory))
 
+(defun my/consult-fd-in-project ()
+  "Searches for files in current project (or current dir if not in project)."
+  (interactive)
+  (let ((root (my/get-project-root)))
+    (consult-fd root)))
+
+(defun my/consult-rg-in-project ()
+  "Ripgrep text in current project (or dir)."
+  (interactive)
+  (let ((root (my/get-project-root)))
+    (consult-ripgrep root)))
+
 (use-package vertico
   :ensure t
   :init (vertico-mode 1)

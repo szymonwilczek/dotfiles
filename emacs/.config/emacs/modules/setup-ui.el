@@ -13,6 +13,13 @@
 (global-hl-line-mode 1)
 (setq-default display-line-numbers-width 3)
 
+;; Font Zoom / Text Scaling (Ctrl+=, Ctrl+-, Ctrl+0)
+(global-set-key (kbd "C-=") 'text-scale-increase)
+(global-set-key (kbd "C-+") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+(global-set-key (kbd "C-_") 'text-scale-decrease)
+(global-set-key (kbd "C-0") (lambda () (interactive) (text-scale-set 0)))
+
 (defvar my/theme-cache-file (expand-file-name ".theme-cache" user-emacs-directory)
   "File that contains name of the last used theme.")
 
