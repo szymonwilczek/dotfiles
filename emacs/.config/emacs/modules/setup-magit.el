@@ -11,6 +11,8 @@
 
 (use-package magit
   :ensure t
+  :defer t
+  :commands (magit-status magit-dispatch magit-file-dispatch)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
   (magit-diff-refine-hunk 'all)
@@ -46,6 +48,7 @@
 
 (use-package forge
   :ensure t
+  :defer t
   :after magit
   :init
   (setq auth-sources '("~/.authinfo"))

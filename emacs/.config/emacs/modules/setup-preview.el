@@ -14,8 +14,8 @@
 (defvar my/pv-line-spacing   0.2  "Odstęp między liniami w preview.")
 
 
-(add-to-list 'load-path (expand-file-name "~/.config/emacs/lisp"))
-(require 'texfrag)
+(autoload 'texfrag-document "texfrag" nil t)
+(autoload 'texfrag-mode "texfrag" nil t)
 
 ;;; =====
 ;;; STATE

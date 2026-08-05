@@ -16,7 +16,6 @@
 (require 'setup-wakatime)
 (require 'setup-autocomplete)
 (require 'setup-magit)
-(require 'setup-org)
 (require 'setup-latex)
 (require 'setup-terminal)
 (require 'setup-markdown)
