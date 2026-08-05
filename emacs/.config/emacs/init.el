@@ -3,7 +3,6 @@
 (add-to-list 'load-path "~/.config/emacs/lisp")
 
 (require 'core)
-(use-package texfrag :ensure t)
 
 (require 'setup-vim)
 (require 'setup-ui)

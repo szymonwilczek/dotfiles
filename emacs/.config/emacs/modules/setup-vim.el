@@ -80,7 +80,6 @@
   (my-leader-def
     "r" 'my/toggle-relative-line-numbers
     "s" 'evil-window-vsplit
-    "h" 'evil-window-vsplit
     "d" '(:ignore t :which-key "Diagnostics")
     "d q" 'flymake-show-buffer-diagnostics
     "t v" 'my/toggle-cursor-visibility))

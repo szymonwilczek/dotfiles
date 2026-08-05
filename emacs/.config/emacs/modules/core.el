@@ -38,7 +38,6 @@
 ;; (setq jit-lock-defer-time 0.05
 ;;       jit-lock-stealth-time 1)
 
-(setq make-backup-files nil auto-save-default nil create-lockfiles nil)
 (setq native-comp-async-report-warnings-errors 'silent)
 (setq frame-inhibit-implied-resize t)
 (setq pop-up-windows nil)

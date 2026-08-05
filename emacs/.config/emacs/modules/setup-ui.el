@@ -118,13 +118,4 @@
   :after (treemacs evil)
   :ensure t)
 
-(defun my/save-bg-to-cache (&rest _)
-  (let ((bg (face-background 'default nil t)))
-    (when (and bg (string-prefix-p "#" bg) (not (string= bg "unspecified-bg")))
-      (with-temp-file (expand-file-name ".bg-cache" user-emacs-directory)
-        (insert bg)))))
-
-(advice-add 'load-theme :after #'my/save-bg-to-cache)
-(add-hook 'kill-emacs-hook #'my/save-bg-to-cache)
-
 (provide 'setup-ui)
