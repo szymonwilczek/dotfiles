@@ -56,8 +56,9 @@
       "bk" '(kill-current-buffer :which-key "Kill Buffer")
 
       ;; Tools & Window
-      "tt" '(load-theme :which-key "Toggle Theme")
-      "tc" '(my/toggle-cursor-visibility :which-key "Toggle Cursor")
+      "T"  '(:ignore t :which-key "Toggles")
+      "Tt" '(load-theme :which-key "Toggle Theme")
+      "Tc" '(my/toggle-cursor-visibility :which-key "Toggle Cursor")
       "x"  '(kill-current-buffer :which-key "Kill Buffer")
       "s"  '(evil-window-vsplit :which-key "Split Vertical")
       "v"  '(evil-window-split :which-key "Split Horizontal")
@@ -135,8 +136,8 @@
        (:name "✉️ swilczek.[l]x@gmail.com" :query
 	 "path:gmail-swilczek/** and tag:inbox" :key [108] :sort-order
 	 newest-first)
-       (:name "📥 Wszystkie Wiadomości ([a]ll)" :query "tag:inbox" :key [97]
-	 :sort-order newest-first)))
+       (:name "📥 Wszystkie Wiadomości ([a]ll)" :query "tag:inbox"
+	 :key [97] :sort-order newest-first)))
  '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

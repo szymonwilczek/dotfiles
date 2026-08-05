@@ -13,13 +13,24 @@
         notmuch-show-empty-saved-searches t
         notmuch-always-prompt-for-sender t)
 
+  (setq notmuch-hello-sections
+        '(notmuch-hello-insert-saved-searches
+          notmuch-hello-insert-search
+          notmuch-hello-insert-recent-searches
+          notmuch-hello-insert-alltags
+          notmuch-hello-insert-footer))
+
   (setq notmuch-saved-searches
-        '((:name "📥 Wszystkie Nowe (Unified [i]nbox)" :query "tag:inbox and tag:unread" :sort-order 'newest-first :key "i")
+          (:name "📥 Wszystkie Nowe (Unified [i]nbox)" :query "tag:inbox and tag:unread" :sort-order 'newest-first :key "i")
           (:name "📬 szymonwilczek@[o]utlook.com"      :query "path:outlook-main/** and tag:inbox" :sort-order 'newest-first :key "o")
           (:name "🎓 sw312468@student.[p]olsl.pl"      :query "path:polsl/** and tag:inbox" :sort-order 'newest-first :key "p")
           (:name "✉️ [k]azikwilczek7@gmail.com"        :query "path:gmail-kazik/** and tag:inbox" :sort-order 'newest-first :key "k")
           (:name "✉️ swilczek.[l]x@gmail.com"          :query "path:gmail-swilczek/** and tag:inbox" :sort-order 'newest-first :key "l")
-          (:name "📥 Wszystkie Wiadomości ([a]ll)"     :query "tag:inbox" :sort-order 'newest-first :key "a")))
+          (:name "📥 Wszystkie Wiadomości ([a]ll)"     :query "tag:inbox" :sort-order 'newest-first :key "a")
+          (:name "📤 Wysłane [O]utlook"                :query "path:\"outlook-main/Sent/**\"" :sort-order 'newest-first :key "O")
+          (:name "📤 Wysłane [P]OLSL"                  :query "path:\"polsl/Elementy wysłane/**\"" :sort-order 'newest-first :key "P")
+          (:name "📤 Wysłane Gmail [K]azik"            :query "path:\"gmail-kazik/[Gmail]/Wysłane/**\"" :sort-order 'newest-first :key "K")
+          (:name "📤 Wysłane Gmail Swi[L]czek"         :query "path:\"gmail-swilczek/[Gmail]/Sent Mail/**\"" :sort-order 'newest-first :key "L")))
 
   (setq sendmail-program "msmtp"
         send-mail-function 'smtpmail-send-it
@@ -49,6 +60,10 @@
       "k" (lambda () (interactive) (notmuch-search "path:gmail-kazik/** and tag:inbox"))
       "l" (lambda () (interactive) (notmuch-search "path:gmail-swilczek/** and tag:inbox"))
       "a" (lambda () (interactive) (notmuch-search "tag:inbox"))
+      "O" (lambda () (interactive) (notmuch-search "path:\"outlook-main/Sent/**\""))
+      "P" (lambda () (interactive) (notmuch-search "path:\"polsl/Elementy wysłane/**\""))
+      "K" (lambda () (interactive) (notmuch-search "path:\"gmail-kazik/[Gmail]/Wysłane/**\""))
+      "L" (lambda () (interactive) (notmuch-search "path:\"gmail-swilczek/[Gmail]/Sent Mail/**\""))
       "c" #'notmuch-mua-new-mail
       "m" #'notmuch-mua-new-mail
       "s" #'notmuch-search
