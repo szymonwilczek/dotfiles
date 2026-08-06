@@ -301,19 +301,20 @@ return {
         'css',
       }
 
-      vim.opt.foldmethod = 'expr'
-      vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+      vim.opt.foldmethod = 'manual'
+      vim.opt.foldexpr = ''
       vim.opt.foldtext = ''
+
+      local FOLD_LINE_THRESHOLD = 5000
 
       vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
           local lang = vim.treesitter.language.get_lang(args.match)
-          if lang and pcall(vim.treesitter.start, args.buf, lang) then
-            if (args.match == 'markdown' or args.match == 'gfm') and vim.treesitter.query.get(lang, 'folds') then
-              vim.opt_local.foldmethod = 'expr'
-              vim.opt_local.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-            end
-          end
+          if not lang or not pcall(vim.treesitter.start, args.buf, lang) then return end
+          if vim.api.nvim_buf_line_count(args.buf) > FOLD_LINE_THRESHOLD then return end
+
+          vim.opt_local.foldmethod = 'expr'
+          vim.opt_local.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
         end,
       })
     end,
