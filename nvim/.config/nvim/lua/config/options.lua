@@ -30,7 +30,7 @@ vim.o.inccommand = 'split'
 
 vim.o.cursorline = true
 vim.o.scrolloff = 10
-vim.opt.guicursor = 'n-v-c-sm-i-ci-ve:block,r-cr-o:hor20'
+vim.opt.guicursor = 'n-v-c-sm-i-ci-ve:block,r-cr-o:hor20,a:blinkon0'
 
 vim.o.confirm = true
 

@@ -128,7 +128,7 @@ return {
         },
       },
       scroll = {
-        enabled = true,
+        enabled = false,
       },
       dashboard = {
         enabled = true,
