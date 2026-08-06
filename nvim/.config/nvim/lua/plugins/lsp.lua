@@ -99,12 +99,7 @@ return {
               },
               workspace = {
                 checkThirdParty = false,
-                -- NOTE: this is a lot slower and will cause issues when working on your own configuration.
-                --  See https://github.com/neovim/nvim-lspconfig/issues/3189
-                library = vim.tbl_extend('force', vim.api.nvim_get_runtime_file('', true), {
-                  '${3rd}/luv/library',
-                  '${3rd}/busted/library',
-                }),
+                library = { '${3rd}/luv/library' },
               },
             })
           end,
@@ -130,6 +125,16 @@ return {
         vim.lsp.enable(name)
       end
     end,
+  },
+
+  {
+    'folke/lazydev.nvim',
+    ft = 'lua',
+    opts = {
+      library = {
+        { path = '${3rd}/luv/library', words = { 'vim%.uv' } },
+      },
+    },
   },
 
   {
@@ -252,8 +257,13 @@ return {
         documentation = { auto_show = false, auto_show_delay_ms = 500 },
       },
       sources = {
-        default = { 'lsp', 'path', 'snippets' },
+        default = { 'lazydev', 'lsp', 'path', 'snippets' },
         providers = {
+          lazydev = {
+            name = 'LazyDev',
+            module = 'lazydev.integrations.blink',
+            score_offset = 100,
+          },
           lsp = {
             min_keyword_length = 1,
           },
