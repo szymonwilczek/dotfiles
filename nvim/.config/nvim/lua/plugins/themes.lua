@@ -94,6 +94,10 @@ return {
       vim.api.nvim_create_user_command('AreteReload', function()
         local current = vim.g.colors_name or read_cached_theme()
         vim.fn.delete(vim.fn.stdpath 'cache' .. '/arete', 'rf')
+        for name in pairs(package.loaded) do
+          if name == 'arete' or name:match '^arete%.' then package.loaded[name] = nil end
+        end
+        if vim.loader then vim.loader.reset() end
         vim.cmd.colorscheme(current)
       end, { desc = 'Drop arete cache and reload the current theme' })
 
