@@ -13,8 +13,42 @@ return {
       { '<leader>ee', '<cmd>Neotree toggle<cr>', desc = 'NeoTree toggle (SPC e e)' },
     },
     config = function()
+      require('nvim-web-devicons').setup {
+        override = {
+          pem = { icon = '', color = '#D4843E', name = 'Pem' },
+          default_icon = { icon = '', color = '#889096', name = 'Default' },
+        },
+      }
+      local function sync_default_icon_color() vim.api.nvim_set_hl(0, 'DevIconDefault', { link = 'NeoTreeDirectoryIcon' }) end
+      sync_default_icon_color()
+      vim.api.nvim_create_autocmd('ColorScheme', { callback = sync_default_icon_color })
+
+      local function sync_neotree_separator() vim.api.nvim_set_hl(0, 'NeoTreeWinSeparator', { link = 'NeoTreeDotfile' }) end
+      sync_neotree_separator()
+      vim.api.nvim_create_autocmd('ColorScheme', { callback = sync_neotree_separator })
+
       require('neo-tree').setup {
         default_component_configs = {
+          indent = {
+            with_markers = false,
+            with_expanders = true,
+            expander_collapsed = '',
+            expander_expanded = '',
+            expander_highlight = 'NeoTreeDirectoryIcon',
+          },
+          icon = {
+            folder_closed = '',
+            folder_open = '',
+            provider = function(icon, node, state)
+              if node.type == 'file' or node.type == 'terminal' then
+                local devicons = require 'nvim-web-devicons'
+                local name = node.type == 'terminal' and 'terminal' or node.name
+                local devicon, hl = devicons.get_icon(name, nil, { default = true })
+                icon.text = devicon or icon.text
+                icon.highlight = hl or icon.highlight
+              end
+            end,
+          },
           diagnostics = {
             symbols = {
               hint = 'H ',
@@ -81,27 +115,32 @@ return {
               local icon = common_components.icon(config, node, state)
               if node.type == 'directory' then
                 local name = node.name:lower()
-                if name == 'src' or name == 'source' then
-                  icon.text = '󰚝'
+                if name:sub(1, 1) == '.' then name = name:sub(2) end
+
+                if name == 'src' then
+                  icon.text = ''
                   icon.highlight = 'NeoTreeDirectoryIcon'
-                elseif name == 'build' or name == 'bin' or name == 'dist' or name == 'target' then
-                  icon.text = ''
-                  icon.highlight = 'NeoTreeDirectoryIcon'
-                elseif name == 'test' or name == 'tests' or name == 'spec' or name == 'specs' then
-                  icon.text = '󰙅'
-                  icon.highlight = 'NeoTreeDirectoryIcon'
-                elseif name == '.git' then
-                  icon.text = ''
-                  icon.highlight = 'NeoTreeDirectoryIcon'
-                elseif name == 'node_modules' then
-                  icon.text = ''
-                  icon.highlight = 'NeoTreeDirectoryIcon'
-                elseif name == '.github' then
-                  icon.text = ''
-                  icon.highlight = 'NeoTreeDirectoryIcon'
-                elseif name == 'config' or name == '.config' then
-                  icon.text = ''
-                  icon.highlight = 'NeoTreeDirectoryIcon'
+                elseif not node:is_expanded() then
+                  local closed_icons = {
+                    build = '󱁿',
+                    test = '󱥾',
+                    bin = '󰛫',
+                    git = '',
+                    github = '',
+                    public = '󱞊',
+                    private = '󰉐',
+                    temp = '󱧊',
+                    tmp = '󱧊',
+                    readme = '󱧶',
+                    docs = '󱧶',
+                    screenshots = '󰉏',
+                    icons = '󰉏',
+                  }
+                  local special_icon = closed_icons[name]
+                  if special_icon then
+                    icon.text = special_icon
+                    icon.highlight = 'NeoTreeDirectoryIcon'
+                  end
                 end
               end
               return icon
@@ -171,14 +210,136 @@ return {
       -- require('mini.pairs').setup()
 
       local statusline = require 'mini.statusline'
-      statusline.setup { use_icons = vim.g.have_nerd_font }
+      statusline.setup {
+        use_icons = vim.g.have_nerd_font,
+        content = {
+          inactive = function() return '%#MiniStatuslineInactive# %t%=' end,
+        },
+      }
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.section_location = function() return '%2l:%-2v' end
+      ---@diagnostic disable-next-line: duplicate-set-field
+      statusline.section_filename = function()
+        local full = vim.api.nvim_buf_get_name(0)
+        if full == '' then return '[No Name]%m%r' end
+        local root = vim.fs.root(0, '.git') or vim.fn.getcwd()
+        local rel = full
+        if root and full:sub(1, #root + 1) == root .. '/' then rel = full:sub(#root + 2) end
+        return (rel:gsub('%%', '%%%%')) .. '%m%r'
+      end
+
+      local function section_filesize()
+        local size = math.max(vim.fn.line2byte(vim.fn.line '$' + 1) - 1, 0)
+        if size < 1024 then
+          return string.format('%dB', size)
+        elseif size < 1048576 then
+          return string.format('%.2fKiB', size / 1024)
+        else
+          return string.format('%.2fMiB', size / 1048576)
+        end
+      end
+
+      local function section_diagnostics()
+        if not vim.diagnostic.is_enabled { bufnr = 0 } then return '' end
+        local counts = vim.diagnostic.count(0)
+        local err = counts[vim.diagnostic.severity.ERROR] or 0
+        local warn = counts[vim.diagnostic.severity.WARN] or 0
+        if err == 0 and warn == 0 then return '' end
+
+        local parts = {}
+        if err > 0 then table.insert(parts, '%#DiagnosticError# ' .. err) end
+        if warn > 0 then table.insert(parts, '%#DiagnosticWarn# ' .. warn) end
+        return '%#MiniStatuslineFileinfo#[' .. table.concat(parts, ' ') .. '%#MiniStatuslineFileinfo#]'
+      end
+
+      local function section_branch()
+        local branch = vim.b.minigit_summary_string or vim.b.gitsigns_head
+        if branch == nil or branch == '' then return '' end
+        return '%#MiniStatuslineFileinfo#[%#Constant#' .. branch .. '%#MiniStatuslineFileinfo#]'
+      end
+
+      statusline.config.content.active = function()
+        local mode, mode_hl = statusline.section_mode { trunc_width = 120 }
+        local filename = statusline.section_filename { trunc_width = 140 }
+        local location = statusline.section_location { trunc_width = 75 }
+        local filetype = statusline.section_fileinfo { trunc_width = math.huge }
+        local encoding = vim.bo.fileencoding or vim.bo.encoding
+        local size = section_filesize()
+        local diagnostics = section_diagnostics()
+        local branch = section_branch()
+
+        local parts = {
+          '%#' .. mode_hl .. '# ' .. mode .. ' ',
+          '%#MiniStatuslineFilename# ' .. filename .. ' ',
+          '%#' .. mode_hl .. '# ' .. location .. ' ',
+        }
+        if filetype ~= '' then table.insert(parts, '%#MiniStatuslineFileinfo# ' .. filetype .. ' ') end
+        if diagnostics ~= '' then table.insert(parts, ' ' .. diagnostics .. ' ') end
+        table.insert(parts, '%#MiniStatuslineFileinfo# ' .. encoding .. ' ' .. size .. ' ')
+        if branch ~= '' then table.insert(parts, ' ' .. branch .. ' ') end
+        table.insert(parts, '%#MiniStatuslineFileinfo#%=')
+
+        return table.concat(parts)
+      end
 
       vim.api.nvim_create_autocmd('FileType', {
         pattern = 'neo-tree',
         callback = function() vim.b.ministatusline_disable = true end,
       })
+      do
+        local gutter_buf, gutter_win
+        local function get_buf()
+          if gutter_buf and vim.api.nvim_buf_is_valid(gutter_buf) then return gutter_buf end
+          gutter_buf = vim.api.nvim_create_buf(false, true)
+          vim.bo[gutter_buf].buftype = 'nofile'
+          vim.bo[gutter_buf].bufhidden = 'hide'
+          vim.api.nvim_buf_set_lines(gutter_buf, 0, -1, false, { '|' })
+          return gutter_buf
+        end
+        local function find_neotree_win()
+          for _, w in ipairs(vim.api.nvim_list_wins()) do
+            if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == 'neo-tree' then return w end
+          end
+        end
+        local function refresh_gutter_separator()
+          local prev_eventignore = vim.o.eventignore
+          vim.o.eventignore = 'WinNew,WinClosed'
+          local ok_run, err = pcall(function()
+            if gutter_win and vim.api.nvim_win_is_valid(gutter_win) then
+              vim.api.nvim_win_close(gutter_win, true)
+              gutter_win = nil
+            end
+            local nt = find_neotree_win()
+            if not nt then return end
+            local pos = vim.api.nvim_win_get_position(nt)
+            local ok, w = pcall(vim.api.nvim_open_win, get_buf(), false, {
+              relative = 'editor',
+              row = pos[1] + vim.api.nvim_win_get_height(nt),
+              col = pos[2] + vim.api.nvim_win_get_width(nt),
+              width = 1,
+              height = 1,
+              style = 'minimal',
+              focusable = false,
+              zindex = 1,
+              noautocmd = true,
+            })
+            if ok then
+              gutter_win = w
+              vim.wo[gutter_win].winhighlight = 'Normal:WinSeparator'
+            end
+          end)
+          vim.o.eventignore = prev_eventignore
+          if not ok_run then vim.notify('gutter separator: ' .. tostring(err), vim.log.levels.DEBUG) end
+        end
+        vim.api.nvim_create_autocmd({ 'VimResized', 'WinResized', 'WinNew', 'WinClosed' }, {
+          callback = function() vim.schedule(refresh_gutter_separator) end,
+        })
+        vim.api.nvim_create_autocmd('VimLeavePre', {
+          callback = function()
+            if gutter_win and vim.api.nvim_win_is_valid(gutter_win) then pcall(vim.api.nvim_win_close, gutter_win, true) end
+          end,
+        })
+      end
     end,
   },
   { 'wakatime/vim-wakatime', lazy = false },

@@ -37,3 +37,4 @@ sway/.config/sway/scripts/sys-info
 emacs/.config/emacs/tramp
 emacs/.config/emacs/auto-save
 emacs/.config/emacs/scripts/mutt_oauth2.py
+emacs/.config/emacs/projectile-frecency.eld
