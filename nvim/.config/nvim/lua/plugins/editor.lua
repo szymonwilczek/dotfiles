@@ -240,16 +240,14 @@ return {
       end
 
       local function section_diagnostics()
-        if not vim.diagnostic.is_enabled { bufnr = 0 } then return '' end
         local counts = vim.diagnostic.count(0)
         local err = counts[vim.diagnostic.severity.ERROR] or 0
         local warn = counts[vim.diagnostic.severity.WARN] or 0
-        if err == 0 and warn == 0 then return '' end
-
-        local parts = {}
-        if err > 0 then table.insert(parts, '%#DiagnosticError# ' .. err) end
-        if warn > 0 then table.insert(parts, '%#DiagnosticWarn# ' .. warn) end
-        return '%#MiniStatuslineFileinfo#[' .. table.concat(parts, ' ') .. '%#MiniStatuslineFileinfo#]'
+        return '%#MiniStatuslineFileinfo#[%#DiagnosticError#'
+          .. err
+          .. ' %#DiagnosticWarn# '
+          .. warn
+          .. '%#MiniStatuslineFileinfo#]'
       end
 
       local function section_branch()
@@ -268,18 +266,20 @@ return {
         local diagnostics = section_diagnostics()
         local branch = section_branch()
 
-        local parts = {
+        local left = {
           '%#' .. mode_hl .. '# ' .. mode .. ' ',
           '%#MiniStatuslineFilename# ' .. filename .. ' ',
+        }
+
+        local right = {
           '%#' .. mode_hl .. '# ' .. location .. ' ',
         }
-        if filetype ~= '' then table.insert(parts, '%#MiniStatuslineFileinfo# ' .. filetype .. ' ') end
-        if diagnostics ~= '' then table.insert(parts, ' ' .. diagnostics .. ' ') end
-        table.insert(parts, '%#MiniStatuslineFileinfo# ' .. encoding .. ' ' .. size .. ' ')
-        if branch ~= '' then table.insert(parts, ' ' .. branch .. ' ') end
-        table.insert(parts, '%#MiniStatuslineFileinfo#%=')
+        if filetype ~= '' then table.insert(right, '%#MiniStatuslineFileinfo# ' .. filetype .. ' ') end
+        table.insert(right, ' ' .. diagnostics .. ' ')
+        table.insert(right, '%#MiniStatuslineFileinfo# ' .. encoding .. ' ' .. size .. ' ')
+        if branch ~= '' then table.insert(right, ' ' .. branch .. ' ') end
 
-        return table.concat(parts)
+        return table.concat(left) .. '%#MiniStatuslineFilename#%=' .. table.concat(right)
       end
 
       vim.api.nvim_create_autocmd('FileType', {
