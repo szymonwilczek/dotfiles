@@ -315,13 +315,13 @@ return {
       vim.opt.foldexpr = ''
       vim.opt.foldtext = ''
 
-      local FOLD_LINE_THRESHOLD = 5000
+      local TREESITTER_LINE_THRESHOLD = 5000
 
       vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
+          if vim.api.nvim_buf_line_count(args.buf) > TREESITTER_LINE_THRESHOLD then return end
           local lang = vim.treesitter.language.get_lang(args.match)
           if not lang or not pcall(vim.treesitter.start, args.buf, lang) then return end
-          if vim.api.nvim_buf_line_count(args.buf) > FOLD_LINE_THRESHOLD then return end
 
           vim.opt_local.foldmethod = 'expr'
           vim.opt_local.foldexpr = 'v:lua.vim.treesitter.foldexpr()'

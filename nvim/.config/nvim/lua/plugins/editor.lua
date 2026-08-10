@@ -2,7 +2,7 @@ return {
   {
     'nvim-neo-tree/neo-tree.nvim',
     branch = 'v3.x',
-    lazy = false,
+    cmd = 'Neotree',
     dependencies = {
       'nvim-lua/plenary.nvim',
       'nvim-tree/nvim-web-devicons',
@@ -229,7 +229,10 @@ return {
       end
 
       local function section_filesize()
-        local size = math.max(vim.fn.line2byte(vim.fn.line '$' + 1) - 1, 0)
+        local name = vim.api.nvim_buf_get_name(0)
+        if name == '' then return '' end
+        local size = vim.fn.getfsize(name)
+        if size <= 0 then return '' end
         if size < 1024 then
           return string.format('%dB', size)
         elseif size < 1048576 then

@@ -29,6 +29,9 @@ vim.opt.fillchars = { vert = '|' }
 vim.o.inccommand = 'split'
 
 vim.o.cursorline = true
+vim.o.cursorlineopt = 'number'
+vim.o.lazyredraw = true
+vim.o.redrawtime = 1500
 vim.o.scrolloff = 10
 vim.opt.guicursor = 'n-v-c-sm-i-ci-ve:block,r-cr-o:hor20,a:blinkon0'
 
@@ -73,7 +76,8 @@ vim.api.nvim_create_autocmd('ColorScheme', {
 })
 
 vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufNewFile' }, {
-  callback = function()
+  callback = function(ev)
+    if vim.api.nvim_buf_line_count(ev.buf) > 20000 then return end
     vim.fn.matchadd('GitLineOurs', '^<<<<<<<.*$')
     vim.fn.matchadd('GitLineSep', '^=\\{7\\}$')
     vim.fn.matchadd('GitLineTheirs', '^>>>>>>>.*$')
@@ -83,10 +87,3 @@ vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufNewFile' }, {
 if vim.highlight and vim.highlight.priorities then
   vim.highlight.priorities.semantic_tokens = 95
 end
-
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'c', 'cpp', 'objc', 'objcpp' },
-  callback = function(event)
-    pcall(vim.treesitter.start, event.buf, 'c')
-  end,
-})
