@@ -83,49 +83,7 @@ return {
     lazy = false,
     opts = {
       picker = {
-        enabled = true,
-        layout = {
-          preset = 'ivy',
-        },
-        layouts = {
-          ivy = {
-            layout = {
-              box = 'vertical',
-              backdrop = false,
-              row = -1,
-              width = 0,
-              height = 0.3,
-              border = 'top',
-              title = ' {title} {live} {flags}',
-              title_pos = 'left',
-              { win = 'input', height = 1, border = 'bottom' },
-              {
-                box = 'horizontal',
-                { win = 'list', border = 'none' },
-                { win = 'preview', title = '{preview}', width = 0.6, border = 'left' },
-              },
-            },
-          },
-        },
-        preview = false,
-        limit_live = 100,
-        limit = 1000,
-        matcher = {
-          cwd_bonus = false,
-          frecency = false,
-          history_bonus = false,
-        },
-        sources = {
-          files = {
-            hidden = true,
-            ignored = true,
-          },
-          grep = {
-            need_search = true,
-            hidden = true,
-            ignored = true,
-          },
-        },
+        enabled = false,
       },
       scroll = {
         enabled = false,
@@ -143,15 +101,51 @@ return {
       },
     },
     keys = {
-      { '<leader>ff', function() Snacks.picker.files() end, desc = 'Find (F)iles' },
-      { '<leader>fw', function() Snacks.picker.grep() end, desc = 'Find (W)ord' },
-      { '<leader>fr', function() Snacks.picker.recent() end, desc = 'Find (R)ecent' },
       { '<leader>lg', function() Snacks.lazygit() end, desc = 'Lazygit' },
     },
     config = function(_, opts)
       require('snacks').config.style('dashboard', { wo = { fillchars = 'eob: ' } })
       require('snacks').setup(opts)
     end,
+  },
+
+  {
+    'ibhagwan/fzf-lua',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    cmd = 'FzfLua',
+    keys = {
+      { '<leader>ff', function() require('fzf-lua').files() end, desc = 'Find Files' },
+      { '<leader>fw', function() require('fzf-lua').live_grep() end, desc = 'Live Grep' },
+      { '<leader>fr', function() require('fzf-lua').oldfiles() end, desc = 'Recent Files' },
+      { '<A-x>', function() require('fzf-lua').commands() end, desc = 'Commands' },
+    },
+    opts = {
+      'ivy',
+      silent = true,
+      fzf_opts = {
+        ['--layout'] = 'reverse',
+        ['--info'] = 'inline-right',
+      },
+      winopts = {
+        height = 0.30,
+        width = 1.0,
+        row = 1.0,
+        col = 0,
+        border = 'none',
+        preview = {
+          layout = 'flex',
+          horizontal = 'right:50%',
+          vertical = 'down:40%',
+          hidden = 'nohidden',
+        },
+      },
+      files = {
+        cmd = 'fd --type f --hidden --follow --exclude .git',
+      },
+      grep = {
+        rg_opts = '--column --line-number --no-heading --color=always --smart-case --max-columns=4096 --hidden --glob "!.git/*"',
+      },
+    },
   },
 
   {

@@ -9,7 +9,7 @@ vim.keymap.set('i', '<C-l>', '<Right>', { desc = 'Move right' })
 vim.keymap.set('i', '<C-j>', '<Down>', { desc = 'Move down' })
 vim.keymap.set('i', '<C-k>', '<Up>', { desc = 'Move up' })
 vim.keymap.set('i', '<C-b>', '<C-o>b', { desc = 'Jump a word back' })
-vim.keymap.set('n', '<A-x>', function() require('snacks').picker.commands() end, { desc = 'Snacks: [M]-x (Commands)' }) -- straight from emacs, love that
+vim.keymap.set('n', '<A-x>', function() require('fzf-lua').commands() end, { desc = '[M]-x (Commands)' }) -- straight from emacs, love that
 
 -- Move
 -- vim.keymap.set('n', '<C-S-h>', '<C-w>H', { desc = 'Move window to the left' })

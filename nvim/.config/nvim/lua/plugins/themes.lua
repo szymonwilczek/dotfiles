@@ -59,35 +59,20 @@ return {
       })
 
       _G.CustomThemePicker = function()
-        local items = {}
-        for _, name in ipairs(discover_themes()) do
-          table.insert(items, { text = name, item = name })
-        end
-
+        local themes = discover_themes()
         local original = vim.g.colors_name or read_cached_theme()
-        local confirmed = false
-
-        require('snacks').picker.pick {
-          source = 'themes',
-          items = items,
-          layout = { preset = 'vscode' },
-          format = function(item) return { { item.text, 'SnacksPickerLabel' } } end,
-          confirm = function(picker, item)
-            picker:close()
-            if item and item.text then
-              confirmed = true
-              vim.cmd.colorscheme(item.text)
-              save_theme_to_cache(item.text)
-            end
-          end,
-          preview = function(_, item)
-            if item and item.text then pcall(vim.cmd.colorscheme, item.text) end
-          end,
-          on_close = function()
-            if confirmed then return end
-            pcall(vim.cmd.colorscheme, original)
-          end,
-        }
+        require('fzf-lua').fzf_exec(themes, {
+          prompt = 'Arete Themes> ',
+          actions = {
+            ['default'] = function(selected)
+              if selected and selected[1] then
+                vim.cmd.colorscheme(selected[1])
+                save_theme_to_cache(selected[1])
+              end
+            end,
+          },
+          winopts = { height = 0.4, width = 0.5, row = 0.3 },
+        })
       end
 
       vim.api.nvim_create_user_command('AretePick', CustomThemePicker, { desc = 'Pick an arete theme' })
