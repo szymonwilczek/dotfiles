@@ -1,0 +1,303 @@
+" --- Plugin Manager ---
+let data_dir = empty($XDG_DATA_HOME) ? expand('~/.local/share') : $XDG_DATA_HOME
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent execute '!curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
+call plug#begin('~/.vim/plugged')
+" Themes
+Plug 'sainnhe/gruvbox-material'
+
+" File Explorer
+Plug 'preservim/nerdtree'
+Plug 'ryanoasis/vim-devicons'
+
+" UI
+Plug 'bling/vim-bufferline'
+Plug 'itchyny/lightline.vim'
+
+" Fuzzy Finder
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
+" LSP, Completion & Formatting
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+" Debugging (DAP)
+Plug 'puremourning/vimspector'
+
+" Git
+Plug 'mhinz/vim-signify'
+Plug 'tpope/vim-fugitive'
+
+" Editing
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-sleuth'
+Plug 'moll/vim-bbye'
+
+" Snippets
+Plug 'SirVer/ultisnips'
+
+" Wakatime
+Plug 'wakatime/vim-wakatime'
+call plug#end()
+
+let mapleader = ' '
+let maplocalleader = ' '
+set number
+set mouse=a
+set noshowmode
+set clipboard=unnamedplus
+set breakindent
+set undofile
+set ignorecase smartcase
+set signcolumn=yes
+set updatetime=250
+set timeoutlen=300
+set splitright splitbelow
+set list listchars=tab:»\ ,trail:·,nbsp:␣
+set fillchars=vert:\|
+set cursorline
+set scrolloff=10
+set guicursor=n-v-c-sm-i-ci-ve:block,r-cr-o:hor20,a:blinkon0
+set confirm
+set foldmethod=manual foldlevel=99 foldlevelstart=99
+
+" --- Keybindings ---
+" General
+nnoremap <Esc> :nohlsearch<CR>
+nnoremap ; :
+nnoremap <leader>dq :lopen<CR>
+tnoremap <Esc><Esc> <C-\><C-n>
+
+" Insert mode navigation
+inoremap <C-h> <Left>
+inoremap <C-l> <Right>
+inoremap <C-j> <Down>
+inoremap <C-k> <Up>
+inoremap <C-b> <C-o>b
+
+" Splits
+nnoremap <leader>s :vsplit<CR>
+nnoremap <leader>v :split<CR>
+
+" Buffers
+nnoremap <TAB> :bnext<CR>
+nnoremap <S-TAB> :bprev<CR>
+nnoremap <leader>q :Bdelete<CR>
+
+" File tree
+nnoremap <C-n> :NERDTreeToggle<CR>
+nnoremap <leader>ee :NERDTreeToggle<CR>
+
+" Find (fzf)
+nnoremap <leader>ff :Files<CR>
+nnoremap <leader>fw :Rg<CR>
+nnoremap <leader>fr :History<CR>
+
+" Git
+nnoremap <leader>lg :Lazygit<CR>
+
+" Harpoon-like marks
+nnoremap <leader>a :call HarpoonAdd()<CR>
+nnoremap <leader>1 :call HarpoonJump(1)<CR>
+nnoremap <leader>2 :call HarpoonJump(2)<CR>
+nnoremap <leader>3 :call HarpoonJump(3)<CR>
+nnoremap <leader>4 :call HarpoonJump(4)<CR>
+nnoremap <C-e> :call HarpoonMenu()<CR>
+
+" LSP (coc.nvim)
+nmap gr <Plug>(coc-rename)
+nmap ga <Plug>(coc-codeaction-cursor)
+nmap gd <Plug>(coc-declaration)
+nmap <leader>h :CocCommand document.toggleInlayHint<CR>
+
+" Format
+nnoremap <leader>f :call CocActionAsync('format')<CR>
+nnoremap <leader>fm :call CocActionAsync('format')<CR>
+
+" DAP (vimspector)
+nnoremap <F5> :call vimspector#Continue()<CR>
+nnoremap <F10> :call vimspector#StepOver()<CR>
+nnoremap <F11> :call vimspector#StepInto()<CR>
+nnoremap <F12> :call vimspector#StepOut()<CR>
+nnoremap <leader>b :call vimspector#ToggleBreakpoint()<CR>
+nnoremap <leader>B :call vimspector#ToggleConditionalBreakpoint()<CR>
+nnoremap <leader>? :call vimspector#Evaluate()<CR>
+
+" Theme
+nnoremap <leader>tt :ThemePick<CR>
+
+" Toggle cursor visibility
+nnoremap <leader>tc :call ToggleCursorVisibility()<CR>
+
+" Yank highlight
+augroup highlight_yank
+  autocmd!
+  autocmd TextYankPost * silent! call <SID>highlight_yank()
+augroup END
+
+function! s:highlight_yank()
+  let l:pos = getpos("'[")
+  let l:end = getpos("']")
+  if l:pos[1] > 0 && l:end[1] > 0
+    let l:match_id = matchaddpos('IncSearch', [[l:pos[1], l:pos[2], l:end[1] - l:pos[1] + 1]])
+    call timer_start(200, {-> matchdelete(l:match_id)})
+  endif
+endfunction
+
+" --- COC.NVIM ---
+inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
+inoremap <silent><expr> <A-j> coc#pum#visible() ? coc#pum#next(1) : "\<A-j>"
+inoremap <silent><expr> <A-k> coc#pum#visible() ? coc#pum#prev(1) : "\<A-k>"
+inoremap <silent><expr> <C-Space> coc#refresh()
+
+" --- Theme configuration ---
+if has('termguicolors')
+  set termguicolors
+endif
+set background=dark
+let g:gruvbox_material_background = 'medium'
+silent! colorscheme gruvbox-material
+
+" Theme picker implementation
+let g:installed_themes = ['gruvbox-material', 'desert', 'elflord', 'pablo', 'koehler']
+let g:current_theme_idx = 0
+function! ThemePick()
+  let g:current_theme_idx = (g:current_theme_idx + 1) % len(g:installed_themes)
+  execute 'colorscheme ' . g:installed_themes[g:current_theme_idx]
+  echo "Switched to theme: " . g:installed_themes[g:current_theme_idx]
+endfunction
+command! ThemePick call ThemePick()
+
+" --- NERDTree Config ---
+let NERDTreeWinSize = 35
+let NERDTreeShowHidden = 1
+" Close if last window
+autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | quit | endif
+" Custom mappings
+augroup NERDTreeCustom
+  autocmd!
+  autocmd FileType nerdtree nnoremap <buffer> W :let NERDTreeWinSize = input("New width: ")<CR>:NERDTree<CR>
+  autocmd FileType nerdtree nnoremap <buffer> > :vertical resize +5<CR>
+  autocmd FileType nerdtree nnoremap <buffer> < :vertical resize -5<CR>
+augroup END
+
+" --- Lightline Customization ---
+let g:lightline = {}
+let g:lightline.colorscheme = 'gruvbox_material'
+let g:lightline.active = {'left': [['mode', 'paste'], ['readonly', 'relativepath', 'modified']], 'right': [['lineinfo'], ['filetype', 'coc_diagnostics', 'fileencoding', 'filesize', 'gitbranch']]}
+let g:lightline.component_function = {'gitbranch': 'FugitiveHead', 'filesize': 'LightlineFilesize', 'relativepath': 'LightlineRelativePath', 'coc_diagnostics': 'LightlineCocDiagnostics'}
+
+function! LightlineFilesize()
+  let l:bytes = getfsize(expand('%:p'))
+  if l:bytes <= 0 | return '' | endif
+  if l:bytes < 1024 | return l:bytes . ' B' | endif
+  if l:bytes < 1048576 | return (l:bytes / 1024) . ' KiB' | endif
+  return (l:bytes / 1048576) . ' MiB'
+endfunction
+
+function! LightlineRelativePath()
+  return expand('%:p:.')
+endfunction
+
+function! LightlineCocDiagnostics()
+  let info = get(b:, 'coc_diagnostic_info', {})
+  if empty(info) | return '' | endif
+  let msgs = []
+  if get(info, 'error', 0)
+    call add(msgs, 'E:' . info['error'])
+  endif
+  if get(info, 'warning', 0)
+    call add(msgs, 'W:' . info['warning'])
+  endif
+  return join(msgs, ' ')
+endfunction
+
+" --- Vim-Signify ---
+let g:signify_sign_add               = '┃'
+let g:signify_sign_delete            = '_'
+let g:signify_sign_delete_first_line = '‾'
+let g:signify_sign_change            = '┃'
+let g:signify_sign_changedelete      = '~'
+
+" --- Harpoon Implementation ---
+let g:harpoon_files = []
+function! HarpoonAdd()
+  let l:file = expand('%:p')
+  if len(g:harpoon_files) < 4
+    if index(g:harpoon_files, l:file) == -1
+      call add(g:harpoon_files, l:file)
+      echo "Harpoon: Added " . l:file
+    else
+      echo "Harpoon: File already exists in marks."
+    endif
+  else
+    echo "Harpoon: Maximum of 4 files reached."
+  endif
+endfunction
+
+function! HarpoonJump(n)
+  let l:idx = a:n - 1
+  if l:idx < len(g:harpoon_files)
+    execute 'edit ' . g:harpoon_files[l:idx]
+  else
+    echo "Harpoon slot " . a:n . " is empty"
+  endif
+endfunction
+
+function! HarpoonMenu()
+  let l:list = []
+  for i in range(len(g:harpoon_files))
+    call add(l:list, {'text': g:harpoon_files[i], 'filename': g:harpoon_files[i], 'lnum': 1})
+  endfor
+  call setqflist(l:list)
+  copen
+endfunction
+
+" --- Lazygit ---
+function! OpenLazygitFloating()
+  let l:width = float2nr(&columns * 0.9)
+  let l:height = float2nr(&lines * 0.9)
+  let l:row = float2nr((&lines - l:height) / 2)
+  let l:col = float2nr((&columns - l:width) / 2)
+
+  let l:buf = term_start('lazygit', {
+  \ 'hidden': 1,
+  \ 'term_finish': 'close'
+  \ })
+
+  call popup_create(l:buf, {
+  \ 'line': l:row,
+  \ 'col': l:col,
+  \ 'minwidth': l:width,
+  \ 'minheight': l:height,
+  \ 'maxwidth': l:width,
+  \ 'maxheight': l:height,
+  \ 'border': [1,1,1,1],
+  \ 'borderchars': ['─', '│', '─', '│', '╭', '╮', '╯', '╰'],
+  \ 'title': ' Lazygit ',
+  \ })
+endfunction
+command! Lazygit call OpenLazygitFloating()
+
+" --- Git Conflict Markers Highlights ---
+match ErrorMsg '^\(<\{7}\|=\{7}\|>\{7}\)\( .*\)\?$'
+
+" --- Format on Save ---
+augroup FormatOnSave
+  autocmd!
+  autocmd BufWritePre *.lua,*.js,*.ts,*.jsx,*.tsx,*.json,*.yaml,*.yml,*.py,*.sh,*.bash,*.go silent! call CocAction('format')
+augroup END
+
+" --- Toggle Cursor Visibility ---
+function! ToggleCursorVisibility()
+  if &t_ve == ''
+    let &t_ve = "\<Esc>[?25h"
+    echo "Cursor visible"
+  else
+    let &t_ve = ''
+    echo "Cursor hidden"
+  endif
+endfunction
