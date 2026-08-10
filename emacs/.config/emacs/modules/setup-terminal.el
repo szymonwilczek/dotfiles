@@ -1,14 +1,14 @@
-(use-package eat
+(use-package ghostel
   :ensure t
-  :commands (eat eat-other-window)
-  :init
-  (with-eval-after-load 'evil
-    (evil-set-initial-state 'eat-mode 'emacs))
+  :vc (:url "https://github.com/dakra/ghostel"
+       :lisp-dir "lisp"
+       :rev :newest)
+  :commands (ghostel ghostel-project)
 
   :config
-  (setq eat-term-scrollback-size 10000)
+  (setq ghostel-scrollback-size 10000)
 
-  (add-hook 'eat-mode-hook
+  (add-hook 'ghostel-mode-hook
     (lambda ()
       (display-line-numbers-mode -1)
       (setq-local global-hl-line-mode nil)
@@ -17,14 +17,9 @@
       (let ((proc (get-buffer-process (current-buffer))))
         (when proc (set-process-query-on-exit-flag proc nil)))
 
-      ;; ESC → Evil Normal, i/a → z powrotem do terminala
-      (evil-define-key 'emacs eat-mode-map (kbd "<escape>") 'evil-normal-state)
-      (evil-define-key 'normal eat-mode-map (kbd "i") 'eat-emacs-mode)
-      (evil-define-key 'normal eat-mode-map (kbd "a") 'eat-emacs-mode)
-      (evil-define-key 'normal eat-mode-map (kbd "SPC") 'my-leader-def)
-      (define-key eat-mode-map (kbd "M-f") 'my/eat-toggle-bottom)))
+      (define-key ghostel-semi-char-mode-map (kbd "M-f") 'my/ghostel-toggle-bottom)))
 
-  (add-hook 'eat-exit-hook
+  (add-hook 'ghostel-exit-hook
     (lambda (proc)
       (ignore-errors
         (when (and proc (processp proc))
@@ -35,25 +30,29 @@
                 (when (and win (window-live-p win) (not (one-window-p t)))
                   (delete-window win))))))))))
 
-(defun my/eat-toggle-bottom ()
+(use-package evil-ghostel
+  :ensure t
+  :vc (:url "https://github.com/dakra/evil-ghostel"
+       :rev :newest)
+  :after (ghostel evil)
+  :hook (ghostel-mode . evil-ghostel-mode))
+
+(defun my/ghostel-toggle-bottom ()
   "Pokaż/ukryj terminal na dole ekranu (35% wysokości)."
   (interactive)
-  (let* ((eat-bufs (cl-remove-if-not
-                    (lambda (b) (with-current-buffer b (eq major-mode 'eat-mode)))
-                    (buffer-list)))
+  (let* ((ghostel-bufs (cl-remove-if-not
+                        (lambda (b) (with-current-buffer b (eq major-mode 'ghostel-mode)))
+                        (buffer-list)))
          (visible (cl-find-if
                    (lambda (b) (get-buffer-window b))
-                   eat-bufs)))
+                   ghostel-bufs)))
     (if visible
         (delete-window (get-buffer-window visible))
-      (let ((buf (or (car eat-bufs)
-                     (let ((b (generate-new-buffer "*terminal*")))
-                       (with-current-buffer b (eat-mode))
-                       b))))
+      (let ((buf (or (car ghostel-bufs)
+                     (ghostel))))
         (display-buffer-at-bottom buf '((window-height . 0.35)))
-        (select-window (get-buffer-window buf))
-        (evil-emacs-state)))))
+        (select-window (get-buffer-window buf))))))
 
-(global-set-key (kbd "M-f") 'my/eat-toggle-bottom)
+(global-set-key (kbd "M-f") 'my/ghostel-toggle-bottom)
 
 (provide 'setup-terminal)
