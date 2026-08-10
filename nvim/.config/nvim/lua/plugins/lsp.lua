@@ -29,13 +29,13 @@ return {
 
           if client and client:supports_method('textDocument/documentHighlight', event.buf) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
-            vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+            vim.api.nvim_create_autocmd({ 'CursorHold' }, {
               buffer = event.buf,
               group = highlight_augroup,
               callback = vim.lsp.buf.document_highlight,
             })
 
-            vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+            vim.api.nvim_create_autocmd({ 'CursorMoved' }, {
               buffer = event.buf,
               group = highlight_augroup,
               callback = vim.lsp.buf.clear_references,
@@ -278,10 +278,7 @@ return {
       snippets = { preset = 'luasnip' },
       fuzzy = { implementation = 'lua' },
       signature = {
-        enabled = true,
-        window = {
-          direction_priority = { 's' },
-        },
+        enabled = false,
       },
     },
   },
@@ -323,8 +320,6 @@ return {
           local lang = vim.treesitter.language.get_lang(args.match)
           if not lang or not pcall(vim.treesitter.start, args.buf, lang) then return end
 
-          vim.opt_local.foldmethod = 'expr'
-          vim.opt_local.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
         end,
       })
     end,

@@ -16,7 +16,7 @@ vim.o.smartcase = true
 
 vim.o.signcolumn = 'yes'
 
-vim.o.updatetime = 250
+vim.o.updatetime = 300
 vim.o.timeoutlen = 300
 
 vim.o.splitright = true
@@ -29,8 +29,6 @@ vim.opt.fillchars = { vert = '|' }
 vim.o.inccommand = 'split'
 
 vim.o.cursorline = true
-vim.o.cursorlineopt = 'number'
-vim.o.lazyredraw = true
 vim.o.redrawtime = 1500
 vim.o.scrolloff = 10
 vim.opt.guicursor = 'n-v-c-sm-i-ci-ve:block,r-cr-o:hor20,a:blinkon0'
