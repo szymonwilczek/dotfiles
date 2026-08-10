@@ -222,9 +222,7 @@ return {
       statusline.section_filename = function()
         local full = vim.api.nvim_buf_get_name(0)
         if full == '' then return '[No Name]%m%r' end
-        local root = vim.fs.root(0, '.git') or vim.fn.getcwd()
-        local rel = full
-        if root and full:sub(1, #root + 1) == root .. '/' then rel = full:sub(#root + 2) end
+        local rel = vim.fn.fnamemodify(full, ':.')
         return (rel:gsub('%%', '%%%%')) .. '%m%r'
       end
 
@@ -246,11 +244,7 @@ return {
         local counts = vim.diagnostic.count(0)
         local err = counts[vim.diagnostic.severity.ERROR] or 0
         local warn = counts[vim.diagnostic.severity.WARN] or 0
-        return '%#MiniStatuslineFileinfo#[%#DiagnosticError#'
-          .. err
-          .. ' %#DiagnosticWarn# '
-          .. warn
-          .. '%#MiniStatuslineFileinfo#]'
+        return '%#MiniStatuslineFileinfo#[%#DiagnosticError#' .. err .. ' %#DiagnosticWarn# ' .. warn .. '%#MiniStatuslineFileinfo#]'
       end
 
       local function section_branch()
@@ -289,60 +283,6 @@ return {
         pattern = 'neo-tree',
         callback = function() vim.b.ministatusline_disable = true end,
       })
-      do
-        local gutter_buf, gutter_win
-        local function get_buf()
-          if gutter_buf and vim.api.nvim_buf_is_valid(gutter_buf) then return gutter_buf end
-          gutter_buf = vim.api.nvim_create_buf(false, true)
-          vim.bo[gutter_buf].buftype = 'nofile'
-          vim.bo[gutter_buf].bufhidden = 'hide'
-          vim.api.nvim_buf_set_lines(gutter_buf, 0, -1, false, { '|' })
-          return gutter_buf
-        end
-        local function find_neotree_win()
-          for _, w in ipairs(vim.api.nvim_list_wins()) do
-            if vim.bo[vim.api.nvim_win_get_buf(w)].filetype == 'neo-tree' then return w end
-          end
-        end
-        local function refresh_gutter_separator()
-          local prev_eventignore = vim.o.eventignore
-          vim.o.eventignore = 'WinNew,WinClosed'
-          local ok_run, err = pcall(function()
-            if gutter_win and vim.api.nvim_win_is_valid(gutter_win) then
-              vim.api.nvim_win_close(gutter_win, true)
-              gutter_win = nil
-            end
-            local nt = find_neotree_win()
-            if not nt then return end
-            local pos = vim.api.nvim_win_get_position(nt)
-            local ok, w = pcall(vim.api.nvim_open_win, get_buf(), false, {
-              relative = 'editor',
-              row = pos[1] + vim.api.nvim_win_get_height(nt),
-              col = pos[2] + vim.api.nvim_win_get_width(nt),
-              width = 1,
-              height = 1,
-              style = 'minimal',
-              focusable = false,
-              zindex = 1,
-              noautocmd = true,
-            })
-            if ok then
-              gutter_win = w
-              vim.wo[gutter_win].winhighlight = 'Normal:WinSeparator'
-            end
-          end)
-          vim.o.eventignore = prev_eventignore
-          if not ok_run then vim.notify('gutter separator: ' .. tostring(err), vim.log.levels.DEBUG) end
-        end
-        vim.api.nvim_create_autocmd({ 'VimResized', 'WinResized', 'WinNew', 'WinClosed' }, {
-          callback = function() vim.schedule(refresh_gutter_separator) end,
-        })
-        vim.api.nvim_create_autocmd('VimLeavePre', {
-          callback = function()
-            if gutter_win and vim.api.nvim_win_is_valid(gutter_win) then pcall(vim.api.nvim_win_close, gutter_win, true) end
-          end,
-        })
-      end
     end,
   },
   { 'wakatime/vim-wakatime', lazy = false },
