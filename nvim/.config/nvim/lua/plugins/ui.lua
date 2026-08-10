@@ -154,30 +154,4 @@ return {
       { '<leader>q', function() require('bufdelete').bufdelete(0, false) end, desc = 'Zamknij bufor (SPC q)' },
     },
   },
-
-  {
-    's1n7ax/nvim-window-picker',
-    name = 'window-picker',
-    event = 'VeryLazy',
-    version = '2.*',
-    config = function()
-      require('window-picker').setup {
-        filter_rules = {
-          include_current_win = false,
-          autoselect_one = true,
-          bo = {
-            filetype = { 'neo-tree', 'neo-tree-popup', 'notify', 'snacks_picker_input' },
-            buftype = { 'terminal', 'quickfix' },
-          },
-        },
-        hint = 'floating-big-letter',
-        picker_config = {
-          floating_big_letter = {
-            font = 'ansi-shadow',
-          },
-        },
-        show_prompt = false,
-      }
-    end,
-  },
 }
