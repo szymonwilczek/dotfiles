@@ -27,27 +27,8 @@ return {
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
 
-          if client and client:supports_method('textDocument/documentHighlight', event.buf) then
-            local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
-            vim.api.nvim_create_autocmd({ 'CursorHold' }, {
-              buffer = event.buf,
-              group = highlight_augroup,
-              callback = vim.lsp.buf.document_highlight,
-            })
-
-            vim.api.nvim_create_autocmd({ 'CursorMoved' }, {
-              buffer = event.buf,
-              group = highlight_augroup,
-              callback = vim.lsp.buf.clear_references,
-            })
-
-            vim.api.nvim_create_autocmd('LspDetach', {
-              group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
-              callback = function(event2)
-                vim.lsp.buf.clear_references()
-                vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event2.buf }
-              end,
-            })
+          if vim.lsp.completion and client and client:supports_method('textDocument/completion', event.buf) then
+            vim.lsp.completion.enable(true, client.id, event.buf, { autotrigger = true })
           end
 
           if client and client:supports_method('textDocument/inlayHint', event.buf) then
@@ -159,28 +140,7 @@ return {
     ---@type conform.setupOpts
     opts = {
       notify_on_error = false,
-      format_on_save = function(bufnr)
-        local enabled_filetypes = {
-          lua = true,
-          javascript = true,
-          typescript = true,
-          javascriptreact = true,
-          typescriptreact = true,
-          json = true,
-          yaml = true,
-          python = true,
-          sh = true,
-          bash = true,
-          go = true,
-          -- lua = true,
-          -- python = true,
-        }
-        if enabled_filetypes[vim.bo[bufnr].filetype] then
-          return { timeout_ms = 500 }
-        else
-          return nil
-        end
-      end,
+      format_on_save = false,
       default_format_opts = {
         lsp_format = 'fallback',
       },
@@ -204,18 +164,7 @@ return {
     'saghen/blink.cmp',
     event = 'VimEnter',
     version = '1.*',
-    dependencies = {
-      {
-        'L3MON4D3/LuaSnip',
-        version = '2.*',
-        build = (function()
-          if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then return end
-          return 'make install_jsregexp'
-        end)(),
-        dependencies = {},
-        opts = {},
-      },
-    },
+    dependencies = {},
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
@@ -225,18 +174,11 @@ return {
       end,
       keymap = {
         preset = 'default',
-        -- ALT + j/k to navigate
         ['<A-j>'] = { 'select_next', 'fallback' },
         ['<A-k>'] = { 'select_prev', 'fallback' },
-
-        -- Enter to confirm
         ['<CR>'] = { 'accept', 'fallback' },
-
-        -- Space to confirm (when menu is open)
         ['<Space>'] = { 'accept', 'fallback' },
-
-        -- Manual toggle of autocompletion menu
-        ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
+        ['<C-space>'] = { 'show', 'hide' },
       },
 
       appearance = {
@@ -254,10 +196,12 @@ return {
         list = {
           selection = { preselect = false, auto_insert = true },
         },
-        documentation = { auto_show = false, auto_show_delay_ms = 500 },
+        documentation = {
+          auto_show = false,
+        },
       },
       sources = {
-        default = { 'lazydev', 'lsp', 'path', 'snippets' },
+        default = { 'lazydev', 'lsp', 'path' },
         providers = {
           lazydev = {
             name = 'LazyDev',
@@ -270,12 +214,8 @@ return {
           path = {
             min_keyword_length = 0,
           },
-          snippets = {
-            min_keyword_length = 1,
-          },
         },
       },
-      snippets = { preset = 'luasnip' },
       fuzzy = { implementation = 'lua' },
       signature = {
         enabled = false,
@@ -319,7 +259,6 @@ return {
           if vim.api.nvim_buf_line_count(args.buf) > TREESITTER_LINE_THRESHOLD then return end
           local lang = vim.treesitter.language.get_lang(args.match)
           if not lang or not pcall(vim.treesitter.start, args.buf, lang) then return end
-
         end,
       })
     end,
