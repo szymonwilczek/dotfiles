@@ -1,9 +1,14 @@
 (let ((modules-dir (expand-file-name "modules" user-emacs-directory)))
   (add-to-list 'load-path modules-dir)
-  (let ((default-directory modules-dir))
-    (when (file-directory-p default-directory)
-      (normal-top-level-add-subdirs-to-load-path))))
+  (dolist (dir (directory-files modules-dir t "^[^.]"))
+    (when (file-directory-p dir)
+      (add-to-list 'load-path dir))))
 
 (require 'core)
+(require 'evil-mod)
 
 (provide 'init)
+
+(custom-set-variables
+ '(package-selected-packages nil))
+(custom-set-faces)
