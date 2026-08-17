@@ -147,11 +147,4 @@ return {
       },
     },
   },
-
-  {
-    'famiu/bufdelete.nvim',
-    keys = {
-      { '<leader>q', function() require('bufdelete').bufdelete(0, false) end, desc = 'Zamknij bufor (SPC q)' },
-    },
-  },
 }

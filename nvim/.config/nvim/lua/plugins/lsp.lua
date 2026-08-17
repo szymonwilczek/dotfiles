@@ -13,26 +13,130 @@ return {
       'WhoIsSethDaniel/mason-tool-installer.nvim',
     },
     config = function()
+      -- Modular list of filetypes where LSP auto-completion should be disabled
+      local disabled_completion_filetypes = {
+        'markdown',
+        'gfm',
+        'rst',
+        'text',
+        'txt',
+        'mail',
+        'gitcommit',
+      }
+
+      local function is_completion_disabled(bufnr)
+        local ft = vim.bo[bufnr].filetype
+        local bt = vim.bo[bufnr].buftype
+        return bt ~= '' or vim.tbl_contains(disabled_completion_filetypes, ft) or vim.b[bufnr].completion == false
+      end
+
       vim.api.nvim_create_autocmd('LspAttach', {
-        group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
+        group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
         callback = function(event)
+          local bufnr = event.buf
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
-            vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+            vim.keymap.set(mode, keys, func, { buffer = bufnr, desc = 'LSP: ' .. desc })
           end
 
-          map('gr', vim.lsp.buf.rename, '[R]e[n]ame')
+          -- Jump to Definition / Declaration / Implementation / Type Def / References
+          map('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+          map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+          map('gi', vim.lsp.buf.implementation, '[G]oto [I]mplementation')
+          map('gy', vim.lsp.buf.type_definition, '[G]oto T[y]pe Definition')
+          map('gr', vim.lsp.buf.references, '[G]oto [R]eferences')
+
+          -- Actions & Refactor
           map('ga', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
-          map('gd', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
+          map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+
+          -- Documentation / Hover
+          map('K', vim.lsp.buf.hover, 'Hover Documentation')
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
 
-          if vim.lsp.completion and client and client:supports_method('textDocument/completion', event.buf) then
-            vim.lsp.completion.enable(true, client.id, event.buf, { autotrigger = true })
+          if not is_completion_disabled(bufnr) and vim.lsp.completion and client and client:supports_method('textDocument/completion', bufnr) then
+            local completion_provider = client.server_capabilities.completionProvider
+            if completion_provider then
+              local triggers = completion_provider.triggerCharacters or {}
+              local chars = {
+                'a',
+                'b',
+                'c',
+                'd',
+                'e',
+                'f',
+                'g',
+                'h',
+                'i',
+                'j',
+                'k',
+                'l',
+                'm',
+                'n',
+                'o',
+                'p',
+                'q',
+                'r',
+                's',
+                't',
+                'u',
+                'v',
+                'w',
+                'x',
+                'y',
+                'z',
+                'A',
+                'B',
+                'C',
+                'D',
+                'E',
+                'F',
+                'G',
+                'H',
+                'I',
+                'J',
+                'K',
+                'L',
+                'M',
+                'N',
+                'O',
+                'P',
+                'Q',
+                'R',
+                'S',
+                'T',
+                'U',
+                'V',
+                'W',
+                'X',
+                'Y',
+                'Z',
+                '0',
+                '1',
+                '2',
+                '3',
+                '4',
+                '5',
+                '6',
+                '7',
+                '8',
+                '9',
+                '_',
+                '-',
+              }
+              for _, char in ipairs(chars) do
+                if not vim.tbl_contains(triggers, char) then table.insert(triggers, char) end
+              end
+              completion_provider.triggerCharacters = triggers
+            end
+
+            vim.lsp.completion.enable(true, client.id, bufnr, { autotrigger = true })
           end
 
-          if client and client:supports_method('textDocument/inlayHint', event.buf) then
-            map('<leader>h', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }) end, '[T]oggle Inlay [H]ints')
+          if client and client:supports_method('textDocument/inlayHint', bufnr) then
+            map('<leader>h', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr }) end, '[T]oggle Inlay [H]ints')
           end
         end,
       })
@@ -156,69 +260,6 @@ return {
         sh = { 'shfmt' },
         bash = { 'shfmt' },
         go = { 'goimports', 'gofmt' },
-      },
-    },
-  },
-
-  {
-    'saghen/blink.cmp',
-    event = 'VimEnter',
-    version = '1.*',
-    dependencies = {},
-    ---@module 'blink.cmp'
-    ---@type blink.cmp.Config
-    opts = {
-      enabled = function()
-        local disabled_filetypes = { 'markdown', 'gfm', 'rst', 'text', 'txt', 'mail', 'gitcommit' }
-        return not vim.tbl_contains(disabled_filetypes, vim.bo.filetype) and vim.bo.buftype ~= 'prompt' and vim.b.completion ~= false
-      end,
-      keymap = {
-        preset = 'default',
-        ['<A-j>'] = { 'select_next', 'fallback' },
-        ['<A-k>'] = { 'select_prev', 'fallback' },
-        ['<CR>'] = { 'accept', 'fallback' },
-        ['<Space>'] = { 'accept', 'fallback' },
-        ['<C-space>'] = { 'show', 'hide' },
-      },
-
-      appearance = {
-        nerd_font_variant = 'mono',
-      },
-      completion = {
-        menu = {
-          auto_show = true,
-          direction_priority = { 's' },
-        },
-        trigger = {
-          show_on_keyword = true,
-          show_on_trigger_character = true,
-        },
-        list = {
-          selection = { preselect = false, auto_insert = true },
-        },
-        documentation = {
-          auto_show = false,
-        },
-      },
-      sources = {
-        default = { 'lazydev', 'lsp', 'path' },
-        providers = {
-          lazydev = {
-            name = 'LazyDev',
-            module = 'lazydev.integrations.blink',
-            score_offset = 100,
-          },
-          lsp = {
-            min_keyword_length = 1,
-          },
-          path = {
-            min_keyword_length = 0,
-          },
-        },
-      },
-      fuzzy = { implementation = 'lua' },
-      signature = {
-        enabled = false,
       },
     },
   },

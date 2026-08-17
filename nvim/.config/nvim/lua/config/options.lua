@@ -37,10 +37,23 @@ vim.o.confirm = true
 
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
+-- completion config
+vim.opt.completeopt = { 'menu', 'menuone', 'noinsert', 'popup', 'fuzzy' }
+vim.opt.pumheight = 10
+vim.opt.shortmess:append 'c'
+
 -- diagnostic config
 vim.diagnostic.config {
   update_in_insert = false,
   severity_sort = true,
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = 'X ',
+      [vim.diagnostic.severity.WARN] = 'W ',
+      [vim.diagnostic.severity.INFO] = 'I ',
+      [vim.diagnostic.severity.HINT] = 'H ',
+    },
+  },
   float = { border = 'rounded', source = 'if_many' },
   underline = { severity = { min = vim.diagnostic.severity.WARN } },
   virtual_text = false,
@@ -82,6 +95,4 @@ vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufNewFile' }, {
   end,
 })
 
-if vim.highlight and vim.highlight.priorities then
-  vim.highlight.priorities.semantic_tokens = 95
-end
+if vim.highlight and vim.highlight.priorities then vim.highlight.priorities.semantic_tokens = 95 end
