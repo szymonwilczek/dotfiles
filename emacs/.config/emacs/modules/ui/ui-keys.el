@@ -1,0 +1,17 @@
+;;; UI keybindings and theme picker
+
+;; Font scaling
+(global-set-key (kbd "C-=") 'text-scale-increase)
+(global-set-key (kbd "C-+") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+(global-set-key (kbd "C-_") 'text-scale-decrease)
+(global-set-key (kbd "C-0") (lambda () (interactive) (text-scale-set 0)))
+
+;; Leader theme picker
+(with-eval-after-load 'evil-keys
+  (when (fboundp 'my-leader-def)
+    (my-leader-def
+      "t"  '(:ignore t :which-key "Themes")
+      "tt" '(ef-themes-select :which-key "Theme Picker"))))
+
+(provide 'ui-keys)

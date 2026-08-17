@@ -6,9 +6,6 @@
 
 (require 'core)
 (require 'evil-mod)
+(require 'ui-mod)
 
 (provide 'init)
-
-(custom-set-variables
- '(package-selected-packages nil))
-(custom-set-faces)
