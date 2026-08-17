@@ -13,8 +13,8 @@ return {
       },
     },
     keys = {
-      { '<TAB>', '<cmd>BufferLineCycleNext<CR>', desc = 'Następna zakładka' },
-      { '<S-TAB>', '<cmd>BufferLineCyclePrev<CR>', desc = 'Poprzednia zakładka' },
+      { '<TAB>', '<cmd>BufferLineCycleNext<CR>', desc = 'Next buffer' },
+      { '<S-TAB>', '<cmd>BufferLineCyclePrev<CR>', desc = 'Previous buffer' },
     },
   },
 }

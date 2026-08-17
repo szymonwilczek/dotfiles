@@ -41,5 +41,5 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   callback = function() vim.hl.on_yank() end,
 })
 
-vim.keymap.set('n', '<TAB>', '<cmd>bnext<CR>', { desc = 'Następny bufor' })
-vim.keymap.set('n', '<S-TAB>', '<cmd>bprev<CR>', { desc = 'Poprzedni bufor' })
+vim.keymap.set('n', '<TAB>', '<cmd>bnext<CR>', { desc = 'Next buffer' })
+vim.keymap.set('n', '<S-TAB>', '<cmd>bprev<CR>', { desc = 'Previous buffer' })
