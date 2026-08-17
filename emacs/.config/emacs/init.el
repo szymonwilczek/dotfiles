@@ -8,9 +8,6 @@
 (require 'evil-mod)
 (require 'ui-mod)
 (require 'completion-mod)
+(require 'lsp-mod)
 
 (provide 'init)
-(custom-set-variables
- '(package-selected-packages nil))
-(custom-set-faces
- )
