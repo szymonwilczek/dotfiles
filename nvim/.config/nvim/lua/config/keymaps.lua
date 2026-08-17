@@ -41,20 +41,5 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   callback = function() vim.hl.on_yank() end,
 })
 
--- toggle Cursor and Cursorline visibility
-local original_guicursor = vim.o.guicursor
-local original_cursorline = vim.o.cursorline
-vim.keymap.set('n', '<leader>tc', function()
-  if vim.o.guicursor == 'a:hor1-Ignore' then
-    vim.o.guicursor = original_guicursor
-    vim.o.cursorline = original_cursorline
-  else
-    original_guicursor = vim.o.guicursor
-    original_cursorline = vim.o.cursorline
-    vim.o.guicursor = 'a:hor1-Ignore'
-    vim.o.cursorline = false
-  end
-end, { desc = '[T]oggle [C]ursor visibility' })
-
 vim.keymap.set('n', '<TAB>', '<cmd>bnext<CR>', { desc = 'Następny bufor' })
 vim.keymap.set('n', '<S-TAB>', '<cmd>bprev<CR>', { desc = 'Poprzedni bufor' })
