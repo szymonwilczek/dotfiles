@@ -15,7 +15,7 @@ exec_always pkill waybar; env LC_ALL=pl_PL.UTF-8 waybar
 # Output configuration
 output * bg ~/Pulpit/Personalne/Tapety/IMG_1692_lossless.png fill
 output * subpixel rgb
-output * render_bit_depth 10
+# output * render_bit_depth 10
 output HDMI-A-1 mode 1920x1080@75Hz pos 0 0
 output DP-2 mode 1920x1080@179.821Hz pos 1920 0
 output DP-1 mode 1600x900@77Hz pos 3840 0
