@@ -1,10 +1,9 @@
-(add-to-list 'load-path (expand-file-name "modules" user-emacs-directory))
+(let ((modules-dir (expand-file-name "modules" user-emacs-directory)))
+  (add-to-list 'load-path modules-dir)
+  (let ((default-directory modules-dir))
+    (when (file-directory-p default-directory)
+      (normal-top-level-add-subdirs-to-load-path))))
 
-(require 'package)
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
-(package-initialize)
-
-(setq inhibit-startup-screen t)
+(require 'core)
 
 (provide 'init)
