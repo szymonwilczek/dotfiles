@@ -40,3 +40,5 @@ emacs/.config/emacs/scripts/mutt_oauth2.py
 emacs/.config/emacs/projectile-frecency.eld
 vim/.config/vim/coc-settings.json
 emacs/.config/emacs/.cache
+emacs/.config/emacs/history
+emacs/.config/emacs/places

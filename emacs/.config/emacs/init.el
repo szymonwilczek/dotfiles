@@ -11,5 +11,6 @@
 (require 'lsp-mod)
 (require 'treemacs-mod)
 (require 'projectile-mod)
+(require 'git-mod)
 
 (provide 'init)
