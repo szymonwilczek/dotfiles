@@ -104,7 +104,7 @@
   "Assemble active or inactive statusline."
   (if (not (mode-line-window-selected-p))
       ;; Inactive window
-      (list " " (my/modeline-filename))
+      (concat " " (my/modeline-filename))
     ;; Active window
     (let* ((lhs (concat (my/modeline-evil-mode-info)
                         (my/modeline-filename)))
@@ -114,11 +114,11 @@
                         (my/modeline-fileinfo)
                         (my/modeline-git-branch)))
            (rhs-width (string-width (format-mode-line rhs))))
-      (list lhs
-            (propertize " " 'display `(space :align-to (- right ,rhs-width)))
-            rhs))))
+      (concat lhs
+              (propertize " " 'display `(space :align-to (- right ,rhs-width)))
+              rhs))))
 
-(setq-default mode-line-format '((:eval (my/render-modeline))))
+(setq-default mode-line-format '(:eval (my/render-modeline)))
 
 ;; Disable modeline Dashboard
 (add-hook 'dashboard-mode-hook (lambda () (setq-local mode-line-format nil)))
