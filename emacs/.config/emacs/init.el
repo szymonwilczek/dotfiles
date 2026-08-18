@@ -10,5 +10,6 @@
 (require 'completion-mod)
 (require 'lsp-mod)
 (require 'treemacs-mod)
+(require 'projectile-mod)
 
 (provide 'init)
