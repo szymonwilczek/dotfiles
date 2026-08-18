@@ -114,7 +114,7 @@
     "layer": "top",
     "position": "bottom",
     "exclusive": false,
-    "passthrough": false,
+    "passthrough": true,
     "margin-bottom": 0,
     "margin-right": 0,
 
