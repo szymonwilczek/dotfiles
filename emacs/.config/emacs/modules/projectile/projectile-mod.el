@@ -5,6 +5,9 @@
   :custom
   (persp-mode-prefix-key (kbd "C-c M-p"))
   (persp-kill-foreign-buffer t)
+  (persp-state-default-file nil)
+  (persp-auto-save-persps-to-file-p nil)
+  (persp-auto-resume-time -1)
   :init
   (persp-mode 1))
 
@@ -17,7 +20,8 @@
         (cl-remove-if-not #'file-directory-p '("~/Dokumenty/GitHub" "~/workspace" "~/projects")))
   (setq projectile-switch-project-action #'projectile-find-file
         projectile-indexing-method 'alien
-        projectile-enable-caching t))
+        projectile-enable-caching t
+        projectile-auto-discover nil))
 
 (use-package persp-projectile
   :ensure t
