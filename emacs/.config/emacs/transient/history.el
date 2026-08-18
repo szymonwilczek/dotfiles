@@ -8,5 +8,6 @@
  (magit-fetch nil)
  (magit-push nil)
  (magit-rebase
+  ("--interactive" "--autostash" "--update-refs")
   ("--autostash"))
  (magit-stash nil))

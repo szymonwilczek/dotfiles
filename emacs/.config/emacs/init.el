@@ -12,5 +12,6 @@
 (require 'treemacs-mod)
 (require 'projectile-mod)
 (require 'git-mod)
+(require 'terminal-mod)
 
 (provide 'init)
