@@ -8,7 +8,8 @@
         treemacs-indentation 2
         treemacs-show-cursor nil
         treemacs-space-between-root-nodes nil
-        treemacs-is-never-other-window nil)
+        treemacs-is-never-other-window nil
+        treemacs-persist-file nil)
 
   (treemacs-follow-mode t)
   (treemacs-filewatch-mode t)
