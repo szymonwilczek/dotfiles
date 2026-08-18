@@ -62,12 +62,17 @@
       (add-hook 'server-after-make-frame-hook #'my/apply-cached-theme)
     (my/apply-cached-theme)))
 
-;; Icons
 (use-package nerd-icons
   :ensure t
   :custom
   (nerd-icons-font-family "Typus Mono 95"))
 
+(use-package wakatime-mode
+  :ensure t
+  :init
+  (global-wakatime-mode 1))
+
+(require 'modeline)
 (require 'ui-keys)
 
 (provide 'ui-mod)
