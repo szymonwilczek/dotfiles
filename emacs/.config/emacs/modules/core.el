@@ -16,6 +16,13 @@
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
 
+;; Clean working directory baseline for daemon
+(setq-default default-directory (expand-file-name "~/"))
+(setq default-directory (expand-file-name "~/"))
+
+;; Disable server frame instructions message
+(setq server-client-instructions nil)
+
 ;; Disable visual/audio bells
 (setq ring-bell-function 'ignore)
 
@@ -38,22 +45,11 @@
       auto-revert-interval 3
       auto-revert-check-vc-info nil)
 
-;; Remember cursor position across sessions
-(save-place-mode 1)
-
-;; Minibuffer history & Recent files
-(savehist-mode 1)
-(recentf-mode 1)
-(setq recentf-max-saved-items 200
-      recentf-max-menu-items 25)
-
-;; Smooth pixel precision scrolling
-(pixel-scroll-precision-mode 1)
-
 ;; Increase process read buffer for LSP (16MB)
 (setq read-process-output-max (* 16 1024 1024))
 (setq idle-update-delay 1.0)
 (setq native-comp-async-report-warnings-errors 'silent)
+(pixel-scroll-precision-mode 1)
 
 (which-key-mode 1)
 (setq which-key-idle-delay 0.3
