@@ -70,6 +70,7 @@
 (use-package wakatime-mode
   :ensure t
   :init
+  (setq wakatime-cli-path (expand-file-name "~/.wakatime/wakatime-cli"))
   (global-wakatime-mode 1))
 
 (require 'modeline)
