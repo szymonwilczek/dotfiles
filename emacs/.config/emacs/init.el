@@ -9,5 +9,6 @@
 (require 'ui-mod)
 (require 'completion-mod)
 (require 'lsp-mod)
+(require 'treemacs-mod)
 
 (provide 'init)
