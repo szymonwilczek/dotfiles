@@ -13,5 +13,6 @@
 (require 'projectile-mod)
 (require 'git-mod)
 (require 'terminal-mod)
+(require 'dashboard-mod)
 
 (provide 'init)
