@@ -50,6 +50,12 @@
           (select-window new-win)
           (ghostel))))))
 
+(defun my/ghostel-open-full-buffer ()
+  "Open Ghostel as a dedicated full buffer."
+  (interactive)
+  (let ((buf (ghostel t)))
+    (switch-to-buffer buf)))
+
 (require 'terminal-keys)
 
 (provide 'terminal-mod)
