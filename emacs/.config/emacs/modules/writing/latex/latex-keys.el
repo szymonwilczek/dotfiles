@@ -12,7 +12,8 @@
      "mc" '(my/latex-compile :which-key "Compile (LatexMk Async)")
      "mv" '(my/latex-view-pdf :which-key "View PDF in Split")
      "me" '(my/latex-next-error :which-key "Next Compilation Error")
-     "ml" '(my/latex-show-log :which-key "Toggle Compilation Log"))))
+     "ml" '(my/latex-show-log :which-key "Toggle Compilation Log")
+     "mn" '(LaTeX-environment :which-key "Insert Environment"))))
 
 (with-eval-after-load 'tex (my/setup-latex-keys))
 (with-eval-after-load 'latex (my/setup-latex-keys))

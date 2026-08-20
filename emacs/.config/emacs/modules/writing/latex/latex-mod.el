@@ -144,6 +144,22 @@
       (delete-window)
     (kill-current-buffer)))
 
+(use-package yasnippet
+  :ensure t
+  :hook ((LaTeX-mode . yas-minor-mode)
+         (latex-mode . yas-minor-mode))
+  :config
+  (yas-reload-all)
+  (with-eval-after-load 'yasnippet
+    (yas-define-snippets 'latex-mode
+      '(("fr" "\\frac{${1:num}}{${2:den}}$0" "Fraction \\frac{}{}")
+        ("sq" "\\sqrt{${1:x}}$0" "Square Root \\sqrt{}")
+        ("lr(" "\\left( ${1:expr} \\right)$0" "\\left( \\right)")
+        ("lr[" "\\left[ ${1:expr} \\right]$0" "\\left[ \\right]")
+        ("lr{" "\\left\\{ ${1:expr} \\right\\}$0" "\\left\\{ \\right\\}")
+        ("equ" "\\begin{equation}\n  \\label{eq:${1:label}}\n  ${2:formula}\n\\end{equation}$0" "Equation environment")
+        ("ali" "\\begin{align}\n  \\label{eq:${1:label}}\n  ${2:formula}\n\\end{align}$0" "Align environment")))))
+
 
 (require 'latex-keys)
 
