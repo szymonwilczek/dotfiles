@@ -1,4 +1,4 @@
-;;; Keybindings for LaTeX and In-Emacs PDF Viewer
+;;; Keybindings for LaTeX and In-Emacs PDF Viewer -*- lexical-binding: t; -*-
 
 (defun my/setup-latex-keys ()
   "Define LaTeX keybindings under SPC m."
@@ -10,7 +10,9 @@
      "m"  '(:ignore t :which-key "LaTeX")
      "ma" '(my/latex-compile-and-view :which-key "Compile & View in Split")
      "mc" '(my/latex-compile :which-key "Compile (LatexMk Async)")
-     "mv" '(my/latex-view-pdf :which-key "View PDF in Split"))))
+     "mv" '(my/latex-view-pdf :which-key "View PDF in Split")
+     "me" '(my/latex-next-error :which-key "Next Compilation Error")
+     "ml" '(my/latex-show-log :which-key "Toggle Compilation Log"))))
 
 (with-eval-after-load 'tex (my/setup-latex-keys))
 (with-eval-after-load 'latex (my/setup-latex-keys))
