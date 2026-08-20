@@ -14,5 +14,6 @@
 (require 'git-mod)
 (require 'terminal-mod)
 (require 'dashboard-mod)
+(require 'tabs-mod)
 
 (provide 'init)
