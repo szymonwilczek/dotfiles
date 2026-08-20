@@ -65,12 +65,16 @@
 (use-package nerd-icons
   :ensure t
   :custom
-  (nerd-icons-font-family "Typus Mono 95"))
+  (nerd-icons-font-family "Symbols Nerd Font Mono"))
+
+(set-fontset-font t 'unicode (font-spec :family "Symbols Nerd Font Mono") nil 'append)
 
 (use-package wakatime-mode
   :ensure t
   :init
-  (setq wakatime-cli-path (expand-file-name "~/.wakatime/wakatime-cli"))
+  (setq wakatime-api-key nil
+        wakatime-cli-path (expand-file-name "~/.wakatime/wakatime-cli"))
+  :config
   (global-wakatime-mode 1))
 
 (require 'modeline)

@@ -1,3 +1,6 @@
+gui:
+  nerdFontsVersion: "3"
+
 customCommands:
   - key: 'W'
     context: 'commits'
