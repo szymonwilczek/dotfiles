@@ -1,8 +1,7 @@
 (let ((modules-dir (expand-file-name "modules" user-emacs-directory)))
   (add-to-list 'load-path modules-dir)
-  (dolist (dir (directory-files modules-dir t "^[^.]"))
-    (when (file-directory-p dir)
-      (add-to-list 'load-path dir))))
+  (let ((default-directory modules-dir))
+    (normal-top-level-add-subdirs-to-load-path)))
 
 (require 'core)
 (require 'evil-mod)
@@ -15,5 +14,6 @@
 (require 'terminal-mod)
 (require 'dashboard-mod)
 (require 'tabs-mod)
+(require 'latex-mod)
 
 (provide 'init)
