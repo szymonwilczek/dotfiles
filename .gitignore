@@ -42,3 +42,4 @@ vim/.config/vim/coc-settings.json
 emacs/.config/emacs/.cache
 emacs/.config/emacs/history
 emacs/.config/emacs/places
+emacs/.config/emacs/elisp-autofmt-cache
