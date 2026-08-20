@@ -12,7 +12,7 @@
   (let* ((commit (or (magit-commit-at-point) (magit-rev-parse "HEAD")))
          (head (magit-rev-parse "HEAD"))
          (branch (magit-get-current-branch)))
-    (if (string= commit head)
+    (if (magit-rev-equal commit head)
         (magit-call-git "commit" "--amend" "--no-edit" (format "--trailer=Co-authored-by: %s" author))
       (if (and branch (magit-commit-p commit))
           (progn
@@ -28,7 +28,7 @@
   (let* ((commit (or (magit-commit-at-point) (magit-rev-parse "HEAD")))
          (head (magit-rev-parse "HEAD"))
          (branch (magit-get-current-branch)))
-    (if (string= commit head)
+    (if (magit-rev-equal commit head)
         (magit-call-git "commit" "--amend" "--no-edit" "--signoff")
       (if (and branch (magit-commit-p commit))
           (progn
@@ -40,17 +40,53 @@
 
 (defun my/magit-extract-commit-files ()
   "Extract files from commit (Mixed reset + Empty commit with message).
-Only allowed during an active rebase on the exact commit at HEAD."
+Allowed during an active rebase at the current HEAD commit."
   (interactive)
-  (let* ((commit (magit-commit-at-point))
-         (head (magit-rev-parse "HEAD")))
-    (unless (and (magit-rebase-in-progress-p)
-                 commit
-                 (string= commit head))
-      (user-error "Error: You can do that ONLY during REBASE on THAT commit."))
-    (magit-call-git "reset" "--mixed" (format "%s~1" commit))
-    (magit-call-git "commit" "--allow-empty" "-C" commit)
+  (unless (magit-rebase-in-progress-p)
+    (user-error "Error: Rebase is not in progress"))
+  (let* ((head (magit-rev-parse "HEAD"))
+         (commit-at-point (magit-commit-at-point)))
+    (when (and commit-at-point
+               (not (magit-rev-equal commit-at-point head)))
+      (user-error "Error: Cursor must be on the HEAD commit (%s)" (magit-rev-format "%h" head)))
+    (magit-call-git "reset" "--mixed" "HEAD~1")
+    (magit-call-git "commit" "--allow-empty" "-C" head)
+    (ignore-errors (magit-call-git "add" "-N" "."))
+    (magit-refresh)
+    (message "Files extracted from commit %s (ready in Unstaged changes)." (magit-rev-format "%h" head))))
+
+(defun my/magit-stage-intent ()
+  "Track untracked file or all files with intent-to-add so they appear in Unstaged changes."
+  (interactive)
+  (let ((file (magit-file-at-point)))
+    (if file
+        (magit-call-git "add" "-N" "--" file)
+      (magit-call-git "add" "-N" "."))
     (magit-refresh)))
+
+(defun my/open-lazygit ()
+  "Open Lazygit inside Ghostel terminal in the current project root or directory."
+  (interactive)
+  (let* ((proj-root (or (and (fboundp 'projectile-project-root) (projectile-project-root))
+                        default-directory))
+         (old-buf (get-buffer "*lazygit*"))
+         (script-path (expand-file-name "scripts/lazygit-edit.sh" user-emacs-directory))
+         (launcher-path (expand-file-name "scripts/run-lazygit.sh" user-emacs-directory))
+         (override-cfg (expand-file-name ".cache/lazygit-emacs.yml" user-emacs-directory)))
+    (make-directory (file-name-directory override-cfg) t)
+    (with-temp-file override-cfg
+      (insert (format "gui:\n  nerdFontsVersion: \"3\"\n\nos:\n  editPreset: \"\"\n  edit: \"sh %s {{filename}}\"\n  editAtLine: \"sh %s {{filename}} {{line}}\"\n  open: \"sh %s {{filename}}\"\n  suspendOnEdit: false\n"
+                      script-path script-path script-path)))
+    (when (and old-buf (buffer-live-p old-buf))
+      (kill-buffer old-buf))
+    (let* ((default-directory proj-root)
+           (ghostel-shell launcher-path)
+           (ghostel-buffer-name "*lazygit*")
+           (buf (ghostel t)))
+      (delete-other-windows)
+      (switch-to-buffer buf)
+      (when (fboundp 'evil-emacs-state)
+        (evil-emacs-state)))))
 
 ;; Magit Configuration
 (use-package magit
@@ -61,13 +97,21 @@ Only allowed during an active rebase on the exact commit at HEAD."
   (magit-save-repository-buffers 'dontask)
   :config
 
+  ;; Evil scrolling
+  (define-key magit-mode-map (kbd "z") nil)
+  (define-key magit-mode-map (kbd "Z") #'magit-stash)
+  (define-key magit-status-mode-map (kbd "z") nil)
+  (define-key magit-status-mode-map (kbd "Z") #'magit-stash)
+
   ;; My Lazygit keys in Magit log & status
   (define-key magit-status-mode-map (kbd "W") #'my/magit-add-co-author)
   (define-key magit-status-mode-map (kbd "F") #'my/magit-signoff-commit)
   (define-key magit-status-mode-map (kbd "E") #'my/magit-extract-commit-files)
+  (define-key magit-status-mode-map (kbd "I") #'my/magit-stage-intent)
   (define-key magit-log-mode-map (kbd "W") #'my/magit-add-co-author)
   (define-key magit-log-mode-map (kbd "F") #'my/magit-signoff-commit)
-  (define-key magit-log-mode-map (kbd "E") #'my/magit-extract-commit-files))
+  (define-key magit-log-mode-map (kbd "E") #'my/magit-extract-commit-files)
+  (define-key magit-log-mode-map (kbd "I") #'my/magit-stage-intent))
 
 ;; Git gutter indicators
 (use-package diff-hl
