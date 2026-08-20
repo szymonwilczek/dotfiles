@@ -16,8 +16,13 @@
               (display-line-numbers-mode -1)
               (setq-local global-hl-line-mode nil)
               (setq-local scroll-margin 0)
+              (when (fboundp 'evil-emacs-state)
+                (evil-emacs-state))
               (when-let ((proc (get-buffer-process (current-buffer))))
                 (set-process-query-on-exit-flag proc nil))))
+
+  (with-eval-after-load 'evil
+    (evil-set-initial-state 'ghostel-mode 'emacs))
 
   ;; Auto-close window when shell process terminates
   ;; (exit / Ctrl-d)
