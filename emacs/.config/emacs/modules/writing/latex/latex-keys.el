@@ -1,19 +1,20 @@
 ;;; Keybindings for LaTeX and In-Emacs PDF Viewer -*- lexical-binding: t; -*-
 
 (defun my/setup-latex-keys ()
-  "Define LaTeX keybindings under SPC m."
+  "Define LaTeX keybindings under SPC l (LaTeX / Lazygit)."
   (when (fboundp 'general-define-key)
     (general-define-key
      :states '(normal visual motion)
      :keymaps '(LaTeX-mode-map latex-mode-map TeX-mode-map tex-mode-map)
      :prefix "SPC"
-     "m"  '(:ignore t :which-key "LaTeX")
-     "ma" '(my/latex-compile-and-view :which-key "Compile & View in Split")
-     "mc" '(my/latex-compile :which-key "Compile (LatexMk Async)")
-     "mv" '(my/latex-view-pdf :which-key "View PDF in Split")
-     "me" '(my/latex-next-error :which-key "Next Compilation Error")
-     "ml" '(my/latex-show-log :which-key "Toggle Compilation Log")
-     "mn" '(LaTeX-environment :which-key "Insert Environment"))))
+     "l"  '(:ignore t :which-key "LaTeX / Lazygit")
+     "lg" '(my/open-lazygit :which-key "Lazygit")
+     "la" '(my/latex-compile-and-view :which-key "Compile & View in Split")
+     "lc" '(my/latex-compile :which-key "Compile (LatexMk Async)")
+     "lv" '(my/latex-view-pdf :which-key "View PDF in Split")
+     "le" '(my/latex-next-error :which-key "Next Compilation Error")
+     "ll" '(my/latex-show-log :which-key "Toggle Compilation Log")
+     "ln" '(LaTeX-environment :which-key "Insert Environment"))))
 
 (with-eval-after-load 'tex (my/setup-latex-keys))
 (with-eval-after-load 'latex (my/setup-latex-keys))
