@@ -7,10 +7,8 @@
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)
     (my-leader-def
-      "o"  '(:ignore t :which-key "Open/Terminal")
-      "ot" '(my/ghostel-toggle-bottom :which-key "Toggle Terminal (Bottom)")
-      "ob" '(my/ghostel-open-full-buffer :which-key "Terminal Full Buffer")
-      "op" '(ghostel-project :which-key "Terminal in Project Root"))))
+      "to" '(my/ghostel-toggle-bottom :which-key "Toggle Terminal (Bottom)")
+      "tb" '(my/ghostel-open-full-buffer :which-key "Terminal Full Buffer"))))
 
 ;; In-terminal toggle back
 (with-eval-after-load 'ghostel

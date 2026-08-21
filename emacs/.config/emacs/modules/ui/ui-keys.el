@@ -11,7 +11,7 @@
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)
     (my-leader-def
-      "t"  '(:ignore t :which-key "Themes")
+      "t"  '(:ignore t :which-key "Terminal / Themes")
       "tt" '(ef-themes-select :which-key "Theme Picker"))))
 
 (provide 'ui-keys)
