@@ -15,5 +15,6 @@
 (require 'dashboard-mod)
 (require 'tabs-mod)
 (require 'latex-mod)
+(require 'org-mod)
 
 (provide 'init)
