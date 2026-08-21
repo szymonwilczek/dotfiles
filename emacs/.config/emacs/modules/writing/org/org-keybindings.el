@@ -12,6 +12,7 @@
      "ob"  '(:ignore t :which-key "Beamer Slides...")
      "obb" '(my/org-beamer-export-and-view-pdf :which-key "Export Slides in Split")
      "obf" '(my/presentation-toggle-fullscreen :which-key "Toggle Fullscreen Presentation")
+     "op"  '(my/org-toggle-latex-preview :which-key "Toggle Math Preview")
      "oe"  '(org-export-dispatch :which-key "Export Dispatcher")
      "ot"  '(org-todo :which-key "Toggle TODO State")
      "od"  '(org-deadline :which-key "Set Deadline")

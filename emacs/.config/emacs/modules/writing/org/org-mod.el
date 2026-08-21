@@ -21,7 +21,20 @@
         org-log-done 'time)
 
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "|" "DONE(d)" "CANCELLED(c)"))))
+        '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "|" "DONE(d)" "CANCELLED(c)")))
+
+  ;; LaTeX Math Preview
+  (setq org-preview-latex-default-process 'dvisvgm)
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.35))
+  (setq org-format-latex-options (plist-put org-format-latex-options :foreground 'default))
+  (setq org-format-latex-options (plist-put org-format-latex-options :background 'default)))
+
+(defun my/org-toggle-latex-preview ()
+  "Toggle LaTeX math preview for equation at point or entire buffer."
+  (interactive)
+  (if (org-inside-LaTeX-fragment-p)
+      (org-latex-preview)
+    (org-latex-preview '(16))))
 
 ;; Evil navigation
 (with-eval-after-load 'org
