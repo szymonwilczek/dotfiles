@@ -5,7 +5,17 @@
 (package-initialize)
 
 (require 'use-package)
-(setq use-package-always-ensure t)
+(setq use-package-always-ensure t
+      use-package-compute-statistics t)
+
+;; Disable line numbers for large files
+(defun my/disable-line-numbers-if-large-file ()
+  "Disable line numbers if the buffer has more than 3000 lines."
+  (when (> (count-lines (point-min) (point-max)) 3000)
+    (setq-local display-line-numbers nil)
+    (display-line-numbers-mode -1)))
+
+(add-hook 'find-file-hook #'my/disable-line-numbers-if-large-file)
 
 (unless (fboundp 'org-defkey)
   (defun org-defkey (keymap key def)
@@ -51,10 +61,16 @@
       auto-revert-interval 3
       auto-revert-check-vc-info nil)
 
-;; Process read buffer for LSP (16MB)
+;; Process read buffer for LSP (16MB) and performance flags
 (setq read-process-output-max (* 16 1024 1024))
 (setq idle-update-delay 1.0)
 (setq native-comp-async-report-warnings-errors 'silent)
+(setq fast-but-imprecise-scrolling t
+      redisplay-skip-fontification-on-input t
+      inhibit-compacting-font-caches t)
+
+;; Protect against UI freezes on minified/large files
+(global-so-long-mode 1)
 (pixel-scroll-precision-mode 1)
 
 (which-key-mode 1)
