@@ -51,7 +51,7 @@
       auto-revert-interval 3
       auto-revert-check-vc-info nil)
 
-;; Increase process read buffer for LSP (16MB)
+;; Process read buffer for LSP (16MB)
 (setq read-process-output-max (* 16 1024 1024))
 (setq idle-update-delay 1.0)
 (setq native-comp-async-report-warnings-errors 'silent)
@@ -61,5 +61,10 @@
 (setq which-key-idle-delay 0.3
       which-key-idle-secondary-delay 0.05
       which-key-add-column-padding 1)
+
+;; PDF viewer settings
+(setq doc-view-pdfengine 'mupdf
+      doc-view-resolution 180
+      doc-view-continuous t)
 
 (provide 'core)

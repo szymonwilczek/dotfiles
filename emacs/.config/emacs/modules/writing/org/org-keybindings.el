@@ -8,6 +8,8 @@
      :keymaps 'org-mode-map
      :prefix "SPC"
      "o"   '(:ignore t :which-key "Org Mode")
+     "oa"  '(my/org-export-and-view-pdf :which-key "Export & View PDF in Split")
+     "oe"  '(org-export-dispatch :which-key "Export Dispatcher")
      "ot"  '(org-todo :which-key "Toggle TODO State")
      "od"  '(org-deadline :which-key "Set Deadline")
      "os"  '(org-schedule :which-key "Set Schedule")
