@@ -27,7 +27,19 @@
   (setq org-preview-latex-default-process 'dvisvgm)
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.35))
   (setq org-format-latex-options (plist-put org-format-latex-options :foreground 'default))
-  (setq org-format-latex-options (plist-put org-format-latex-options :background 'default)))
+  (setq org-format-latex-options (plist-put org-format-latex-options :background 'default))
+
+  ;; Org Citations
+  (require 'oc)
+  (require 'oc-basic)
+  (require 'oc-csl)
+  (setq org-cite-global-bibliography
+        (seq-filter #'file-exists-p
+                    (list (expand-file-name "~/references/references.bib")
+                          (expand-file-name "~/references.bib"))))
+  (setq org-cite-export-processors
+        '((latex basic)
+          (t csl))))
 
 (defun my/org-toggle-latex-preview ()
   "Toggle LaTeX math preview for equation at point or entire buffer."

@@ -16,5 +16,6 @@
 (require 'tabs-mod)
 (require 'latex-mod)
 (require 'org-mod)
+(require 'bibliography-mod)
 
 (provide 'init)
