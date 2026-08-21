@@ -17,5 +17,6 @@
 (require 'latex-mod)
 (require 'org-mod)
 (require 'bibliography-mod)
+(require 'agent-mod)
 
 (provide 'init)
