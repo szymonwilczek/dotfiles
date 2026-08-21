@@ -23,6 +23,20 @@
 (global-hl-line-mode 1)
 (setq-default display-line-numbers-width 3)
 
+;; Disable line numbers in:
+;; - PDF,
+;; - images,
+;; - dashboard and terminal
+(dolist (hook '(doc-view-mode-hook
+                pdf-view-mode-hook
+                image-mode-hook
+                ghostel-mode-hook
+                treemacs-mode-hook
+                dashboard-mode-hook))
+  (add-hook hook (lambda ()
+                   (setq-local display-line-numbers nil)
+                   (display-line-numbers-mode -1))))
+
 ;; Themes & Theme Persistence
 (defvar my/theme-cache-file (expand-file-name ".theme-cache" user-emacs-directory))
 
