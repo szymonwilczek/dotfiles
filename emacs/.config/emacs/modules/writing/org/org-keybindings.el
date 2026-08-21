@@ -8,7 +8,10 @@
      :keymaps 'org-mode-map
      :prefix "SPC"
      "o"   '(:ignore t :which-key "Org Mode")
-     "oa"  '(my/org-export-and-view-pdf :which-key "Export & View PDF in Split")
+     "oa"  '(my/org-export-and-view-pdf :which-key "Export Article PDF in Split")
+     "ob"  '(:ignore t :which-key "Beamer Slides...")
+     "obb" '(my/org-beamer-export-and-view-pdf :which-key "Export Slides in Split")
+     "obf" '(my/presentation-toggle-fullscreen :which-key "Toggle Fullscreen Presentation")
      "oe"  '(org-export-dispatch :which-key "Export Dispatcher")
      "ot"  '(org-todo :which-key "Toggle TODO State")
      "od"  '(org-deadline :which-key "Set Deadline")
