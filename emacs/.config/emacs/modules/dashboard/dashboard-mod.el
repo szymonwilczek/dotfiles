@@ -69,35 +69,29 @@
   (advice-add 'dashboard-insert-footer :override #'ignore)
 
   ;; Startup handling
-  (setq initial-buffer-choice
-        (lambda ()
-          (let ((buf (get-buffer-create dashboard-buffer-name)))
-            (with-current-buffer buf
-              (dashboard-mode)
-              (dashboard-insert-startupify-lists))
-            buf)))
+  (defun my/create-startup-dashboard ()
+    (let ((buf (get-buffer-create dashboard-buffer-name)))
+      (with-current-buffer buf
+        (dashboard-mode)
+        (dashboard-insert-startupify-lists))
+      buf))
 
+  (setq initial-buffer-choice #'my/create-startup-dashboard)
+
+  ;; Clear initial-buffer-choice so dashboard is NEVER recreated during the session
   (add-hook 'emacs-startup-hook
             (lambda ()
+              (setq initial-buffer-choice nil)
               (when (get-buffer "*scratch*")
                 (kill-buffer "*scratch*"))))
 
-  ;; Asynchronously re-render on new GUI frame connection to match real screen width
   (add-hook 'server-after-make-frame-hook
             (lambda ()
+              (setq initial-buffer-choice nil)
               (run-at-time 0.02 nil
                            (lambda ()
                              (when-let ((buf (get-buffer dashboard-buffer-name)))
                                (with-current-buffer buf
-                                 (dashboard-refresh-buffer)))))))
-
-  (dashboard-setup-startup-hook))
-
-;; Refresh on theme change
-(defun my/refresh-dashboard-on-theme-change (&rest _)
-  (when (get-buffer dashboard-buffer-name)
-    (with-current-buffer dashboard-buffer-name
-      (dashboard-refresh-buffer))))
-(advice-add 'load-theme :after #'my/refresh-dashboard-on-theme-change)
+                                 (dashboard-refresh-buffer))))))))
 
 (provide 'dashboard-mod)
