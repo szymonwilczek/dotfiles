@@ -7,6 +7,12 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+(unless (fboundp 'org-defkey)
+  (defun org-defkey (keymap key def)
+    (define-key keymap key def)))
+(unless (fboundp 'org-key)
+  (defun org-key (key) key))
+
 ;; Encoding
 (set-charset-priority 'unicode)
 (setq locale-coding-system 'utf-8)

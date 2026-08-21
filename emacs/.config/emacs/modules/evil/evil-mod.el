@@ -27,6 +27,7 @@
   :after evil
   :demand t
   :config
+  (setq evil-collection-mode-list (delq 'org (delq 'org-agenda evil-collection-mode-list)))
   (evil-collection-init))
 
 (use-package evil-surround
