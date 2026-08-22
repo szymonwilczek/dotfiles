@@ -18,5 +18,6 @@
 (require 'org-mod)
 (require 'bibliography-mod)
 (require 'agent-mod)
+(require 'writings-mod)
 
 (provide 'init)
