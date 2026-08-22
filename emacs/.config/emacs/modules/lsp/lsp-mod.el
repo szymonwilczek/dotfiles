@@ -43,6 +43,8 @@
         eglot-autoshutdown t
         eglot-sync-connect nil
         eglot-send-changes-idle-time 0.2)
+  (add-to-list 'warning-suppress-types '(jsonrpc))
+  (add-to-list 'warning-suppress-types '(eglot))
 
   ;; Server configuration for C/C++ (clangd) and Go (gopls)
   (add-to-list 'eglot-server-programs
