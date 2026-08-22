@@ -41,5 +41,7 @@ emacs/.config/emacs/projectile-frecency.eld
 vim/.config/vim/coc-settings.json
 emacs/.config/emacs/.cache
 emacs/.config/emacs/history
-emacs/.config/emacs/places
 emacs/.config/emacs/elisp-autofmt-cache
+emacs/.config/emacs/.persp-state
+emacs/.config/emacs/persp-state
+*.persp-state

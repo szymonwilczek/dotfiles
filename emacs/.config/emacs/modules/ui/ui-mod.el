@@ -1,15 +1,15 @@
 ;;; UI styling, themes and typography
 
 ;; Typography & Frames
-(add-to-list 'default-frame-alist '(font . "Typus Mono 95-12"))
+(add-to-list 'default-frame-alist '(font . "Typus Mono 92-12.5"))
 
 (defun my/set-font-faces (&optional frame)
   "Applies default font to given frame or current frame."
   (with-selected-frame (or frame (selected-frame))
     (set-face-attribute 'default nil
-                        :family "Typus Mono 95"
-                        :height 120
-                        :weight (if (display-graphic-p) 'semi-bold 'normal))))
+                        :family "Typus Mono 92"
+                        :height 125
+                        :weight 'normal)))
 
 (my/set-font-faces)
 (add-hook 'server-after-make-frame-hook #'my/set-font-faces)
@@ -51,8 +51,10 @@
   (set-face-attribute 'font-lock-comment-face nil :slant 'italic :weight 'extra-light)
   (set-face-attribute 'font-lock-comment-delimiter-face nil :slant 'italic :weight 'extra-light)
   (set-face-attribute 'font-lock-keyword-face nil :weight 'demi-bold)
-  (set-face-attribute 'font-lock-type-face nil :weight 'demi-bold))
+  (set-face-attribute 'font-lock-type-face nil :weight 'demi-bold)
+  (set-face-attribute 'font-lock-preprocessor-face nil :weight 'demi-bold))
 
+(my/apply-custom-face-overrides)
 (advice-add 'load-theme :after #'my/apply-custom-face-overrides)
 
 (advice-add 'load-theme :around
