@@ -211,7 +211,7 @@ titlebar_padding 8 5
 title_align center
 for_window [title=".*"] title_format "%title"
 for_window [app_id="firefox"] title_format "Mozilla Firefox"
-font pango:Typus Mono, JetBrainsMono Nerd Font 13
+font pango:Typus Mono 95, JetBrainsMono Nerd Font 11
 
 # Window Colors (managed by dotfiles/theme/colors.sh)
 include colors.conf

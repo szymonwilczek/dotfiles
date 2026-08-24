@@ -5,7 +5,7 @@ SELECTION=$(echo -e "󰍃  Wyloguj\n󰜉  Uruchom ponownie\n  Wyłącz" | fuz
 	--prompt="Zasilanie: " \
 	--width=25 \
 	--lines=3 \
-	--font="Typus Mono:size=12,JetBrainsMono Nerd Font:size=12" \
+	--font="Typus Mono 95:size=12,JetBrainsMono Nerd Font:size=12" \
 	--background-color=121212f0 \
 	--text-color=707070ff \
 	--match-color=f5f5f5ff \

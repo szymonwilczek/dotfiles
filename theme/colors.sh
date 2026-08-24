@@ -24,5 +24,5 @@ export COLOR_TEXT_FOCUSED="#f5f5f5"
 export COLOR_ACCENT_URGENT="#e06c75"
 
 # Fonts
-export FONT_MAIN="Typus Mono"
+export FONT_MAIN="Typus Mono 95"
 export FONT_FALLBACK="JetBrainsMono Nerd Font"
