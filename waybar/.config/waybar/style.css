@@ -1,67 +1,94 @@
+@import "colors.css";
+
 * {
-  font-family: "Adwaita Sans", "JetBrainsMono Nerd Font", monospace;
+  font-family: "Typus Mono", "JetBrainsMono Nerd Font", monospace;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   border: none;
   border-radius: 0px;
   min-height: 0;
   margin: 0;
   padding: 0;
+  transition: none;
 }
 
 window#waybar {
-  background-color: #222222;
-  color: #ffffff;
+  background-color: @bg_dark;
+  color: @text_main;
+  border-bottom: 1px solid @border_subtle;
 }
 
 #workspaces button {
   padding: 0 10px;
-  background-color: #222222;
-  color: #888888;
-  border-right: 1px solid #333333;
+  background-color: transparent;
+  color: @text_muted;
+  border-right: 1px solid @border_subtle;
 }
 
 #workspaces button.focused {
-  background-color: #4c7899;
-  color: #ffffff;
+  background-color: @bg_active;
+  color: @text_focused;
+  font-weight: 700;
 }
 
 #workspaces button.urgent {
-  background-color: #900000;
-  color: #ffffff;
+  background-color: #3d1616;
+  color: @accent_urgent;
 }
 
 #workspaces button:hover {
-  background-color: #285577;
-  color: #000000;
+  background-color: @bg_surface;
+  color: @text_focused;
 }
 
 #clock {
   padding: 0 12px;
-  background-color: #222222;
-  color: #ffffff;
+  background-color: transparent;
+  color: @text_focused;
+  font-weight: 700;
 }
 
 #custom-spotify {
   padding: 0 12px;
-  background-color: #222222;
-  color: #ffffff;
-  border-right: 1px solid #333333;
+  background-color: transparent;
+  color: @text_main;
+  border-right: 1px solid @border_subtle;
 }
 
-#network,
-#pulseaudio,
+#network {
+  padding: 0 12px;
+  background-color: transparent;
+  border-left: 1px solid @border_subtle;
+  color: @text_main;
+  font-weight: 700;
+}
+
+#pulseaudio {
+  padding: 0 12px;
+  background-color: transparent;
+  border-left: 1px solid @border_subtle;
+  color: @text_main;
+  font-weight: 700;
+}
+
 #tray {
   padding: 0 12px;
-  background-color: #222222;
-  border-left: 1px solid #333333;
-  color: #ffffff;
+  background-color: transparent;
+  border-left: 1px solid @border_subtle;
+  color: @text_main;
+}
+
+#network:hover,
+#pulseaudio:hover {
+  background-color: @bg_surface;
+  color: @text_focused;
 }
 
 #custom-recording {
   padding: 0 10px;
-  color: #ff5555;
+  color: @accent_urgent;
   font-size: 14px;
+  font-weight: 700;
 }
 
 window#waybar.bottom {
@@ -72,46 +99,48 @@ window#waybar.bottom {
 
 window#waybar.bottom #clock {
   padding: 2px 10px;
-  color: #ffffff;
+  color: @text_focused;
+  font-weight: 700;
 }
 
 window#waybar.bottom #workspaces button {
-  padding: 0 8px;
-  background-color: transparent;
-  color: #888888;
-  border: none;
+  padding: 2px 10px;
+  background-color: rgba(20, 20, 20, 0.85);
+  color: @text_muted;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 window#waybar.bottom #workspaces button.focused {
-  background-color: rgba(76, 120, 153, 0.6);
-  color: #ffffff;
+  background-color: @bg_active;
+  color: @text_focused;
+  font-weight: 700;
 }
 
 window#waybar.bottom #workspaces button:hover {
-  background-color: rgba(40, 85, 119, 0.5);
-  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: @text_focused;
 }
 
 #custom-notification {
   padding: 0 15px;
-  background-color: #222222;
-  border-left: 1px solid #333333;
-  color: #ffffff;
+  background-color: transparent;
+  border-left: 1px solid @border_subtle;
+  color: @text_main;
 }
 
 #custom-notification:hover {
-  background-color: #285577;
+  background-color: @bg_surface;
+  color: @text_focused;
 }
 
 tooltip {
-  background-color: #1c1c1c;
-  border: 2px solid #4c7899;
+  background-color: @bg_surface;
+  border: 1px solid @border_inactive;
   border-radius: 0px;
   padding: 8px 12px;
 }
 
 tooltip label {
-  color: #ffffff;
+  color: @text_main;
   padding: 2px 4px;
 }
-
