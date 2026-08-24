@@ -1,19 +1,21 @@
+@import "colors.css";
+
 * {
-  font-family: "Adwaita Sans", "JetBrainsMono Nerd Font", monospace;
+  font-family: "Typus Mono", "JetBrainsMono Nerd Font", monospace;
   font-size: 14px;
   border-radius: 0px;
 }
 
 .control-center {
-  background: #222222;
-  border: 2px solid #4c7899;
-  color: #ffffff;
+  background: @bg_dark;
+  border: 1px solid @border_inactive;
+  color: @text_main;
 }
 
 .notification {
-  background: #1a1a1a;
-  border: 1px solid #333333;
-  margin: 8px;
+  background: @bg_surface;
+  border: 1px solid @border_subtle;
+  margin: 6px;
 }
 
 .notification-content {
@@ -25,56 +27,63 @@
 .notification-content .app-icon,
 .image,
 .app-icon {
-  -gtk-icon-size: 36px;
-  min-width: 36px;
-  min-height: 36px;
+  -gtk-icon-size: 32px;
+  min-width: 32px;
+  min-height: 32px;
   margin-left: 4px;
-  margin-right: 16px;
+  margin-right: 14px;
   margin-top: auto;
   margin-bottom: auto;
 }
 
 .notification-content .text-box label {
-  color: #ffffff;
+  color: @text_main;
 }
 
 .notification-content .text-box .summary {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: bold;
-  margin-bottom: 4px;
+  color: @text_focused;
+  margin-bottom: 3px;
 }
 
 .notification-content .text-box .body {
   font-size: 13px;
+  color: @text_muted;
 }
 
 .close-button {
-  background: #222222;
-  color: #ffffff;
+  background: @bg_surface;
+  color: @text_muted;
 }
 
 .close-button:hover {
-  background: #900000;
+  background: #381616;
+  color: @accent_urgent;
 }
 
 .widget-title {
-  color: #ffffff;
-  background: #222222;
-  padding: 10px;
+  color: @text_focused;
+  background: @bg_dark;
+  padding: 10px 12px;
+  border-bottom: 1px solid @border_subtle;
 }
 
 .widget-title > button {
-  background: #222222;
-  border: 1px solid #333333;
-  color: #ffffff;
+  background: @bg_surface;
+  border: 1px solid @border_subtle;
+  color: @text_main;
+  padding: 4px 10px;
 }
 
 .widget-title > button:hover {
-  background: #4c7899;
+  background: @bg_active;
+  border-color: @border_inactive;
+  color: @text_focused;
 }
 
 .notification-group {
-  background-color: #222222;
-  border: 2px solid #4c7899;
+  background-color: @bg_dark;
+  border: 1px solid @border_subtle;
   border-radius: 0px;
 }
