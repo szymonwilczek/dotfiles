@@ -17,7 +17,6 @@ adjust-cell-width = -1
 adjust-cell-height = 1
 
 # cursor-opacity = .8
-cursor-text = #000000
 cursor-style = block
 cursor-style-blink = false
 mouse-scroll-multiplier = 4
@@ -27,3 +26,4 @@ confirm-close-surface = false
 app-notifications = false
 
 config-file = themes/current.conf
+config-file = theme.conf
