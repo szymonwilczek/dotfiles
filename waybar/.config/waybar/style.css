@@ -1,9 +1,9 @@
 @import "colors.css";
 
 * {
-  font-size: 14px;
-  font-weight: 500;
   font-family: "Typus Mono 95", "JetBrainsMono Nerd Font", monospace;
+  font-size: 16px;
+  font-weight: normal;
   border: none;
   border-radius: 0px;
   min-height: 0;
@@ -28,7 +28,7 @@ window#waybar {
 #workspaces button.focused {
   background-color: @bg_active;
   color: @text_focused;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 #workspaces button.urgent {
@@ -45,7 +45,7 @@ window#waybar {
   padding: 0 12px;
   background-color: transparent;
   color: @text_focused;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 #custom-spotify {
@@ -60,7 +60,7 @@ window#waybar {
   background-color: transparent;
   border-left: 1px solid @border_subtle;
   color: @text_main;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 #pulseaudio {
@@ -68,7 +68,7 @@ window#waybar {
   background-color: transparent;
   border-left: 1px solid @border_subtle;
   color: @text_main;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 #tray {
@@ -87,8 +87,8 @@ window#waybar {
 #custom-recording {
   padding: 0 10px;
   color: @accent_urgent;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 window#waybar.bottom {
@@ -100,7 +100,7 @@ window#waybar.bottom {
 window#waybar.bottom #clock {
   padding: 2px 10px;
   color: @text_focused;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 window#waybar.bottom #workspaces button {
@@ -113,7 +113,7 @@ window#waybar.bottom #workspaces button {
 window#waybar.bottom #workspaces button.focused {
   background-color: @bg_active;
   color: @text_focused;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 window#waybar.bottom #workspaces button:hover {
