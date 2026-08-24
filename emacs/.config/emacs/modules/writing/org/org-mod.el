@@ -67,6 +67,14 @@
           (800 1000 1200 1400 1600 1800 2000)
           "......" "----------------")))
 
+(use-package plan-polsl
+  :vc (:url "https://github.com/szymonwilczek/plan-polsl.el")
+  :custom
+  (plan-polsl-id "343266256")
+  (plan-polsl-type 0)
+  (plan-polsl-target-file (expand-file-name "~/Dokumenty/writings/plan-polsl.org"))
+  (plan-polsl-auto-add-to-agenda t))
+
 (defun my/org-toggle-latex-preview ()
   "Toggle LaTeX math preview for equation at point or entire buffer."
   (interactive)
