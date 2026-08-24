@@ -21,7 +21,8 @@
   (setq projectile-switch-project-action #'projectile-find-file
         projectile-indexing-method 'alien
         projectile-enable-caching t
-        projectile-auto-discover nil))
+        projectile-auto-discover t)
+  (projectile-discover-projects-in-search-path))
 
 (use-package persp-projectile
   :ensure t
