@@ -20,6 +20,15 @@
         org-startup-folded 'overview
         org-log-done 'time)
 
+  (custom-set-faces
+   '(org-document-title ((t (:inherit default :weight bold :height 1.4 :underline nil))))
+   '(org-level-1 ((t (:inherit default :weight bold :height 1.25))))
+   '(org-level-2 ((t (:inherit default :weight bold :height 1.15))))
+   '(org-level-3 ((t (:inherit default :weight bold :height 1.08))))
+   '(org-level-4 ((t (:inherit default :weight semi-bold :height 1.02))))
+   '(org-block-begin-line ((t (:inherit font-lock-comment-face :slant italic))))
+   '(org-block-end-line ((t (:inherit font-lock-comment-face :slant italic)))))
+
   (setq org-todo-keywords
         '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "|" "DONE(d)" "CANCELLED(c)")))
 
