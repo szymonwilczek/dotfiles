@@ -68,7 +68,7 @@
           "......" "----------------")))
 
 (use-package plan-polsl
-  :vc (:url "https://github.com/szymonwilczek/plan-polsl.el")
+  :vc (:url "https://github.com/szymonwilczek/plan-polsl.el" :branch "main")
   :custom
   (plan-polsl-id "343266256")
   (plan-polsl-type 0)
