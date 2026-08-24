@@ -5,13 +5,13 @@ SELECTION=$(echo -e "󰍃  Wyloguj\n󰜉  Uruchom ponownie\n  Wyłącz" | fuz
 	--prompt="Zasilanie: " \
 	--width=25 \
 	--lines=3 \
-	--font="JetBrainsMono Nerd Font:size=12" \
-	--background-color=222222ff \
-	--text-color=ffffffff \
-	--match-color=4c7899ff \
-	--selection-color=4c7899ff \
-	--selection-text-color=ffffffff \
-	--border-color=4c7899ff \
+	--font="Typus Mono:size=12,JetBrainsMono Nerd Font:size=12" \
+	--background-color=121212f0 \
+	--text-color=707070ff \
+	--match-color=f5f5f5ff \
+	--selection-color=2c2c2cff \
+	--selection-text-color=f5f5f5ff \
+	--border-color=abababff \
 	--border-width=2 \
 	--border-radius=0)
 

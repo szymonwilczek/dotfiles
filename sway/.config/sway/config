@@ -211,14 +211,10 @@ titlebar_padding 8 5
 title_align center
 for_window [title=".*"] title_format "%title"
 for_window [app_id="firefox"] title_format "Mozilla Firefox"
-for_window [class="[Ff]irefox"] title_format "Mozilla Firefox"
-font pango:Adwaita Sans 11
+font pango:Typus Mono, JetBrainsMono Nerd Font 13
 
-# Window Colors
-client.focused          #4c7899 #285577 #ffffff #2e9ef4   #4c7899
-client.focused_inactive #44485b #383c4a #d8dee9 #484e50   #44485b
-client.unfocused        #383c4a #2b303c #a0a8b6 #292d2e   #383c4a
-client.urgent           #e01b24 #e01b24 #ffffff #e01b24   #e01b24
+# Window Colors (managed by dotfiles/theme/colors.sh)
+include colors.conf
 
 # SwayOSD Integration
 exec_always pkill -x swayosd-server 2>/dev/null; swayosd-server &
