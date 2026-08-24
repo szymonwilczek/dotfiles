@@ -49,8 +49,8 @@
         "format": {
           "months": "<span color='#ffffff'><b>{}</b></span>",
           "days": "<span color='#cccccc'>{}</span>",
-          "weekdays": "<span color='#4c7899'><b>{}</b></span>",
-          "today": "<span color='#ff5555'><b><u>{}</u></b></span>"
+          "weekdays": "<span color='#d4d4d4'><b>{}</b></span>",
+          "today": "<span color='#e06c75'><b><u>{}</u></b></span>"
         }
       }
     },
@@ -87,7 +87,7 @@
 
     "network": {
       "format-wifi": "   {essid}",
-      "format-ethernet": "   LAN",
+      "format-ethernet": "  LAN",
       "format-disconnected": "   Offline",
       "tooltip-format": "{ipaddr}",
       "on-click": "ghostty --class=floating_nmtui -e nmtui"
@@ -97,7 +97,7 @@
       "format": "{icon} {volume}%",
       "format-muted": "󰝟  ",
       "format-icons": {
-        "default": ["󰕿  ", "󰖀  ", "󰕾  "]
+        "default": ["󰕿", "󰖀", "󰕾"]
       },
       "on-click": "pavucontrol -t 3",
       "on-click-right": "~/.config/sway/scripts/audio-switcher.sh",
