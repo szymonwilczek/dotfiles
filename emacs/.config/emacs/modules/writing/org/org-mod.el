@@ -41,6 +41,32 @@
         '((latex basic)
           (t csl))))
 
+(use-package calendar
+  :ensure nil
+  :custom
+  (calendar-week-start-day 1) ; Monday
+  (calendar-date-style 'iso)
+  (calendar-day-name-array ["Niedziela" "Poniedziałek" "Wtorek" "Środa" "Czwartek" "Piątek" "Sobota"])
+  (calendar-month-name-array ["Styczeń" "Luty" "Marzec" "Kwiecień" "Maj" "Czerwiec" "Lipiec" "Sierpień" "Wrzesień" "Październik" "Listopad" "Grudzień"]))
+
+(use-package org-agenda
+  :ensure nil
+  :after org
+  :custom
+  (org-agenda-span 'week)
+  (org-agenda-start-on-weekday 1) ; Monday
+  (org-agenda-show-all-dates t)
+  (org-agenda-time-leading-zero t)
+  (org-agenda-timegrid-use-ampm nil)
+  (org-agenda-current-time-string "⭠ teraz")
+  (org-agenda-use-time-grid t)
+  (org-agenda-files (list (expand-file-name "~/Dokumenty/writings/plan-polsl.org")))
+  :config
+  (setq org-agenda-time-grid
+        '((daily today require-timed)
+          (800 1000 1200 1400 1600 1800 2000)
+          "......" "----------------")))
+
 (defun my/org-toggle-latex-preview ()
   "Toggle LaTeX math preview for equation at point or entire buffer."
   (interactive)
