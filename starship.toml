@@ -1,42 +1,39 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 format = """
-[](color_orange)\
+[](color_window_bg)\
 $os\
 $username\
-[](bg:color_yellow fg:color_orange)\
+[](bg:color_session_bg fg:color_window_bg)\
 $directory\
-[ ](fg:color_yellow)\
+[ ](fg:color_session_bg)\
 $line_break$character"""
 
 palette = 'custom'
 
 [palettes.custom]
-color_fg0    = "#ffffff"
-color_bg1    = "#3d3d3d"
-color_bg3    = "#101010"
-color_blue   = "#6179c2"
-color_aqua   = "#33919c"
-color_green  = "#2e9969"
-color_orange = "#cc5d4b"
-color_purple = "#ab78ab"
-color_red    = "#cc5d4b"
-color_yellow = "#cc9b52"
+color_session_bg = "#ababab"
+color_session_fg = "#121212"
+color_window_bg  = "#2c2c2c"
+color_window_fg  = "#f5f5f5"
+color_success    = "#ababab"
+color_error      = "#e06c75"
+color_vimcmd     = "#707070"
 
 [os]
 disabled = false
-style = "bg:color_orange fg:color_fg0"
+style = "bg:color_window_bg fg:color_window_fg"
 
 [os.symbols]
 Fedora = "󰣛"
 
 [username]
 show_always = true
-style_user = "bg:color_orange fg:color_fg0"
-style_root = "bg:color_orange fg:color_fg0"
+style_user = "bg:color_window_bg fg:color_window_fg"
+style_root = "bg:color_window_bg fg:color_window_fg"
 format = '[ $user ]($style)'
 
 [directory]
-style = "fg:color_fg0 bg:color_yellow"
+style = "fg:color_session_fg bg:color_session_bg"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
@@ -46,9 +43,9 @@ disabled = false
 
 [character]
 disabled = false
-success_symbol = '[](bold fg:color_green)'
-error_symbol = '[](bold fg:color_red)'
-vimcmd_symbol = '[](bold fg:color_green)'
-vimcmd_replace_one_symbol = '[](bold fg:color_purple)'
-vimcmd_replace_symbol = '[](bold fg:color_purple)'
-vimcmd_visual_symbol = '[](bold fg:color_yellow)'
+success_symbol = '[](bold fg:color_success)'
+error_symbol = '[](bold fg:color_error)'
+vimcmd_symbol = '[](bold fg:color_vimcmd)'
+vimcmd_replace_one_symbol = '[](bold fg:color_error)'
+vimcmd_replace_symbol = '[](bold fg:color_error)'
+vimcmd_visual_symbol = '[](bold fg:color_success)'
