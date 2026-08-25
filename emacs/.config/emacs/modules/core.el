@@ -68,9 +68,28 @@
 (setq native-comp-async-report-warnings-errors nil
       warning-minimum-level :emergency
       warning-suppress-types '((native-compiler) (with-editor) (files) (comp)))
+
+;; Collect only during idle moments
+(run-with-idle-timer 2.0 t #'garbage-collect)
+
+;; Disable bidirectional text scanning in code buffers
+(setq-default bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right
+              bidi-inhibit-bpa t)
+
+;; Only query Git for VC operations
+(setq vc-handled-backends '(Git))
+
+;; Rendering and scrolling performance on Wayland
 (setq fast-but-imprecise-scrolling t
       redisplay-skip-fontification-on-input t
-      inhibit-compacting-font-caches t)
+      inhibit-compacting-font-caches t
+      highlight-nonselected-windows nil)
+
+(setq-default scroll-conservatively 101
+              scroll-margin 0
+              scroll-preserve-screen-position t
+              auto-window-vscroll nil)
 
 (add-hook 'server-after-make-frame-hook
           (lambda ()

@@ -11,7 +11,7 @@
                     (with-temp-buffer
                       (insert-file-contents my-bg-cache-file)
                       (string-trim (buffer-string)))
-                  "#1e1e2e")))
+                  "#121212")))
   (when (and bg-color (string-prefix-p "#" bg-color))
     (push `(background-color . ,bg-color) default-frame-alist)))
 
@@ -22,11 +22,11 @@
 (setq gc-cons-threshold most-positive-fixnum)
 (setq gc-cons-percentage 0.6)
 
-;; Restore file-name-handler-alist and reset GC to sane 64MB after startup
+;; Restore file-name-handler-alist and reset GC to 128MB after startup
 (add-hook 'emacs-startup-hook
           (lambda ()
             (setq file-name-handler-alist my/initial-file-name-handler-alist)
-            (setq gc-cons-threshold (* 64 1024 1024)
+            (setq gc-cons-threshold (* 128 1024 1024)
                   gc-cons-percentage 0.1)
             (makunbound 'my/initial-file-name-handler-alist)))
 
