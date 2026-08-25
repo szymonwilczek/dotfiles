@@ -1,4 +1,4 @@
-;;; UI styling, themes and typography
+;;; UI styling, themes and typography -*- lexical-binding: t; -*-
 
 ;; Typography & Frames
 (add-to-list 'default-frame-alist '(font . "Typus Mono 92-12.5"))

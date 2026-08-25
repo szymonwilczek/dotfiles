@@ -1,4 +1,4 @@
-;;; Minad stack minibuffer and Company completion
+;;; Minad stack minibuffer and Company completion -*- lexical-binding: t; -*-
 
 ;; Minibuffer Completion
 ;; (Vertico + Orderless + Marginalia + Consult)

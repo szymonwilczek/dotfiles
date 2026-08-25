@@ -1,4 +1,4 @@
-;;; Treemacs file explorer configuration
+;;; Treemacs file explorer configuration -*- lexical-binding: t; -*-
 
 (use-package treemacs
   :ensure t

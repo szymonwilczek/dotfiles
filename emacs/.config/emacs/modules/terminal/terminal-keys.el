@@ -1,4 +1,4 @@
-;;; Ghostel terminal keybindings
+;;; Ghostel terminal keybindings -*- lexical-binding: t; -*-
 
 ;; Global toggle (M-f) across Emacs
 (global-set-key (kbd "M-f") #'my/ghostel-toggle-bottom)

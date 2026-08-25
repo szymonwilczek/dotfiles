@@ -1,4 +1,4 @@
-;;; Statusline
+;;; Statusline -*- lexical-binding: t; -*-
 
 (defun my/modeline-evil-mode-info ()
   "Render current Evil mode tag with highlight face."

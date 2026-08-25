@@ -1,4 +1,4 @@
-;;; My ascii banners
+;;; My ascii banners -*- lexical-binding: t; -*-
 
 (use-package dashboard
   :ensure t

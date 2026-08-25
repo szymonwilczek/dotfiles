@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;; Package Management
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")

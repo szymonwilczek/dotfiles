@@ -1,4 +1,4 @@
-;;; Project management and Perspective session integration
+;;; Project management and Perspective session integration -*- lexical-binding: t; -*-
 
 (use-package perspective
   :ensure t

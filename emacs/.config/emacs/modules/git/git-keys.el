@@ -1,4 +1,4 @@
-;;; Git and Magit keybindings
+;;; Git and Magit keybindings -*- lexical-binding: t; -*-
 
 ;; Git navigation jumps
 ;; ([c / ]c)

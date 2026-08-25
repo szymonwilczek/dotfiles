@@ -1,4 +1,4 @@
-;;; Projectile and Perspective keybindings
+;;; Projectile and Perspective keybindings -*- lexical-binding: t; -*-
 
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)

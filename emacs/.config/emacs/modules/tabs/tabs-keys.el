@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 (with-eval-after-load 'evil
   (define-key evil-normal-state-map (kbd "TAB") #'bufferline-next-tab)
   (define-key evil-normal-state-map (kbd "<tab>") #'bufferline-next-tab)

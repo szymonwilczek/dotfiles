@@ -1,4 +1,4 @@
-;;; Treemacs keybindings and shortcuts
+;;; Treemacs keybindings and shortcuts -*- lexical-binding: t; -*-
 
 (use-package general
   :after (treemacs evil)

@@ -1,4 +1,4 @@
-;;; Completion keybindings
+;;; Completion keybindings -*- lexical-binding: t; -*-
 
 ;; Minibuffer (Vertico) navigation
 (with-eval-after-load 'vertico

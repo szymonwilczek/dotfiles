@@ -1,4 +1,4 @@
-;;; Evil keybindings and Leader definitions
+;;; Evil keybindings and Leader definitions -*- lexical-binding: t; -*-
 
 (use-package general
   :after evil

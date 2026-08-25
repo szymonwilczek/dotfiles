@@ -1,4 +1,4 @@
-;;; Ghostel terminal configuration with libghostty
+;;; Ghostel terminal configuration with libghostty -*- lexical-binding: t; -*-
 
 (let ((ghostel-lisp (expand-file-name "elpa/ghostel/lisp" user-emacs-directory)))
   (when (file-directory-p ghostel-lisp)

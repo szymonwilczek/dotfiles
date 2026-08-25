@@ -1,4 +1,4 @@
-;;; Magit, diff-hl and custom Git commands
+;;; Magit, diff-hl and custom Git commands -*- lexical-binding: t; -*-
 
 ;; Custom Git Commands
 ;; (ported from my Lazygit config)

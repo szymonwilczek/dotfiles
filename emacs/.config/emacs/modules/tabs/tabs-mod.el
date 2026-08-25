@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 (use-package bufferline
   :load-path "~/Dokumenty/GitHub/bufferline.el"
   :demand t

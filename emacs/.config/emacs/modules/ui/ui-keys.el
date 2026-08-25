@@ -1,4 +1,4 @@
-;;; UI keybindings and theme picker
+;;; UI keybindings and theme picker -*- lexical-binding: t; -*-
 
 ;; Font scaling
 (global-set-key (kbd "C-=") 'text-scale-increase)

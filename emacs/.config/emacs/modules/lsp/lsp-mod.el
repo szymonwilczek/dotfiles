@@ -1,4 +1,4 @@
-;;; Tree-sitter and Eglot LSP configuration
+;;; Tree-sitter and Eglot LSP configuration -*- lexical-binding: t; -*-
 
 ;; Tree-sitter Setup
 (use-package emacs

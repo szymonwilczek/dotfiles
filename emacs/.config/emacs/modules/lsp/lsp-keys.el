@@ -1,4 +1,4 @@
-;;; LSP and diagnostic keybindings
+;;; LSP and diagnostic keybindings -*- lexical-binding: t; -*-
 
 (defvar my/formatters-alist
   '((go-mode            . ("gofmt"))
