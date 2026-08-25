@@ -23,12 +23,8 @@
 (global-hl-line-mode 1)
 (setq-default display-line-numbers-width 3)
 
-;; Disable line numbers in:
-;; - PDF,
-;; - images,
-;; - dashboard and terminal
+;; Disable line numbers in PDF, images, terminal and treemacs
 (dolist (hook '(doc-view-mode-hook
-                pdf-view-mode-hook
                 image-mode-hook
                 ghostel-mode-hook
                 treemacs-mode-hook))

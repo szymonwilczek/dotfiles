@@ -18,12 +18,6 @@
 
 (add-hook 'find-file-hook #'my/disable-line-numbers-if-large-file)
 
-(unless (fboundp 'org-defkey)
-  (defun org-defkey (keymap key def)
-    (define-key keymap key def)))
-(unless (fboundp 'org-key)
-  (defun org-key (key) key))
-
 ;; Encoding
 (set-charset-priority 'unicode)
 (setq locale-coding-system 'utf-8)

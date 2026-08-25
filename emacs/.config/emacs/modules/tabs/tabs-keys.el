@@ -12,7 +12,6 @@
       "b"  '(:ignore t :which-key "Buffers")
       "bp" '(bufferline-pick :which-key "Pick Buffer")
       "bd" '(bufferline-pick-close :which-key "Pick Close Buffer")
-      "bc" '(bufferline-pick-close :which-key "Pick Close Buffer")
       "bP" '(bufferline-toggle-pin :which-key "Toggle Pin Buffer"))))
 
 (provide 'tabs-keys)
