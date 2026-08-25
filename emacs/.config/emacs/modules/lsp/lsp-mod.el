@@ -18,6 +18,7 @@
   (add-to-list 'auto-mode-alist '("\\.go\\'"               . go-ts-mode))
   (add-to-list 'auto-mode-alist '("/go\\.mod\\'"           . go-mod-ts-mode))
   (add-to-list 'auto-mode-alist '("/go\\.work\\'"          . go-work-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.\\(?:php\\|phtml\\|inc\\)\\'" . php-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'"            . mhtml-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.lua\\'"              . lua-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.json\\'"             . json-ts-mode))
@@ -39,6 +40,14 @@
 (setq eldoc-help-at-pt t
       eldoc-echo-area-use-multiline-p nil)
 
+(use-package php-ts-mode
+  :ensure nil
+  :mode "\\.\\(?:php\\|phtml\\|inc\\)\\'"
+  :hook (php-ts-mode . (lambda ()
+                         (setq-local tab-width 4)
+                         (setq-local c-basic-offset 4)
+                         (setq-local indent-tabs-mode nil))))
+
 (use-package asm-mode
   :ensure nil
   :hook (asm-mode . (lambda ()
@@ -57,6 +66,7 @@
    (go-ts-mode        . eglot-ensure)
    (go-mod-ts-mode    . eglot-ensure)
    (go-work-ts-mode   . eglot-ensure)
+   (php-ts-mode       . eglot-ensure)
    (lua-ts-mode       . eglot-ensure)
    (json-ts-mode      . eglot-ensure)
    (cmake-ts-mode     . eglot-ensure)
