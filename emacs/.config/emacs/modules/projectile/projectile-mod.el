@@ -22,7 +22,16 @@
         projectile-indexing-method 'alien
         projectile-enable-caching t
         projectile-auto-discover t)
-  (projectile-discover-projects-in-search-path))
+  (projectile-discover-projects-in-search-path)
+
+  (defun my/projectile-auto-discover-advice (&rest _args)
+    "Re-discover projects in search path before switching."
+    (when projectile-project-search-path
+      (let ((inhibit-message t))
+        (projectile-discover-projects-in-search-path))))
+
+  (advice-add 'projectile-switch-project :before #'my/projectile-auto-discover-advice)
+  (advice-add 'projectile-persp-switch-project :before #'my/projectile-auto-discover-advice))
 
 (use-package persp-projectile
   :ensure t
