@@ -49,6 +49,7 @@
       inhibit-startup-message t
       inhibit-startup-echo-area-message user-login-name
       native-comp-async-report-warnings-errors nil
+      native-comp-async-on-battery-power nil
       warning-minimum-level :emergency
       warning-suppress-types '((native-compiler) (with-editor) (files) (comp)))
 
