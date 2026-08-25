@@ -27,6 +27,10 @@
   :ensure nil
   :hook (prog-mode . hs-minor-mode))
 
+;; Native Semantic Highlighting for ELisp
+(setq elisp-fontify-semantically t)
+(add-hook 'emacs-lisp-mode-hook #'cursor-sensor-mode)
+
 ;; Enhanced ElDoc documentation
 (setq eldoc-help-at-pt t
       eldoc-echo-area-use-multiline-p nil)
