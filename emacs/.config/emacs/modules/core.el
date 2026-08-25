@@ -101,6 +101,10 @@
 (global-so-long-mode 1)
 (pixel-scroll-precision-mode 1)
 
+;; EditorConfig
+(when (fboundp 'editorconfig-mode)
+  (editorconfig-mode 1))
+
 (which-key-mode 1)
 (setq which-key-idle-delay 0.3
       which-key-idle-secondary-delay 0.05
