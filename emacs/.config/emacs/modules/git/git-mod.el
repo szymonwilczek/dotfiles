@@ -98,6 +98,13 @@ Allowed during an active rebase at the current HEAD commit."
   (magit-diff-refine-hunk 'all)
   (magit-save-repository-buffers 'dontask)
   :config
+  (setq epa-file-default-user-key "B8E944071CB7EB8A")
+
+  ;; -s (--signoff) and -S (--gpg-sign) in Magit commit
+  ;; This is the only way
+  (with-eval-after-load 'magit-commit
+    (when-let* ((proto (get 'magit-commit 'transient--prefix)))
+      (oset proto value '("--gpg-sign=B8E944071CB7EB8A" "--signoff" "--verbose"))))
 
   ;; Evil scrolling
   (define-key magit-mode-map (kbd "z") nil)
