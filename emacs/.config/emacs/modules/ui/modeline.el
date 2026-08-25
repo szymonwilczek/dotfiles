@@ -172,7 +172,4 @@
                                        (with-current-buffer buf
                                          (setq my/modeline--cached-git-branch "")))))
 
-;; Disable modeline Dashboard
-(add-hook 'dashboard-mode-hook (lambda () (setq-local mode-line-format nil)))
-
 (provide 'modeline)

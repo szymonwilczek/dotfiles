@@ -13,7 +13,6 @@
 (require 'projectile-mod)
 (require 'git-mod)
 (require 'terminal-mod)
-(require 'dashboard-mod)
 (require 'tabs-mod)
 (require 'latex-mod)
 (require 'org-mod)
@@ -37,7 +36,7 @@
  '(global-wakatime-mode t)
  '(package-selected-packages
    '(agent-shell apheleia auctex-latexmk cape cdlatex citar
-                 company-auctex company-reftex consult corfu dashboard
+                 company-auctex company-reftex consult corfu
                  diff-hl doom-themes eat ef-themes evil-collection
                  evil-org evil-surround forge general ghostel
                  git-gutter git-gutter-fringe good-scroll lsp-ui

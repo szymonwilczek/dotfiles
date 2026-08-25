@@ -31,8 +31,7 @@
                 pdf-view-mode-hook
                 image-mode-hook
                 ghostel-mode-hook
-                treemacs-mode-hook
-                dashboard-mode-hook))
+                treemacs-mode-hook))
   (add-hook hook (lambda ()
                    (setq-local display-line-numbers nil)
                    (display-line-numbers-mode -1))))
