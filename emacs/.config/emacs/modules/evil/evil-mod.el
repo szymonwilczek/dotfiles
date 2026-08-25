@@ -36,6 +36,12 @@
   :config
   (global-evil-surround-mode 1))
 
+(use-package vundo
+  :ensure t
+  :custom
+  (vundo-glyph-alist vundo-unicode-symbols)
+  (vundo-compact-display t))
+
 (require 'evil-keys)
 
 (provide 'evil-mod)

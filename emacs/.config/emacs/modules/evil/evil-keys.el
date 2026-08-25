@@ -34,6 +34,8 @@
 
   ;; Base Leader Bindings
   (my-leader-def
+    "u" '(vundo :which-key "Undo Tree")
+
     ;; Window splits
     "s" '(evil-window-vsplit :which-key "Split Vertical")
     "v" '(evil-window-split :which-key "Split Horizontal")
