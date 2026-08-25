@@ -91,6 +91,16 @@
               scroll-preserve-screen-position t
               auto-window-vscroll nil)
 
+;; Window layout tiling compatibility
+(setq transpose-dedicated-windows t)
+
+;; Smarter paren pairing
+(setq show-paren-not-in-comments-or-strings t)
+
+;; Automatically delete trailing whitespace on save
+(when (fboundp 'delete-trailing-whitespace-mode)
+  (delete-trailing-whitespace-mode 1))
+
 (add-hook 'server-after-make-frame-hook
           (lambda ()
             (when (get-buffer "*Warnings*")
