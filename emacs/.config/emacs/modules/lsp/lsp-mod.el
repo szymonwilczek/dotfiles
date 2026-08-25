@@ -60,9 +60,15 @@
   (setq eglot-events-buffer-size 0
         eglot-autoshutdown t
         eglot-sync-connect nil
-        eglot-send-changes-idle-time 0.2)
+        eglot-send-changes-idle-time 0.05)
   (add-to-list 'warning-suppress-types '(jsonrpc))
   (add-to-list 'warning-suppress-types '(eglot))
+
+  ;; Inlay Hints typography
+  (set-face-attribute 'eglot-inlay-hint-face nil
+                      :inherit 'shadow
+                      :slant 'italic
+                      :height 0.85)
 
   ;; Server configuration for C/C++ (clangd) and Go (gopls)
   (add-to-list 'eglot-server-programs

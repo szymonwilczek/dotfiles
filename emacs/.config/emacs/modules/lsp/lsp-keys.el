@@ -101,6 +101,7 @@
       "c"  '(:ignore t :which-key "Code")
       "ca" '(eglot-code-actions :which-key "Code Action")
       "cr" '(eglot-rename :which-key "Rename Symbol")
+      "ci" '(eglot-inlay-hints-mode :which-key "Toggle Inlay Hints")
       "rn" '(eglot-rename :which-key "Rename Symbol")
 
       ;; Format shortcut
