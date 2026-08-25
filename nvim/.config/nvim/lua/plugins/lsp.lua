@@ -145,6 +145,7 @@ return {
       local servers = {
         clangd = {},
         bashls = {},
+        astro = {},
         gopls = {
           settings = {
             gopls = {
@@ -249,6 +250,7 @@ return {
         lsp_format = 'fallback',
       },
       formatters_by_ft = {
+        astro = { 'prettierd', 'prettier', stop_after_first = true },
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
         typescript = { 'prettierd', 'prettier', stop_after_first = true },
         javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
@@ -271,6 +273,7 @@ return {
     build = ':TSUpdate',
     config = function()
       require('nvim-treesitter').install {
+        'astro',
         'lua',
         'markdown',
         'markdown_inline',
@@ -281,6 +284,7 @@ return {
         'latex',
         'javascript',
         'typescript',
+        'tsx',
         'python',
         'yaml',
         'toml',
