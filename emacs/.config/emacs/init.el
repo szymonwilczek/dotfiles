@@ -69,7 +69,9 @@
      wakatime-mode))
  '(package-vc-selected-packages
    '((plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"
-                 :branch "main"))))
+                 :branch "main")
+     (astro-ts-mode :url "https://github.com/Sorixelle/astro-ts-mode"
+                    :branch "main"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

@@ -14,6 +14,8 @@
     (json-mode          . ("prettier" "--stdin-filepath" "%f"))
     (json-ts-mode       . ("prettier" "--stdin-filepath" "%f"))
     (html-mode          . ("prettier" "--stdin-filepath" "%f"))
+    (astro-mode         . ("prettier" "--stdin-filepath" "%f"))
+    (astro-ts-mode      . ("prettier" "--stdin-filepath" "%f"))
     (css-mode           . ("prettier" "--stdin-filepath" "%f"))
     (yaml-mode          . ("prettier" "--stdin-filepath" "%f"))
     (yaml-ts-mode       . ("prettier" "--stdin-filepath" "%f"))
@@ -79,8 +81,6 @@
       (message "Formatted buffer with indent-region.")))))
 
 (with-eval-after-load 'evil
-
-  ;; Definition & Reference jumps
   (evil-define-key 'normal 'global
     "gd" 'xref-find-definitions
     "gD" 'eglot-find-declaration

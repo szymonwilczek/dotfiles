@@ -1,5 +1,7 @@
 ;;; Tree-sitter and Eglot LSP configuration -*- lexical-binding: t; -*-
 
+(require 'treesit)
+
 ;; Tree-sitter Setup
 (use-package emacs
   :config
@@ -8,6 +10,9 @@
 
   ;; Enable all Tree-sitter major modes
   (setq treesit-enabled-modes t)
+
+  (add-to-list 'treesit-language-source-alist
+               '(astro "https://github.com/virchau13/tree-sitter-astro"))
 
   ;; File associations
   (add-to-list 'auto-mode-alist '("\\.c\\'"                . c-ts-mode))
@@ -20,6 +25,7 @@
   (add-to-list 'auto-mode-alist '("/go\\.work\\'"          . go-work-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.\\(?:php\\|phtml\\|inc\\)\\'" . php-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'"            . mhtml-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.astro\\'"            . astro-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.lua\\'"              . lua-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.json\\'"             . json-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.cmake\\'"            . cmake-ts-mode))
@@ -50,11 +56,19 @@
 
 (use-package asm-mode
   :ensure nil
+  :mode "\\.\\(?:s\\|S\\|asm\\|inc\\)\\'"
   :hook (asm-mode . (lambda ()
                       (setq-local tab-width 8)
                       (setq-local indent-tabs-mode nil)
                       (setq-local comment-start ";")
                       (setq-local comment-end ""))))
+
+(use-package astro-ts-mode
+  :ensure nil
+  :mode "\\.astro\\'"
+  :hook (astro-ts-mode . (lambda ()
+                           (setq-local tab-width 2)
+                           (setq-local indent-tabs-mode nil))))
 
 ;; Eglot LSP Client
 (use-package eglot
@@ -67,6 +81,7 @@
    (go-mod-ts-mode    . eglot-ensure)
    (go-work-ts-mode   . eglot-ensure)
    (php-ts-mode       . eglot-ensure)
+   (astro-ts-mode     . eglot-ensure)
    (lua-ts-mode       . eglot-ensure)
    (json-ts-mode      . eglot-ensure)
    (cmake-ts-mode     . eglot-ensure)
@@ -88,7 +103,7 @@
                       :slant 'italic
                       :height 0.85)
 
-  ;; Server configuration for C/C++ (clangd) and Go (gopls)
+  ;; Server configurations
   (add-to-list 'eglot-server-programs
                '((c-mode c-ts-mode c++-mode c++-ts-mode c-or-c++-ts-mode)
                  . ("clangd"
@@ -97,7 +112,9 @@
                     "--completion-style=detailed"
                     "--header-insertion=iwyu")))
   (add-to-list 'eglot-server-programs
-               '((go-mode go-ts-mode) . ("gopls"))))
+               '((go-mode go-ts-mode) . ("gopls")))
+  (add-to-list 'eglot-server-programs
+               '((astro-ts-mode astro-mode) . ("astro-ls" "--stdio"))))
 
 (require 'lsp-keys)
 
