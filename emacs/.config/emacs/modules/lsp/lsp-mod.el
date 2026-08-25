@@ -15,15 +15,24 @@
   (add-to-list 'major-mode-remap-alist '(cmake-mode      . cmake-ts-mode))
   (add-to-list 'major-mode-remap-alist '(sh-mode         . bash-ts-mode))
   (add-to-list 'major-mode-remap-alist '(python-mode     . python-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(yaml-mode       . yaml-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(css-mode        . css-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(html-mode       . html-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(typescript-mode . typescript-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(js-mode         . js-ts-mode))
 
   ;; File associations
-  (add-to-list 'auto-mode-alist '("\\.c\\'"   . c-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.h\\'"   . c-or-c++-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.cpp\\'" . c++-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.hpp\\'" . c++-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.cc\\'"  . c++-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.go\\'"  . go-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.json\\'" . json-ts-mode)))
+  (add-to-list 'auto-mode-alist '("\\.c\\'"                . c-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.h\\'"                . c-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.cpp\\'"              . c++-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.hpp\\'"              . c++-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.cc\\'"               . c++-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.go\\'"               . go-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.json\\'"             . json-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.cmake\\'"            . cmake-ts-mode))
+  (add-to-list 'auto-mode-alist '("CMakeLists\\.txt\\'"    . cmake-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.\\(?:s\\|S\\|asm\\|inc\\)\\'" . asm-mode))
+  (add-to-list 'auto-mode-alist '("\\.\\(?:sh\\|bash\\|zsh\\)\\'"   . bash-ts-mode)))
 
 ;; Eglot LSP Client
 (use-package eglot
