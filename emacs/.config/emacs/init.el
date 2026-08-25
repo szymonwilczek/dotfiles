@@ -40,9 +40,9 @@
                  company-auctex company-reftex consult corfu dashboard
                  diff-hl doom-themes eat ef-themes evil-collection
                  evil-org evil-surround forge general ghostel
-                 git-gutter git-gutter-fringe lsp-ui marginalia
-                 nerd-icons-completion nerd-icons-corfu notmuch
-                 olivetti orderless org-roam org-superstar
+                 git-gutter git-gutter-fringe good-scroll lsp-ui
+                 marginalia nerd-icons-completion nerd-icons-corfu
+                 notmuch olivetti orderless org-roam org-superstar
                  org-tree-slide pdf-tools persp-projectile plan-polsl
                  texfrag treemacs-evil treemacs-nerd-icons
                  treemacs-perspective treemacs-projectile vertico
