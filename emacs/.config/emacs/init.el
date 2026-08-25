@@ -28,7 +28,17 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(global-wakatime-mode t)
- '(package-selected-packages nil)
+ '(package-selected-packages
+   '(agent-shell apheleia auctex-latexmk cape cdlatex citar
+                 company-auctex company-reftex consult corfu dashboard
+                 diff-hl doom-themes eat ef-themes evil-collection
+                 evil-org evil-surround forge general ghostel lsp-ui
+                 marginalia nerd-icons-completion nerd-icons-corfu
+                 notmuch olivetti orderless org-roam org-superstar
+                 org-tree-slide pdf-tools persp-projectile plan-polsl
+                 texfrag treemacs-evil treemacs-nerd-icons
+                 treemacs-perspective treemacs-projectile vertico
+                 vterm vundo wakatime-mode))
  '(package-vc-selected-packages
    '((plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"
                  :branch "main"))))
