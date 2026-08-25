@@ -34,6 +34,14 @@
   (add-to-list 'auto-mode-alist '("\\.\\(?:s\\|S\\|asm\\|inc\\)\\'" . asm-mode))
   (add-to-list 'auto-mode-alist '("\\.\\(?:sh\\|bash\\|zsh\\)\\'"   . bash-ts-mode)))
 
+(use-package asm-mode
+  :ensure nil
+  :hook (asm-mode . (lambda ()
+                      (setq-local tab-width 8)
+                      (setq-local indent-tabs-mode nil)
+                      (setq-local comment-start ";")
+                      (setq-local comment-end ""))))
+
 ;; Eglot LSP Client
 (use-package eglot
   :ensure nil
