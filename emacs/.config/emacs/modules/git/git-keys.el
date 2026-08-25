@@ -4,8 +4,8 @@
 ;; ([c / ]c)
 (with-eval-after-load 'evil
   (evil-define-key 'normal 'global
-    "[c" 'diff-hl-previous-hunk
-    "]c" 'diff-hl-next-hunk))
+    "[c" 'git-gutter:previous-hunk
+    "]c" 'git-gutter:next-hunk))
 
 ;; Leader bindings
 (with-eval-after-load 'evil-keys
@@ -23,6 +23,8 @@
       "gb" '(magit-blame :which-key "Git Blame")
       "gl" '(magit-log-current :which-key "Git Log")
       "gd" '(magit-diff-dwim :which-key "Git Diff")
-      "gh" '(diff-hl-show-hunk :which-key "Show Hunk"))))
+      "gh" '(git-gutter:popup-hunk :which-key "Show Hunk")
+      "gs" '(git-gutter:stage-hunk :which-key "Stage Hunk")
+      "gr" '(git-gutter:revert-hunk :which-key "Revert Hunk"))))
 
 (provide 'git-keys)

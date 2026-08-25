@@ -116,13 +116,55 @@ Allowed during an active rebase at the current HEAD commit."
   (define-key magit-log-mode-map (kbd "I") #'my/magit-stage-intent))
 
 ;; Git gutter indicators
-(use-package diff-hl
+(use-package git-gutter
   :ensure t
+  :hook (prog-mode . git-gutter-mode)
   :config
-  (global-diff-hl-mode 1)
-  (diff-hl-flydiff-mode 1)
-  (add-hook 'magit-pre-refresh-hook  #'diff-hl-magit-pre-refresh)
-  (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh))
+  (setq git-gutter:update-interval 0.02)
+  (add-hook 'magit-post-refresh-hook #'git-gutter:update-all-windows)
+  (add-hook 'focus-in-hook           #'git-gutter:update-all-windows)
+  (add-hook 'after-save-hook         #'git-gutter:update-all-windows)
+  (add-hook 'after-revert-hook       #'git-gutter:update-all-windows))
+
+(use-package git-gutter-fringe
+  :ensure t
+  :after git-gutter
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom)
+
+  ;; Sync gutter colors with active theme
+  (defun my/git-gutter-sync-theme-faces (&rest _)
+    "Synchronize git-gutter colors with the active theme and ensure transparent background."
+    (cl-flet ((get-fg (face) (when (and (facep face) (face-foreground face nil t))
+                               (face-foreground face nil t))))
+      (let ((add-fg (or (get-fg 'diff-added)
+                        (get-fg 'success)
+                        (get-fg 'magit-diff-added-highlight)
+                        (get-fg 'magit-diff-added)))
+            (mod-fg (or (get-fg 'warning)
+                        (get-fg 'font-lock-warning-face)
+                        (get-fg 'diff-changed)
+                        (get-fg 'magit-diff-modified-highlight)))
+            (del-fg (or (get-fg 'error)
+                        (get-fg 'diff-removed)
+                        (get-fg 'magit-diff-removed-highlight)
+                        (get-fg 'magit-diff-removed))))
+        (when add-fg
+          (set-face-attribute 'git-gutter-fr:added nil :foreground add-fg :background 'unspecified)
+          (set-face-attribute 'git-gutter:added nil :foreground add-fg :background 'unspecified))
+        (when mod-fg
+          (set-face-attribute 'git-gutter-fr:modified nil :foreground mod-fg :background 'unspecified)
+          (set-face-attribute 'git-gutter:modified nil :foreground mod-fg :background 'unspecified))
+        (when del-fg
+          (set-face-attribute 'git-gutter-fr:deleted nil :foreground del-fg :background 'unspecified)
+          (set-face-attribute 'git-gutter:deleted nil :foreground del-fg :background 'unspecified))
+        (set-face-attribute 'fringe nil :background 'unspecified))))
+
+  (my/git-gutter-sync-theme-faces)
+  (add-hook 'server-after-make-frame-hook #'my/git-gutter-sync-theme-faces)
+  (advice-add 'load-theme :after #'my/git-gutter-sync-theme-faces))
 
 (require 'git-keys)
 
