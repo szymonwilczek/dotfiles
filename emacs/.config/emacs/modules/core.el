@@ -80,16 +80,24 @@
 ;; Only query Git for VC operations
 (setq vc-handled-backends '(Git))
 
-;; Rendering and scrolling performance on Wayland
-(setq fast-but-imprecise-scrolling t
-      redisplay-skip-fontification-on-input t
-      inhibit-compacting-font-caches t
+;; Rendering and scrolling performance
+(setq inhibit-compacting-font-caches t
       highlight-nonselected-windows nil)
 
 (setq-default scroll-conservatively 101
-              scroll-margin 0
+              scroll-margin 5
               scroll-preserve-screen-position t
               auto-window-vscroll nil)
+
+;; Smooth pixel scrolling animation
+(use-package good-scroll
+  :ensure t
+  :init
+  (setq good-scroll-render-rate 0.0055
+        good-scroll-duration 0.10
+        good-scroll-step 60)
+  :config
+  (good-scroll-mode 1))
 
 ;; Window layout tiling compatibility
 (setq transpose-dedicated-windows t)
@@ -109,7 +117,6 @@
 
 ;; Protect against UI freezes on minified/large files
 (global-so-long-mode 1)
-(pixel-scroll-precision-mode 1)
 
 ;; EditorConfig
 (when (fboundp 'editorconfig-mode)
