@@ -70,7 +70,7 @@
       warning-suppress-types '((native-compiler) (with-editor) (files) (comp)))
 
 ;; Collect only during idle moments
-(run-with-idle-timer 2.0 t #'garbage-collect)
+(run-with-idle-timer 15.0 t #'garbage-collect)
 
 ;; Disable bidirectional text scanning in code buffers
 (setq-default bidi-display-reordering 'left-to-right
