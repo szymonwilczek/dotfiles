@@ -122,6 +122,15 @@ Allowed during an active rebase at the current HEAD commit."
   (define-key magit-log-mode-map (kbd "E") #'my/magit-extract-commit-files)
   (define-key magit-log-mode-map (kbd "I") #'my/magit-stage-intent))
 
+;; GitHub Issues and Pull Requests
+(use-package forge
+  :ensure t
+  :after magit
+  :init
+  (setq forge-add-default-bindings nil)
+  :config
+  (setq forge-database-connector 'sqlite-builtin))
+
 ;; Git gutter indicators
 (use-package git-gutter
   :ensure t
