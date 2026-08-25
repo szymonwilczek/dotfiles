@@ -25,11 +25,7 @@
 ;; Code folding via Hideshow
 (use-package hideshow
   :ensure nil
-  :hook (prog-mode . hs-minor-mode)
-  :custom
-  (hs-indicator-type 'fringe)
-  (hs-display-lines-hidden t)
-  (hs-show-indicators t))
+  :hook (prog-mode . hs-minor-mode))
 
 ;; Enhanced ElDoc documentation
 (setq eldoc-help-at-pt t
