@@ -6,20 +6,8 @@
   (setq treesit-font-lock-level 4
         treesit-auto-install-grammar 'always)
 
-  ;; Remap standard modes to Tree-sitter modes
-  (add-to-list 'major-mode-remap-alist '(c-mode          . c-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(c++-mode        . c++-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(c-or-c++-mode  . c-or-c++-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(go-mode         . go-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(json-mode       . json-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(cmake-mode      . cmake-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(sh-mode         . bash-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(python-mode     . python-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(yaml-mode       . yaml-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(css-mode        . css-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(html-mode       . html-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(typescript-mode . typescript-ts-mode))
-  (add-to-list 'major-mode-remap-alist '(js-mode         . js-ts-mode))
+  ;; Enable all Tree-sitter major modes
+  (setq treesit-enabled-modes t)
 
   ;; File associations
   (add-to-list 'auto-mode-alist '("\\.c\\'"                . c-ts-mode))
@@ -33,6 +21,19 @@
   (add-to-list 'auto-mode-alist '("CMakeLists\\.txt\\'"    . cmake-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.\\(?:s\\|S\\|asm\\|inc\\)\\'" . asm-mode))
   (add-to-list 'auto-mode-alist '("\\.\\(?:sh\\|bash\\|zsh\\)\\'"   . bash-ts-mode)))
+
+;; Code folding via Hideshow
+(use-package hideshow
+  :ensure nil
+  :hook (prog-mode . hs-minor-mode)
+  :custom
+  (hs-indicator-type 'fringe)
+  (hs-display-lines-hidden t)
+  (hs-show-indicators t))
+
+;; Enhanced ElDoc documentation
+(setq eldoc-help-at-pt t
+      eldoc-echo-area-use-multiline-p nil)
 
 (use-package asm-mode
   :ensure nil
