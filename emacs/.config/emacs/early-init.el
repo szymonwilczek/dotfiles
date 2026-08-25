@@ -48,6 +48,8 @@
 (setq inhibit-startup-screen t
       inhibit-startup-message t
       inhibit-startup-echo-area-message user-login-name
-      initial-major-mode 'fundamental-mode)
+      native-comp-async-report-warnings-errors nil
+      warning-minimum-level :emergency
+      warning-suppress-types '((native-compiler) (with-editor) (files) (comp)))
 
 (setq frame-inhibit-implied-resize t)

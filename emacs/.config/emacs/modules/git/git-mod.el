@@ -91,6 +91,8 @@ Allowed during an active rebase at the current HEAD commit."
 ;; Magit Configuration
 (use-package magit
   :ensure t
+  :init
+  (setq with-editor-emacsclient-executable "emacsclient")
   :custom
   (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
   (magit-diff-refine-hunk 'all)

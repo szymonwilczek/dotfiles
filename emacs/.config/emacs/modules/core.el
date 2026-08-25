@@ -65,10 +65,18 @@
 ;; Process read buffer for LSP (16MB) and performance flags
 (setq read-process-output-max (* 16 1024 1024))
 (setq idle-update-delay 1.0)
-(setq native-comp-async-report-warnings-errors 'silent)
+(setq native-comp-async-report-warnings-errors nil
+      warning-minimum-level :emergency
+      warning-suppress-types '((native-compiler) (with-editor) (files) (comp)))
 (setq fast-but-imprecise-scrolling t
       redisplay-skip-fontification-on-input t
       inhibit-compacting-font-caches t)
+
+(add-hook 'server-after-make-frame-hook
+          (lambda ()
+            (when (get-buffer "*Warnings*")
+              (let ((win (get-buffer-window "*Warnings*")))
+                (when win (delete-window win))))))
 
 ;; Protect against UI freezes on minified/large files
 (global-so-long-mode 1)

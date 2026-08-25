@@ -90,7 +90,7 @@
               (setq initial-buffer-choice nil)
               (run-at-time 0.02 nil
                            (lambda ()
-                             (when-let ((buf (get-buffer dashboard-buffer-name)))
+                             (when-let* ((buf (get-buffer dashboard-buffer-name)))
                                (with-current-buffer buf
                                  (dashboard-refresh-buffer))))))))
 

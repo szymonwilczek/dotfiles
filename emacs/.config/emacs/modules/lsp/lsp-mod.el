@@ -3,7 +3,8 @@
 ;; Tree-sitter Setup
 (use-package emacs
   :config
-  (setq treesit-font-lock-level 4)
+  (setq treesit-font-lock-level 4
+        treesit-auto-install-grammar 'always)
 
   ;; Remap standard modes to Tree-sitter modes
   (add-to-list 'major-mode-remap-alist '(c-mode          . c-ts-mode))
