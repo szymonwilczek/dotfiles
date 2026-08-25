@@ -21,6 +21,13 @@
 (require 'agent-mod)
 (require 'writings-mod)
 
+;; Native-compile modules in background if modified
+(when (featurep 'native-compile)
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (let ((modules-dir (expand-file-name "modules" user-emacs-directory)))
+                (native-compile-async modules-dir t)))))
+
 (provide 'init)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
