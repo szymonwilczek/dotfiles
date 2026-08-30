@@ -22,7 +22,7 @@
         projectile-indexing-method 'alien
         projectile-enable-caching t
         projectile-auto-discover t)
-  (projectile-discover-projects-in-search-path)
+  (run-with-idle-timer 4.0 nil #'projectile-discover-projects-in-search-path)
 
   (defun my/projectile-auto-discover-advice (&rest _args)
     "Re-discover projects in search path before switching."
