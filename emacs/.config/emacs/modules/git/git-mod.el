@@ -105,9 +105,14 @@ Allowed during an active rebase at the current HEAD commit."
         (message "Opened %s in browser." target-url)
         (browse-url target-url)))))
 
+(defvar ghostel-shell)
+(defvar ghostel-buffer-name)
+(declare-function ghostel "ghostel")
+
 (defun my/open-lazygit ()
   "Open Lazygit inside Ghostel terminal in the current project root or directory."
   (interactive)
+  (require 'ghostel nil t)
   (let* ((proj-root (or (and (fboundp 'projectile-project-root) (projectile-project-root))
                         default-directory))
          (old-buf (get-buffer "*lazygit*"))
