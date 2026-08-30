@@ -84,6 +84,25 @@
   (plan-polsl-target-file (expand-file-name "~/Dokumenty/writings/plan-polsl.org"))
   (plan-polsl-auto-add-to-agenda t))
 
+(use-package org-appear
+  :ensure t
+  :after org
+  :hook (org-mode . org-appear-mode)
+  :config
+  (setq org-appear-autoemphasis t
+        org-appear-autolinks t
+        org-appear-autosubmarkers t
+        org-appear-autoentities t
+        org-appear-inside-latex t
+        org-appear-delay 0.0))
+
+(defun my/org-toggle-emphasis-markers ()
+  "Toggle visibility of Org emphasis markers (* / _ = ~)."
+  (interactive)
+  (setq org-hide-emphasis-markers (not org-hide-emphasis-markers))
+  (font-lock-flush)
+  (message "Org emphasis markers: %s" (if org-hide-emphasis-markers "hidden" "visible")))
+
 (defun my/org-toggle-latex-preview ()
   "Toggle LaTeX math preview for equation at point or entire buffer."
   (interactive)
