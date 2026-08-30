@@ -94,11 +94,15 @@ Allowed during an active rebase at the current HEAD commit."
   :init
   (setq with-editor-emacsclient-executable "emacsclient")
   :custom
-  (magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   (magit-diff-refine-hunk 'all)
   (magit-save-repository-buffers 'dontask)
   :config
   (setq epa-file-default-user-key "B8E944071CB7EB8A")
+
+  ;; Turn off line numbers
+  ;; This caused flashbangs...
+  (add-hook 'git-commit-mode-hook (lambda () (display-line-numbers-mode -1)))
 
   ;; -s (--signoff) and -S (--gpg-sign) in Magit commit
   ;; This is the only way
@@ -179,7 +183,6 @@ Allowed during an active rebase at the current HEAD commit."
         (set-face-attribute 'fringe nil :background 'unspecified))))
 
   (my/git-gutter-sync-theme-faces)
-  (add-hook 'server-after-make-frame-hook #'my/git-gutter-sync-theme-faces)
   (advice-add 'load-theme :after #'my/git-gutter-sync-theme-faces))
 
 (require 'git-keys)
