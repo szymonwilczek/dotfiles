@@ -31,7 +31,7 @@
 (use-package consult
   :ensure t
   :config
-  (setq consult-preview-key 'any
+  (setq consult-preview-key '(:debounce 0.2 any)
         consult-async-min-input 2))
 
 ;; In-Buffer Completion
