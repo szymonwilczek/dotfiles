@@ -64,6 +64,47 @@ Allowed during an active rebase at the current HEAD commit."
       (magit-call-git "add" "-N" "."))
     (magit-refresh)))
 
+(defun my/magit-remote-to-http-url (remote-url)
+  "Convert SSH or HTTPS git remote URL to base HTTP browser URL."
+  (let ((url (replace-regexp-in-string "\\.git\\'" "" remote-url)))
+    (cond
+     ((string-prefix-p "git@" url)
+      (let* ((after-at (substring url 4))
+             (colon-pos (string-search ":" after-at)))
+        (format "https://%s/%s" (substring after-at 0 colon-pos) (substring after-at (1+ colon-pos)))))
+     ((string-prefix-p "ssh://git@" url)
+      (let* ((after-at (substring url 10))
+             (slash-pos (string-search "/" after-at)))
+        (format "https://%s/%s" (substring after-at 0 slash-pos) (substring after-at (1+ slash-pos)))))
+     ((string-prefix-p "http://" url)
+      (concat "https://" (substring url 7)))
+     ((string-prefix-p "https://" url)
+      url)
+     (t (concat "https://" url)))))
+
+(defun my/magit-browse-at-point ()
+  "Open commit, branch, or repository at point in the remote web browser."
+  (interactive)
+  (require 'magit)
+  (let* ((remote-url (or (magit-get "remote" (or (magit-get-remote) "origin") "url")
+                         (magit-get "remote" "origin" "url")))
+         (commit (or (magit-commit-at-point)
+                     (magit-branch-or-commit-at-point)))
+         (branch (magit-branch-at-point)))
+    (if (not remote-url)
+        (user-error "No Git remote URL found for this repository")
+      (let* ((base-url (my/magit-remote-to-http-url remote-url))
+             (target-url
+              (cond
+               (commit
+                (format "%s/commit/%s" base-url commit))
+               (branch
+                (format "%s/tree/%s" base-url branch))
+               (t
+                base-url))))
+        (message "Opened %s in browser." target-url)
+        (browse-url target-url)))))
+
 (defun my/open-lazygit ()
   "Open Lazygit inside Ghostel terminal in the current project root or directory."
   (interactive)
@@ -117,6 +158,16 @@ Allowed during an active rebase at the current HEAD commit."
   (define-key magit-status-mode-map (kbd "z") nil)
   (define-key magit-status-mode-map (kbd "Z") #'magit-stash)
 
+  ;; 'o' key in Magit (Open in browser)
+  (define-key magit-mode-map (kbd "o") #'my/magit-browse-at-point)
+  (define-key magit-status-mode-map (kbd "o") #'my/magit-browse-at-point)
+  (define-key magit-log-mode-map (kbd "o") #'my/magit-browse-at-point)
+  (define-key magit-revision-mode-map (kbd "o") #'my/magit-browse-at-point)
+
+  (with-eval-after-load 'evil
+    (dolist (map (list magit-mode-map magit-status-mode-map magit-log-mode-map magit-revision-mode-map))
+      (evil-define-key* '(normal visual motion emacs) map "o" #'my/magit-browse-at-point)))
+
   ;; My Lazygit keys in Magit log & status
   (define-key magit-status-mode-map (kbd "W") #'my/magit-add-co-author)
   (define-key magit-status-mode-map (kbd "F") #'my/magit-signoff-commit)
@@ -126,6 +177,11 @@ Allowed during an active rebase at the current HEAD commit."
   (define-key magit-log-mode-map (kbd "F") #'my/magit-signoff-commit)
   (define-key magit-log-mode-map (kbd "E") #'my/magit-extract-commit-files)
   (define-key magit-log-mode-map (kbd "I") #'my/magit-stage-intent))
+
+(with-eval-after-load 'evil-collection-magit
+  (with-eval-after-load 'magit
+    (dolist (map (list magit-mode-map magit-status-mode-map magit-log-mode-map magit-revision-mode-map))
+      (evil-define-key* '(normal visual motion emacs) map "o" #'my/magit-browse-at-point))))
 
 ;; GitHub Issues and Pull Requests
 (use-package forge
