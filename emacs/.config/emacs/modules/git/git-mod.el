@@ -91,6 +91,7 @@ Allowed during an active rebase at the current HEAD commit."
 ;; Magit Configuration
 (use-package magit
   :ensure t
+  :defer t
   :init
   (setq with-editor-emacsclient-executable "emacsclient")
   :custom
@@ -129,6 +130,7 @@ Allowed during an active rebase at the current HEAD commit."
 ;; GitHub Issues and Pull Requests
 (use-package forge
   :ensure t
+  :defer t
   :after magit
   :init
   (setq forge-add-default-bindings nil)
