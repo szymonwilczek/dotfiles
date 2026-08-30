@@ -25,17 +25,15 @@
     (evil-set-initial-state 'ghostel-mode 'emacs))
 
   ;; Auto-close window when shell process terminates
-  ;; (exit / Ctrl-d)
-  (add-hook 'ghostel-exit-hook
-            (lambda (proc)
-              (ignore-errors
-                (when (and proc (processp proc))
-                  (let ((buf (process-buffer proc)))
-                    (when (and buf (buffer-live-p buf))
-                      (let ((win (get-buffer-window buf)))
-                        (kill-buffer buf)
-                        (when (and win (window-live-p win) (not (one-window-p t)))
-                          (delete-window win))))))))))
+  (defun my/ghostel-auto-close-on-exit (buf _event)
+    "Close terminal buffer and split window when process exits."
+    (when (and buf (buffer-live-p buf))
+      (let ((win (get-buffer-window buf t)))
+        (kill-buffer buf)
+        (when (and win (window-live-p win) (not (one-window-p t)))
+          (delete-window win)))))
+
+  (add-hook 'ghostel-exit-functions #'my/ghostel-auto-close-on-exit))
 
 (defun my/ghostel-toggle-bottom ()
   "Toggle Ghostel terminal window."
