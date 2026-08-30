@@ -125,9 +125,7 @@ Allowed during an active rebase at the current HEAD commit."
            (ghostel-buffer-name "*lazygit*")
            (buf (ghostel t)))
       (delete-other-windows)
-      (switch-to-buffer buf)
-      (when (fboundp 'evil-emacs-state)
-        (evil-emacs-state)))))
+      (switch-to-buffer buf))))
 
 ;; Magit Configuration
 (use-package magit
