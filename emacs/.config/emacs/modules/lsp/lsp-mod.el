@@ -62,6 +62,14 @@
                            (setq-local tab-width 2)
                            (setq-local indent-tabs-mode nil))))
 
+(use-package python
+  :ensure nil
+  :mode "\\.py\\'"
+  :custom
+  (python-indent-guess-indent-offset nil)
+  (python-indent-guess-indent-offset-verbose nil)
+  (python-indent-offset 4))
+
 ;; Eglot LSP Client
 (use-package eglot
   :ensure nil
@@ -81,7 +89,9 @@
    (json-mode         . eglot-ensure)
    (json-ts-mode      . eglot-ensure)
    (sh-mode           . eglot-ensure)
-   (bash-ts-mode      . eglot-ensure))
+   (bash-ts-mode      . eglot-ensure)
+   (python-mode       . eglot-ensure)
+   (python-ts-mode    . eglot-ensure))
   :config
 
   ;; Performance & JSON-RPC optimization
@@ -110,7 +120,9 @@
   (add-to-list 'eglot-server-programs
                '((php-mode php-ts-mode) . ("intelephense" "--stdio")))
   (add-to-list 'eglot-server-programs
-               '((astro-ts-mode astro-mode) . ("astro-ls" "--stdio"))))
+               '((astro-ts-mode astro-mode) . ("astro-ls" "--stdio")))
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode) . ("ruff" "server"))))
 
 (require 'lsp-keys)
 

@@ -3,6 +3,8 @@
 (defvar my/formatters-alist
   '((go-mode            . ("gofmt"))
     (go-ts-mode         . ("gofmt"))
+    (python-mode        . ("ruff" "format" "--stdin-filename=%f" "-"))
+    (python-ts-mode     . ("ruff" "format" "--stdin-filename=%f" "-"))
     (c-mode             . ("clang-format" "-assume-filename=%f"))
     (c-ts-mode          . ("clang-format" "-assume-filename=%f"))
     (sh-mode            . ("shfmt" "-i" "4"))
@@ -32,7 +34,7 @@
   (let* ((cmd (car cmd-args))
          (args (mapcar (lambda (arg)
                          (if (string-match-p "%f" arg)
-                             (replace-regexp-in-string "%f" (or (buffer-file-name) "temp.md") arg)
+                             (replace-regexp-in-string "%f" (or (buffer-file-name) "temp.py") arg)
                            arg))
                        (cdr cmd-args))))
     (if (not (executable-find cmd))
@@ -80,6 +82,8 @@
      ((and (bound-and-true-p eglot--managed-mode) (fboundp 'eglot-format))
       (eglot-format)
       (message "Formatted buffer with Eglot LSP."))
+     ((derived-mode-p 'python-mode 'python-ts-mode)
+      (message "No Python formatter available."))
      (t
       (indent-region (point-min) (point-max))
       (message "Formatted buffer with indent-region.")))))
