@@ -19,6 +19,7 @@
 (require 'bibliography-mod)
 (require 'agent-mod)
 (require 'writings-mod)
+(require 'jot-mod)
 
 ;; Native-compile modules in background if modified
 (when (featurep 'native-compile)
