@@ -5,9 +5,9 @@
 ;; Tree-sitter Setup
 (use-package emacs
   :config
-  (setq treesit-font-lock-level 4
-        treesit-auto-install-grammar 'always
-        treesit-enabled-modes t)
+  (setopt treesit-font-lock-level 4
+          treesit-auto-install-grammar 'always
+          treesit-enabled-modes t)
 
   (add-to-list 'treesit-language-source-alist
                '(astro "https://github.com/virchau13/tree-sitter-astro"))
@@ -64,7 +64,6 @@
 
 (use-package python
   :ensure nil
-  :mode "\\.py\\'"
   :custom
   (python-indent-guess-indent-offset nil)
   (python-indent-guess-indent-offset-verbose nil)
