@@ -8,7 +8,6 @@
   (jot-extension "org")
   (jot-default-mode 'org-mode)
   (jot-session-backend 'auto)
-  (jot-border-color "#b38d59")
   (jot-popup-x 'right)
   (jot-popup-y 0)
   (jot-popup-width 0.40)
