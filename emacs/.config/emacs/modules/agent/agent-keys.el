@@ -6,8 +6,6 @@
       "a"  '(:ignore t :which-key "AI Agents")
       "ag" '(my/agent-shell-gemini :which-key "Antigravity")
       "ac" '(my/agent-shell-claude :which-key "Claude Code")
-      "ao" '(my/agent-shell-codex :which-key "OpenAI Codex")
-      "at" '(my/agent-shell-toggle :which-key "Toggle Agent Split")
-      "aa" '(my/agent-shell-select :which-key "Select Agent"))))
+      "at" '(my/agent-shell-toggle :which-key "Toggle Agent Split"))))
 
 (provide 'agent-keys)

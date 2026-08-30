@@ -85,7 +85,6 @@
     "gd" 'xref-find-definitions
     "gD" 'eglot-find-declaration
     "gi" 'eglot-find-implementation
-    "gy" 'eglot-find-typeDefinition
     "gr" 'xref-find-references
     "K"  'eldoc
     "[d" 'flymake-goto-prev-error
@@ -99,8 +98,6 @@
 
       ;; Code & Refactor
       "c"  '(:ignore t :which-key "Code")
-      "ca" '(eglot-code-actions :which-key "Code Action")
-      "cr" '(eglot-rename :which-key "Rename Symbol")
       "ci" '(eglot-inlay-hints-mode :which-key "Toggle Inlay Hints")
       "rn" '(eglot-rename :which-key "Rename Symbol")
 

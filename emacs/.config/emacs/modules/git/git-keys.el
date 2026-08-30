@@ -26,9 +26,6 @@
       "gi" '(forge-list-issues :which-key "GitHub Issues")
       "gp" '(forge-list-pullreqs :which-key "GitHub Pull Requests")
       "gn" '(forge-list-notifications :which-key "GitHub Notifications")
-      "gf" '(forge-pull :which-key "Fetch Forge (Issues/PRs)")
-      "gh" '(git-gutter:popup-hunk :which-key "Show Hunk")
-      "gs" '(git-gutter:stage-hunk :which-key "Stage Hunk")
-      "gr" '(git-gutter:revert-hunk :which-key "Revert Hunk"))))
+      "gf" '(forge-pull :which-key "Fetch Forge (Issues/PRs)"))))
 
 (provide 'git-keys)

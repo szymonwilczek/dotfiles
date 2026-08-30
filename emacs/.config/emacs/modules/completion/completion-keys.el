@@ -33,10 +33,6 @@
       "f"  '(:ignore t :which-key "Files/Search")
       "ff" '(consult-fd :which-key "Find File (Project)")
       "fw" '(consult-ripgrep :which-key "Live Grep (Project)")
-      "fr" '(consult-recent-file :which-key "Recent Files")
-
-      ;; Buffers
-      "bb" '(consult-buffer :which-key "Switch Buffer")
 
       ;; Diagnostics
       "d"  '(:ignore t :which-key "Diagnostics")

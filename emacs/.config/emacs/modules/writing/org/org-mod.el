@@ -116,21 +116,7 @@
     (evil-define-key '(normal visual motion) org-mode-map
       (kbd "TAB")   #'org-cycle
       (kbd "<tab>") #'org-cycle
-      "za"          #'org-cycle
-      "zA"          #'org-shifttab
-      "gh"          #'org-up-element
-      "gj"          #'org-forward-heading-same-level
-      "gk"          #'org-backward-heading-same-level
-      "gl"          #'org-down-element
-      (kbd "M-h")   #'org-metaleft
-      (kbd "M-l")   #'org-metaright
-      (kbd "M-j")   #'org-metadown
-      (kbd "M-k")   #'org-metaup
-      (kbd "M-RET") #'org-meta-return
-      (kbd "M-S-RET") #'org-insert-todo-heading)
-    (evil-define-key 'insert org-mode-map
-      (kbd "M-RET") #'org-meta-return
-      (kbd "M-S-RET") #'org-insert-todo-heading)))
+      "za"          #'org-cycle)))
 
 
 (use-package ox-latex
