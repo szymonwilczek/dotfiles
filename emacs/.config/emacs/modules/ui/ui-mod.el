@@ -69,9 +69,7 @@
         (mapc #'disable-theme custom-enabled-themes)
         (load-theme theme t))))
 
-  (if (daemonp)
-      (add-hook 'server-after-make-frame-hook #'my/apply-cached-theme)
-    (my/apply-cached-theme)))
+  (my/apply-cached-theme))
 
 (use-package nerd-icons
   :ensure t
