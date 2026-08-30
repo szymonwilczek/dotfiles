@@ -1,7 +1,6 @@
 ;;; AI Agents integration -*- lexical-binding: t; -*-
 
 (require 'cl-lib)
-(require 'ghostel)
 
 (defvar my/agent-split-ratio 0.55
   "Ratio of the main (left) window width when opening an AI agent split.")
@@ -28,6 +27,7 @@
 
 (defun my/agent-open (name command-name &optional args)
   "Open or switch to AI agent NAME running COMMAND-NAME in right split."
+  (require 'ghostel)
   (setq my/agent-active-name name)
   (let* ((buf-name (format "*agent-%s*" (downcase (replace-regexp-in-string "[^a-zA-Z0-9]" "-" name))))
          (cmd (or (executable-find command-name)
@@ -68,7 +68,8 @@
                        (when (and buf (buffer-live-p buf))
                          (kill-buffer buf))))))))
 
-(add-hook 'ghostel-exit-functions #'my/agent-cleanup-on-exit)
+(with-eval-after-load 'ghostel
+  (add-hook 'ghostel-exit-functions #'my/agent-cleanup-on-exit))
 
 (defun my/agent-shell-gemini ()
   "Start or switch to Antigravity in right split."
