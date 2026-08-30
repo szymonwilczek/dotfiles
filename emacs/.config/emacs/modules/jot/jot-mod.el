@@ -5,8 +5,8 @@
   :demand t
   :custom
   (jot-dir (expand-file-name "~/.local/share/tmux-jot"))
-  (jot-extension "org")
-  (jot-default-mode 'org-mode)
+  (jot-extension "md")
+  (jot-default-mode 'markdown-mode)
   (jot-session-backend 'auto)
   (jot-popup-x 'right)
   (jot-popup-y 0)
