@@ -45,6 +45,13 @@
     ;; Buffer management
     "q" '(kill-current-buffer :which-key "Close Buffer")
     "b" '(:ignore t :which-key "Buffers")
-    "bn" '((lambda () (interactive) (switch-to-buffer (generate-new-buffer "untitled"))) :which-key "New Buffer")))
+    "bn" '((lambda () (interactive) (switch-to-buffer (generate-new-buffer "untitled"))) :which-key "New Buffer")
+
+    ;; Elisp Eval
+    "e" '(:ignore t :which-key "Eval/Reload")
+    "eb" '(eval-buffer :which-key "Eval Buffer (Live Reload)")
+    "ee" '(eval-last-sexp :which-key "Eval Expression")
+    "er" '(eval-region :which-key "Eval Region")
+    "ed" '(eval-defun :which-key "Eval Defun/Function")))
 
 (provide 'evil-keys)
