@@ -10,7 +10,7 @@ set $explorer QT_QPA_PLATFORMTHEME=kde dolphin
 
 # Execs
 exec swaync
-exec_always pkill waybar; env LC_ALL=pl_PL.UTF-8 waybar
+exec_always sh -c "killall waybar 2>/dev/null; sleep 0.5; env LC_ALL=pl_PL.UTF-8 waybar"
 
 # Output configuration
 output * bg ~/Pulpit/Personalne/Tapety/IMG_1692_lossless.png fill
