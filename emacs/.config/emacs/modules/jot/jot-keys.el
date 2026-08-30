@@ -16,7 +16,7 @@
 (define-key my-tmux-prefix-map (kbd "M-_") #'jot-decrease-size)
 (define-key my-tmux-prefix-map (kbd "M-r") #'jot-reset-size)
 
-(with-eval-after-load 'evil-keys
+(defun my-jot-register-leader-keys ()
   (when (fboundp 'my-leader-def)
     (my-leader-def
       "j"  '(:ignore t :which-key "Jot")
@@ -26,5 +26,9 @@
       "jd" '(jot-doctor :which-key "Doctor")
       "jc" '(jot-cleanup :which-key "Cleanup")
       "ju" '(jot-unlink-session :which-key "Unlink Note"))))
+
+(my-jot-register-leader-keys)
+(with-eval-after-load 'evil-keys
+  (my-jot-register-leader-keys))
 
 (provide 'jot-keys)
