@@ -38,23 +38,38 @@
 (use-package ghostel
   :ensure nil
   :commands (ghostel ghostel-project)
+  :init
+  ;; so window switching works in all states
+  (with-eval-after-load 'ghostel
+    (unless (member "C-w" ghostel-keymap-exceptions)
+      (setq ghostel-keymap-exceptions (append '("C-w") ghostel-keymap-exceptions))))
   :config
   (setq ghostel-color-palette nil)
   (setq ghostel-scrollback-size 10000)
 
-  ;; Terminal buffer clean setup
+  ;; Rebuild semi-char map with C-w exception
+  (ghostel--rebuild-semi-char-keymap)
+
+  ;; Window switching inside ghostel terminal
+  (with-eval-after-load 'evil
+    (define-key ghostel-mode-map (kbd "C-w") evil-window-map)
+    (define-key ghostel-semi-char-mode-map (kbd "C-w") evil-window-map))
+
+  ;; Clipboard paste via Ctrl+Shift+V in all terminal maps
+  (dolist (map (list ghostel-mode-map ghostel-semi-char-mode-map))
+    (define-key map (kbd "C-S-v") #'my/ghostel-paste-clipboard)
+    (define-key map (kbd "C-S-V") #'my/ghostel-paste-clipboard)
+    (define-key map [C-S-v]       #'my/ghostel-paste-clipboard)
+    (define-key map [C-S-V]       #'my/ghostel-paste-clipboard))
+
+  ;; Clean terminal buffer setup
   (add-hook 'ghostel-mode-hook
             (lambda ()
               (display-line-numbers-mode -1)
               (setq-local global-hl-line-mode nil)
               (setq-local scroll-margin 0)
-              (when (fboundp 'evil-emacs-state)
-                (evil-emacs-state))
               (when-let* ((proc (get-buffer-process (current-buffer))))
                 (set-process-query-on-exit-flag proc nil))))
-
-  (with-eval-after-load 'evil
-    (evil-set-initial-state 'ghostel-mode 'emacs))
 
   ;; Auto-close window when shell process terminates
   (defun my/ghostel-auto-close-on-exit (buf _event)
@@ -66,6 +81,53 @@
           (delete-window win)))))
 
   (add-hook 'ghostel-exit-functions #'my/ghostel-auto-close-on-exit))
+
+;; Evil integration for Ghostel
+(defun my/ghostel-insert-dwim ()
+  "Enter insert state at point, driving the terminal cursor to match across multiple lines."
+  (interactive)
+  (let ((target (point)))
+    (when (and (derived-mode-p 'ghostel-mode)
+               (bound-and-true-p ghostel--term)
+               (bound-and-true-p ghostel--cursor-pos))
+      (evil-ghostel-goto-input-position target))
+    (evil-insert-state 1)))
+
+(defun my/ghostel-append-dwim ()
+  "Append after point, driving the terminal cursor to match across multiple lines."
+  (interactive)
+  (let ((target (save-excursion
+                  (if (eolp) (point) (min (1+ (point)) (line-end-position))))))
+    (when (and (derived-mode-p 'ghostel-mode)
+               (bound-and-true-p ghostel--term)
+               (bound-and-true-p ghostel--cursor-pos))
+      (evil-ghostel-goto-input-position target))
+    (evil-insert-state 1)))
+
+(defun my/ghostel-insert-line-dwim ()
+  "Move to start of current line and enter insert."
+  (interactive)
+  (let ((target (save-excursion
+                  (back-to-indentation)
+                  (point))))
+    (when (and (derived-mode-p 'ghostel-mode)
+               (bound-and-true-p ghostel--term)
+               (bound-and-true-p ghostel--cursor-pos))
+      (evil-ghostel-goto-input-position target))
+    (evil-insert-state 1)))
+
+(defun my/ghostel-append-line-dwim ()
+  "Move to end of current line and enter insert."
+  (interactive)
+  (let ((target (save-excursion
+                  (end-of-line)
+                  (skip-chars-backward " \t" (line-beginning-position))
+                  (point))))
+    (when (and (derived-mode-p 'ghostel-mode)
+               (bound-and-true-p ghostel--term)
+               (bound-and-true-p ghostel--cursor-pos))
+      (evil-ghostel-goto-input-position target))
+    (evil-insert-state 1)))
 
 (use-package evil-ghostel
   :ensure nil
@@ -102,6 +164,18 @@
     "a"                      #'my/ghostel-append-dwim
     "I"                      #'my/ghostel-insert-line-dwim
     "A"                      #'my/ghostel-append-line-dwim)
+
+  ;; Fix upstream evil-ghostel nil cursor position bug
+  ;; and prevent snapping back to cursor row
+  (defun my/evil-ghostel-safe-insert-state-entry (_orig-fn &rest _args)
+    "Safely drive terminal cursor to target point without snapping back to end of buffer."
+    (when (and (derived-mode-p 'ghostel-mode)
+               (bound-and-true-p ghostel--cursor-pos)
+               (cdr ghostel--cursor-pos)
+               (numberp (cdr ghostel--cursor-pos)))
+      (evil-ghostel-goto-input-position (point))))
+
+  (advice-add 'evil-ghostel--insert-state-entry :around #'my/evil-ghostel-safe-insert-state-entry))
 
 (defun my/ghostel-toggle-bottom ()
   "Toggle Ghostel terminal window."
