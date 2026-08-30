@@ -8,6 +8,7 @@
   :ensure nil
   :commands (ghostel ghostel-project)
   :config
+  (setq ghostel-color-palette nil)
   (setq ghostel-scrollback-size 10000)
 
   ;; Terminal buffer clean setup
