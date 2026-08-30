@@ -58,7 +58,7 @@
                  ('visual '(:inherit font-lock-type-face :weight bold))
                  ('replace '(:inherit error :weight bold))
                  (_ '(:inherit font-lock-constant-face :weight bold))))
-         (loc (format " %2d:%-2d " (line-number-at-pos) (1+ (current-column)))))
+         (loc (format " %2d:%-2d " (line-number-at-pos (point) t) (1+ (current-column)))))
     (propertize loc 'face face)))
 
 (defun my/modeline-filetype ()
