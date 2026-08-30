@@ -1,14 +1,14 @@
 ;;; UI styling, themes and typography -*- lexical-binding: t; -*-
 
 ;; Typography & Frames
-(add-to-list 'default-frame-alist '(font . "Typus Mono 92-12.5"))
+(add-to-list 'default-frame-alist '(font . "Typus Mono 92-13"))
 
 (defun my/set-font-faces (&optional frame)
   "Applies default font to given frame or current frame."
   (with-selected-frame (or frame (selected-frame))
     (set-face-attribute 'default nil
                         :family "Typus Mono 92"
-                        :height 125
+                        :height 130
                         :weight 'normal)))
 
 (my/set-font-faces)
