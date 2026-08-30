@@ -31,6 +31,12 @@
   (setq evil-collection-mode-list (delq 'org (delq 'org-agenda evil-collection-mode-list)))
   (evil-collection-init))
 
+(use-package evil-nerd-commenter
+  :after evil
+  :ensure t
+  :config
+  (evilnc-default-hotkeys t t))
+
 (use-package evil-surround
   :after evil
   :config
