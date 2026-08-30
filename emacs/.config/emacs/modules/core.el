@@ -31,6 +31,16 @@
 (setq-default default-directory (expand-file-name "~/"))
 (setq default-directory (expand-file-name "~/"))
 
+;; Environment PATH and Exec-Path for LSP binaries
+(let ((user-paths (list (expand-file-name "~/.local/bin")
+                        (expand-file-name "~/.npm-global/bin")
+                        (expand-file-name "~/go/bin")
+                        (expand-file-name "~/.cargo/bin"))))
+  (dolist (p user-paths)
+    (when (file-directory-p p)
+      (add-to-list 'exec-path p)
+      (setenv "PATH" (concat p ":" (getenv "PATH"))))))
+
 ;; Disable server frame instructions message
 (setq server-client-instructions nil)
 

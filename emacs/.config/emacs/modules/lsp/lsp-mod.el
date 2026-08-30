@@ -6,32 +6,14 @@
 (use-package emacs
   :config
   (setq treesit-font-lock-level 4
-        treesit-auto-install-grammar 'always)
-
-  ;; Enable all Tree-sitter major modes
-  (setq treesit-enabled-modes t)
+        treesit-auto-install-grammar 'always
+        treesit-enabled-modes t)
 
   (add-to-list 'treesit-language-source-alist
                '(astro "https://github.com/virchau13/tree-sitter-astro"))
 
-  ;; File associations
-  (add-to-list 'auto-mode-alist '("\\.c\\'"                . c-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.h\\'"                . c-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.cpp\\'"              . c++-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.hpp\\'"              . c++-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.cc\\'"               . c++-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.go\\'"               . go-ts-mode))
-  (add-to-list 'auto-mode-alist '("/go\\.mod\\'"           . go-mod-ts-mode))
-  (add-to-list 'auto-mode-alist '("/go\\.work\\'"          . go-work-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.\\(?:php\\|phtml\\|inc\\)\\'" . php-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.html?\\'"            . mhtml-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.astro\\'"            . astro-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.lua\\'"              . lua-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.json\\'"             . json-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.cmake\\'"            . cmake-ts-mode))
-  (add-to-list 'auto-mode-alist '("CMakeLists\\.txt\\'"    . cmake-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.\\(?:s\\|S\\|asm\\|inc\\)\\'" . asm-mode))
-  (add-to-list 'auto-mode-alist '("\\.\\(?:sh\\|bash\\|zsh\\)\\'"   . bash-ts-mode)))
+  (add-to-list 'auto-mode-alist '("\\.astro\\'" . astro-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.\\(?:s\\|S\\|asm\\|inc\\)\\'" . asm-mode)))
 
 ;; Code folding via Hideshow
 (use-package hideshow
@@ -45,6 +27,16 @@
 ;; Enhanced ElDoc documentation
 (setq eldoc-help-at-pt t
       eldoc-echo-area-use-multiline-p nil)
+
+(use-package make-mode
+  :ensure nil
+  :mode (("Makefile\\'" . makefile-gmake-mode)
+         ("makefile\\'" . makefile-gmake-mode)
+         ("GNUmakefile\\'" . makefile-gmake-mode)
+         ("\\.mk\\'"    . makefile-gmake-mode))
+  :hook (makefile-mode . (lambda ()
+                           (setq-local indent-tabs-mode t)
+                           (setq-local tab-width 8))))
 
 (use-package php-ts-mode
   :ensure nil
@@ -74,17 +66,21 @@
 (use-package eglot
   :ensure nil
   :hook
-  ((c-ts-mode         . eglot-ensure)
-   (c++-ts-mode       . eglot-ensure)
-   (c-or-c++-ts-mode  . eglot-ensure)
+  ((c-mode            . eglot-ensure)
+   (c-ts-mode         . eglot-ensure)
+   (go-mode           . eglot-ensure)
    (go-ts-mode        . eglot-ensure)
    (go-mod-ts-mode    . eglot-ensure)
    (go-work-ts-mode   . eglot-ensure)
+   (php-mode          . eglot-ensure)
    (php-ts-mode       . eglot-ensure)
+   (astro-mode        . eglot-ensure)
    (astro-ts-mode     . eglot-ensure)
+   (lua-mode          . eglot-ensure)
    (lua-ts-mode       . eglot-ensure)
+   (json-mode         . eglot-ensure)
    (json-ts-mode      . eglot-ensure)
-   (cmake-ts-mode     . eglot-ensure)
+   (sh-mode           . eglot-ensure)
    (bash-ts-mode      . eglot-ensure))
   :config
 
@@ -105,14 +101,14 @@
 
   ;; Server configurations
   (add-to-list 'eglot-server-programs
-               '((c-mode c-ts-mode c++-mode c++-ts-mode c-or-c++-ts-mode)
+               '((c-mode c-ts-mode)
                  . ("clangd"
                     "--background-index"
                     "--clang-tidy"
                     "--completion-style=detailed"
                     "--header-insertion=iwyu")))
   (add-to-list 'eglot-server-programs
-               '((go-mode go-ts-mode) . ("gopls")))
+               '((php-mode php-ts-mode) . ("intelephense" "--stdio")))
   (add-to-list 'eglot-server-programs
                '((astro-ts-mode astro-mode) . ("astro-ls" "--stdio"))))
 
