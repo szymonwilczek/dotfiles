@@ -3,19 +3,19 @@
 (use-package citar
   :ensure t
   :custom
-  (citar-bibliography (seq-filter #'file-exists-p
-                                  (list (expand-file-name "~/references/references.bib")
-                                        (expand-file-name "~/references.bib")
-                                        "references.bib")))
-  (citar-library-paths (list (expand-file-name "~/Zotero/storage")
-                             (expand-file-name "~/Dokumenty/Papers")))
-  (citar-notes-paths (list (expand-file-name "~/Dokumenty/Notes/Literature")))
   (citar-latex-prompt-for-cite-style nil)
-  (citar-latex-default-cite-style "cite")
+  (citar-latex-default-cite-command "cite")
   :hook ((LaTeX-mode . citar-capf-setup)
          (latex-mode . citar-capf-setup)
          (org-mode . citar-capf-setup))
   :config
+  (setq citar-bibliography (seq-filter #'file-exists-p
+                                       (list (expand-file-name "~/references/references.bib")
+                                             (expand-file-name "~/references.bib")
+                                             "references.bib"))
+        citar-library-paths (list (expand-file-name "~/Zotero/storage")
+                                  (expand-file-name "~/Dokumenty/Papers"))
+        citar-notes-paths (list (expand-file-name "~/Dokumenty/Notes/Literature")))
 
   ;; Icon indicators
   (when (fboundp 'nerd-icons-faicon)
