@@ -59,18 +59,66 @@
   :ensure nil
   :mode "\\.astro\\'"
   :init
+  (defun my/astro-ts-prefix-settings (prefix settings)
+    "Prefix font lock feature names with PREFIX while preserving language field."
+    (mapcar (lambda (setting)
+              (let ((copy (copy-sequence setting)))
+                (setf (nth 2 copy) (intern (format "%s-%s" prefix (nth 2 setting))))
+                copy))
+            settings))
+
   (defun my/astro-ts-setup ()
-    "Setup multi-language embedded parsers and continuous syntax highlighting for Astro templates."
+    "Setup multi-language embedded parsers and full level-4 syntax highlighting for Astro templates."
     (setq-local tab-width 2
                 indent-tabs-mode nil)
     (when (treesit-ready-p 'astro)
+      (setq-local treesit-font-lock-level 4)
+      (setq-local treesit-range-settings
+                  (treesit-range-rules
+                   :embed 'tsx
+                   :host 'astro
+                   '((frontmatter (frontmatter_js_block) @cap)
+                     (attribute_interpolation (attribute_js_expr) @cap)
+                     (html_interpolation (permissible_text) @cap)
+                     (script_element (raw_text) @cap))
+                   :embed 'css
+                   :host 'astro
+                   '((style_element (raw_text) @cap))))
+      (setq-local treesit-font-lock-settings
+                  (append
+                   (my/astro-ts-prefix-settings "tsx" (typescript-ts-mode--font-lock-settings 'tsx))
+                   (my/astro-ts-prefix-settings "css" css--treesit-settings)
+                   (treesit-font-lock-rules
+                    :language 'astro
+                    :feature 'astro-comment
+                    '((comment) @font-lock-comment-face
+                      (frontmatter ("---") @font-lock-comment-face))
+                    :language 'astro
+                    :feature 'astro-keyword
+                    '("doctype" @font-lock-keyword-face)
+                    :language 'astro
+                    :feature 'astro-definition
+                    '((tag_name) @font-lock-function-name-face)
+                    :language 'astro
+                    :feature 'astro-string
+                    '((quoted_attribute_value) @font-lock-string-face
+                      (attribute_name) @font-lock-constant-face)
+                    :language 'astro
+                    :feature 'astro-bracket
+                    '((["<" ">" "</" "/>" "{" "}"]) @font-lock-bracket-face))))
       (treesit-parser-create 'astro)
       (when (treesit-ready-p 'tsx)
         (treesit-parser-create 'tsx))
       (when (treesit-ready-p 'css)
         (treesit-parser-create 'css))
       (treesit-update-ranges (point-min) (point-max))
-      (treesit-font-lock-recompute-features)))
+      (treesit-font-lock-recompute-features)
+      (add-hook 'after-change-functions
+                (lambda (beg end _len)
+                  (when (and (bound-and-true-p astro-ts-mode)
+                             (treesit-parser-list))
+                    (treesit-update-ranges beg end)))
+                nil t)))
   :hook (astro-ts-mode . my/astro-ts-setup))
 
 (use-package python
@@ -115,6 +163,25 @@
                       :height 0.85)
 
   ;; Server configurations
+  (defun my/eglot-astro-contact (_interactive)
+    "Resolve typescript.tsdk path for astro-ls language server."
+    (let* ((proj-dir (or (and (fboundp 'projectile-project-root) (projectile-project-root))
+                         (and (fboundp 'project-root) (project-current) (project-root (project-current)))
+                         default-directory))
+           (local-tsdk (expand-file-name "node_modules/typescript/lib" proj-dir))
+           (global-tsdk (or (and (file-directory-p (expand-file-name "~/.npm-global/lib/node_modules/typescript/lib"))
+                                 (expand-file-name "~/.npm-global/lib/node_modules/typescript/lib"))
+                            (and (file-directory-p "/usr/local/lib/node_modules/typescript/lib")
+                                 "/usr/local/lib/node_modules/typescript/lib")
+                            (and (file-directory-p "/usr/lib/node_modules/typescript/lib")
+                                 "/usr/lib/node_modules/typescript/lib")))
+           (tsdk (if (file-directory-p local-tsdk)
+                     local-tsdk
+                   (or global-tsdk "node_modules/typescript/lib"))))
+      (list "astro-ls" "--stdio"
+            :initializationOptions
+            (list :typescript (list :tsdk tsdk)))))
+
   (add-to-list 'eglot-server-programs
                '((c-mode c-ts-mode)
                  . ("clangd"
@@ -125,7 +192,7 @@
   (add-to-list 'eglot-server-programs
                '(php-ts-mode . ("intelephense" "--stdio")))
   (add-to-list 'eglot-server-programs
-               '(astro-ts-mode . ("astro-ls" "--stdio")))
+               '(astro-ts-mode . my/eglot-astro-contact))
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode) . ("ruff" "server"))))
 
