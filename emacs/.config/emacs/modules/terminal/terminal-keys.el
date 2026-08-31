@@ -12,6 +12,11 @@
 
 ;; In-terminal toggle back
 (with-eval-after-load 'ghostel
+  (define-key ghostel-mode-map (kbd "M-f") #'my/ghostel-toggle-bottom)
   (define-key ghostel-semi-char-mode-map (kbd "M-f") #'my/ghostel-toggle-bottom))
+
+(with-eval-after-load 'evil-ghostel
+  (evil-define-key* '(insert normal visual motion emacs) evil-ghostel-mode-map
+    (kbd "M-f") #'my/ghostel-toggle-bottom))
 
 (provide 'terminal-keys)

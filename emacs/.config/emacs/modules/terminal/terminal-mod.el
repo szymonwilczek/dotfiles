@@ -39,15 +39,16 @@
   :ensure nil
   :commands (ghostel ghostel-project)
   :init
-  ;; so window switching works in all states
+  ;; so window switching and toggle work in all states
   (with-eval-after-load 'ghostel
-    (unless (member "C-w" ghostel-keymap-exceptions)
-      (setq ghostel-keymap-exceptions (append '("C-w") ghostel-keymap-exceptions))))
+    (dolist (key '("C-w" "M-f"))
+      (unless (member key ghostel-keymap-exceptions)
+        (setq ghostel-keymap-exceptions (append (list key) ghostel-keymap-exceptions)))))
   :config
   (setq ghostel-color-palette nil)
   (setq ghostel-scrollback-size 10000)
 
-  ;; Rebuild semi-char map with C-w exception
+  ;; Rebuild semi-char map with exceptions
   (ghostel--rebuild-semi-char-keymap)
 
   ;; Window switching inside ghostel terminal
@@ -75,10 +76,15 @@
   (defun my/ghostel-auto-close-on-exit (buf _event)
     "Close terminal buffer and split window when process exits."
     (when (and buf (buffer-live-p buf))
-      (let ((win (get-buffer-window buf t)))
-        (kill-buffer buf)
-        (when (and win (window-live-p win) (not (one-window-p t)))
-          (delete-window win)))))
+      (unless (or (buffer-local-value 'my/agent-buffer-p buf)
+                  (string-match-p "\\*agent-" (buffer-name buf)))
+        (let ((win (get-buffer-window buf t)))
+          (run-at-time 0 nil
+                       (lambda ()
+                         (when (and win (window-live-p win) (not (one-window-p t)))
+                           (delete-window win))
+                         (when (and buf (buffer-live-p buf))
+                           (kill-buffer buf))))))))
 
   (add-hook 'ghostel-exit-functions #'my/ghostel-auto-close-on-exit))
 
@@ -142,7 +148,6 @@
     (kbd "C-w") evil-window-map)
 
   ;; Ctrl+Shift+V for pasting
-  ;; Too much muscle memory with terminal
   (evil-define-key* '(insert normal visual motion emacs) evil-ghostel-mode-map
     (kbd "C-S-v") #'my/ghostel-paste-clipboard
     (kbd "C-S-V") #'my/ghostel-paste-clipboard
@@ -177,23 +182,77 @@
 
   (advice-add 'evil-ghostel--insert-state-entry :around #'my/evil-ghostel-safe-insert-state-entry))
 
+;; Dedicated bottom popup terminal
+(defvar my/ghostel-bottom-buffer-name "*ghostel-bottom*"
+  "Buffer name used for the dedicated bottom popup terminal.")
+
+(defvar-local my/ghostel-bottom-buffer-p nil
+  "Non-nil when current buffer is the dedicated bottom popup terminal.")
+
+(defun my/ghostel-get-bottom-buffer ()
+  "Return the dedicated bottom Ghostel buffer if live, otherwise nil.
+If the buffer exists but its process died, kill the stale buffer."
+  (let ((buf (get-buffer my/ghostel-bottom-buffer-name)))
+    (when (and buf (buffer-live-p buf))
+      (let ((proc (get-buffer-process buf)))
+        (if (and proc (process-live-p proc))
+            buf
+          (kill-buffer buf)
+          nil)))))
+
+(defun my/ghostel-create-bottom-buffer ()
+  "Create, configure, and start a fresh Ghostel process for the bottom terminal."
+  (when-let* ((old (get-buffer my/ghostel-bottom-buffer-name)))
+    (when (buffer-live-p old)
+      (kill-buffer old)))
+  (let ((buf (get-buffer-create my/ghostel-bottom-buffer-name)))
+    (with-current-buffer buf
+      (setq-local my/ghostel-bottom-buffer-p t)
+      (setq-local ghostel-buffer-name-function nil)
+      (setq-local display-line-numbers nil)
+      (display-line-numbers-mode -1)
+      (setq-local global-hl-line-mode nil)
+      (setq-local scroll-margin 0))
+    (let ((process-environment (append '("TERM=xterm-256color") process-environment)))
+      (ghostel-exec buf (or (getenv "SHELL") "/bin/bash")))
+    (with-current-buffer buf
+      (setq-local my/ghostel-bottom-buffer-p t)
+      (when-let* ((proc (get-buffer-process buf)))
+        (set-process-query-on-exit-flag proc nil)))
+    buf))
+
 (defun my/ghostel-toggle-bottom ()
   "Toggle Ghostel terminal window."
   (interactive)
-  (let* ((ghostel-buf (cl-find-if
-                       (lambda (b) (with-current-buffer b (eq major-mode 'ghostel-mode)))
-                       (buffer-list)))
-         (win (and ghostel-buf (get-buffer-window ghostel-buf))))
-    (if win
-        (if (eq win (selected-window))
-            (delete-window win)
-          (select-window win))
-      (if (and ghostel-buf (buffer-live-p ghostel-buf))
-          (let ((new-win (display-buffer-at-bottom ghostel-buf '((window-height . 0.45)))))
-            (when new-win (select-window new-win)))
-        (let ((new-win (split-window (frame-root-window) -15 'below)))
+  (let* ((bot-buf (my/ghostel-get-bottom-buffer))
+         (bot-win (and bot-buf (get-buffer-window bot-buf t))))
+    (cond
+     ;; Bottom terminal window is currently focused -> hide it
+     ((and bot-win (eq bot-win (selected-window)))
+      (delete-window bot-win))
+
+     ;; Bottom terminal window is visible but not focused -> focus it
+     (bot-win
+      (select-window bot-win)
+      (when (fboundp 'evil-insert-state)
+        (evil-insert-state 1)))
+
+     ;; Bottom terminal buffer exists and is live -> display it at bottom
+     (bot-buf
+      (let ((new-win (display-buffer-at-bottom bot-buf '((window-height . 0.38)))))
+        (when new-win
           (select-window new-win)
-          (ghostel))))))
+          (when (fboundp 'evil-insert-state)
+            (evil-insert-state 1)))))
+
+     ;; No live bottom terminal -> spawn fresh process and display at bottom
+     (t
+      (let* ((new-buf (my/ghostel-create-bottom-buffer))
+             (new-win (display-buffer-at-bottom new-buf '((window-height . 0.38)))))
+        (when new-win
+          (select-window new-win)
+          (when (fboundp 'evil-insert-state)
+            (evil-insert-state 1))))))))
 
 (defun my/ghostel-open-full-buffer ()
   "Open Ghostel as a dedicated full buffer."
