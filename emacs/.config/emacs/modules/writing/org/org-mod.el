@@ -54,7 +54,7 @@
   :ensure nil
   :custom
   (calendar-week-start-day 1) ; Monday
-  (calendar-date-style 'iso)
+  (calendar-date-style iso)
   (calendar-day-name-array ["Niedziela" "Poniedziałek" "Wtorek" "Środa" "Czwartek" "Piątek" "Sobota"])
   (calendar-month-name-array ["Styczeń" "Luty" "Marzec" "Kwiecień" "Maj" "Czerwiec" "Lipiec" "Sierpień" "Wrzesień" "Październik" "Listopad" "Grudzień"]))
 
@@ -62,15 +62,15 @@
   :ensure nil
   :after org
   :custom
-  (org-agenda-span 'week)
+  (org-agenda-span week)
   (org-agenda-start-on-weekday 1) ; Monday
   (org-agenda-show-all-dates t)
   (org-agenda-time-leading-zero t)
   (org-agenda-timegrid-use-ampm nil)
   (org-agenda-current-time-string "⭠ teraz")
   (org-agenda-use-time-grid t)
-  (org-agenda-files (list (expand-file-name "~/Dokumenty/writings/plan-polsl.org")))
   :config
+  (setq org-agenda-files (list (expand-file-name "~/Dokumenty/writings/plan-polsl.org")))
   (setq org-agenda-time-grid
         '((daily today require-timed)
           (800 1000 1200 1400 1600 1800 2000)
@@ -81,8 +81,9 @@
   :custom
   (plan-polsl-id "343266256")
   (plan-polsl-type 0)
-  (plan-polsl-target-file (expand-file-name "~/Dokumenty/writings/plan-polsl.org"))
-  (plan-polsl-auto-add-to-agenda t))
+  (plan-polsl-auto-add-to-agenda t)
+  :config
+  (setq plan-polsl-target-file (expand-file-name "~/Dokumenty/writings/plan-polsl.org")))
 
 (use-package org-appear
   :ensure t
