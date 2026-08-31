@@ -74,9 +74,12 @@
 (use-package nerd-icons
   :ensure t
   :custom
-  (nerd-icons-font-family "Symbols Nerd Font Mono"))
-
-(set-fontset-font t 'unicode (font-spec :family "Symbols Nerd Font Mono") nil 'append)
+  (nerd-icons-font-family "Typus Mono 92")
+  :config
+  (add-to-list 'nerd-icons-extension-icon-alist
+               '("astro" nerd-icons-sucicon "nf-custom-astro" :face nerd-icons-orange))
+  (add-to-list 'nerd-icons-mode-icon-alist
+               '(astro-ts-mode nerd-icons-sucicon "nf-custom-astro" :face nerd-icons-orange)))
 
 (use-package wakatime-mode
   :ensure t
