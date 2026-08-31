@@ -19,19 +19,21 @@
               cursor-in-non-selected-windows nil)
 (blink-cursor-mode -1)
 
-(add-hook 'prog-mode-hook #'display-line-numbers-mode)
-(add-hook 'text-mode-hook #'display-line-numbers-mode)
+(global-display-line-numbers-mode 1)
 (global-hl-line-mode 1)
 (setq-default display-line-numbers-width 3)
 
-;; Disable line numbers in PDF, images, terminal and treemacs
+;; Disable line numbers in PDF, images, terminal, treemacs and agent windows
+(defun my/disable-line-numbers ()
+  "Disable line numbers in special and terminal buffers."
+  (setq-local display-line-numbers nil)
+  (display-line-numbers-mode -1))
+
 (dolist (hook '(doc-view-mode-hook
                 image-mode-hook
                 ghostel-mode-hook
                 treemacs-mode-hook))
-  (add-hook hook (lambda ()
-                   (setq-local display-line-numbers nil)
-                   (display-line-numbers-mode -1))))
+  (add-hook hook #'my/disable-line-numbers))
 
 ;; Themes & Theme Persistence
 (defvar my/theme-cache-file (expand-file-name ".theme-cache" user-emacs-directory))
