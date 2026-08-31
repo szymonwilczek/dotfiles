@@ -139,10 +139,10 @@ Allowed during an active rebase at the current HEAD commit."
   :init
   (setq with-editor-emacsclient-executable "emacsclient")
   :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  (magit-diff-refine-hunk 'all)
-  (magit-save-repository-buffers 'dontask)
+  (magit-diff-refine-hunk all)
+  (magit-save-repository-buffers dontask)
   :config
+  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   (setq epa-file-default-user-key "B8E944071CB7EB8A")
 
   ;; Turn off line numbers
@@ -192,9 +192,7 @@ Allowed during an active rebase at the current HEAD commit."
   :defer t
   :after magit
   :init
-  (setq forge-add-default-bindings nil)
-  :config
-  (setq forge-database-connector 'sqlite-builtin))
+  (setq forge-add-default-bindings nil))
 
 ;; Git gutter indicators
 (use-package git-gutter
