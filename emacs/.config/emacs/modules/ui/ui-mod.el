@@ -19,7 +19,8 @@
               cursor-in-non-selected-windows nil)
 (blink-cursor-mode -1)
 
-(global-display-line-numbers-mode 1)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+(add-hook 'text-mode-hook #'display-line-numbers-mode)
 (global-hl-line-mode 1)
 (setq-default display-line-numbers-width 3)
 
