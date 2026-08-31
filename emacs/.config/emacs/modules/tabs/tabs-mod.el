@@ -3,7 +3,7 @@
   :load-path "~/Dokumenty/GitHub/bufferline.el"
   :demand t
   :custom
-  (bufferline-separator-style 'vertical)
+  (bufferline-separator-style vertical)
   :config
   (global-bufferline-mode 1))
 
