@@ -59,53 +59,12 @@
   :ensure nil
   :mode "\\.astro\\'"
   :init
-  (defun my/astro-ts-prefix-settings (prefix settings)
-    "Prefix font lock feature names with PREFIX while preserving language field."
-    (mapcar (lambda (setting)
-              (let ((copy (copy-sequence setting)))
-                (setf (nth 2 copy) (intern (format "%s-%s" prefix (nth 2 setting))))
-                copy))
-            settings))
-
   (defun my/astro-ts-setup ()
     "Setup multi-language embedded parsers and full level-4 syntax highlighting for Astro templates."
     (setq-local tab-width 2
                 indent-tabs-mode nil)
     (when (treesit-ready-p 'astro)
       (setq-local treesit-font-lock-level 4)
-      (setq-local treesit-range-settings
-                  (treesit-range-rules
-                   :embed 'tsx
-                   :host 'astro
-                   '((frontmatter (frontmatter_js_block) @cap)
-                     (attribute_interpolation (attribute_js_expr) @cap)
-                     (html_interpolation (permissible_text) @cap)
-                     (script_element (raw_text) @cap))
-                   :embed 'css
-                   :host 'astro
-                   '((style_element (raw_text) @cap))))
-      (setq-local treesit-font-lock-settings
-                  (append
-                   (my/astro-ts-prefix-settings "tsx" (typescript-ts-mode--font-lock-settings 'tsx))
-                   (my/astro-ts-prefix-settings "css" css--treesit-settings)
-                   (treesit-font-lock-rules
-                    :language 'astro
-                    :feature 'astro-comment
-                    '((comment) @font-lock-comment-face
-                      (frontmatter ("---") @font-lock-comment-face))
-                    :language 'astro
-                    :feature 'astro-keyword
-                    '("doctype" @font-lock-keyword-face)
-                    :language 'astro
-                    :feature 'astro-definition
-                    '((tag_name) @font-lock-function-name-face)
-                    :language 'astro
-                    :feature 'astro-string
-                    '((quoted_attribute_value) @font-lock-string-face
-                      (attribute_name) @font-lock-constant-face)
-                    :language 'astro
-                    :feature 'astro-bracket
-                    '((["<" ">" "</" "/>" "{" "}"]) @font-lock-bracket-face))))
       (treesit-parser-create 'astro)
       (when (treesit-ready-p 'tsx)
         (treesit-parser-create 'tsx))
@@ -119,7 +78,57 @@
                              (treesit-parser-list))
                     (treesit-update-ranges beg end)))
                 nil t)))
-  :hook (astro-ts-mode . my/astro-ts-setup))
+  :hook (astro-ts-mode . my/astro-ts-setup)
+  :config
+  (defun astro-ts-mode--prefix-font-lock-features (prefix settings)
+    "Prefix with PREFIX the font lock features in SETTINGS, preserving all elements."
+    (mapcar (lambda (setting)
+              (let ((copy (copy-sequence setting)))
+                (setf (nth 2 copy) (intern (format "%s-%s" prefix (nth 2 setting))))
+                copy))
+            settings))
+
+  (setq astro-ts-mode--font-lock-settings
+        (append
+         (astro-ts-mode--prefix-font-lock-features
+          "tsx"
+          (typescript-ts-mode--font-lock-settings 'tsx))
+         (astro-ts-mode--prefix-font-lock-features "css" css--treesit-settings)
+         (treesit-font-lock-rules
+          :language 'astro
+          :feature 'astro-comment
+          '((comment) @font-lock-comment-face
+            (frontmatter ("---") @font-lock-comment-face))
+
+          :language 'astro
+          :feature 'astro-keyword
+          '("doctype" @font-lock-keyword-face)
+
+          :language 'astro
+          :feature 'astro-definition
+          '((tag_name) @font-lock-function-name-face)
+
+          :language 'astro
+          :feature 'astro-string
+          '((quoted_attribute_value) @font-lock-string-face
+            (attribute_name) @font-lock-constant-face)
+
+          :language 'astro
+          :feature 'astro-bracket
+          '((["<" ">" "</" "/>" "{" "}"]) @font-lock-bracket-face))))
+
+  (setq astro-ts-mode--range-settings
+        (treesit-range-rules
+         :embed 'tsx
+         :host 'astro
+         '((frontmatter (frontmatter_js_block) @cap)
+           (attribute_interpolation (attribute_js_expr) @cap)
+           (html_interpolation (permissible_text) @cap)
+           (script_element (raw_text) @cap))
+
+         :embed 'css
+         :host 'astro
+         '((style_element (raw_text) @cap)))))
 
 (use-package python
   :ensure nil
