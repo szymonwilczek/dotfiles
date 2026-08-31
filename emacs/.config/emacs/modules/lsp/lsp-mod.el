@@ -58,9 +58,20 @@
 (use-package astro-ts-mode
   :ensure nil
   :mode "\\.astro\\'"
-  :hook (astro-ts-mode . (lambda ()
-                           (setq-local tab-width 2)
-                           (setq-local indent-tabs-mode nil))))
+  :init
+  (defun my/astro-ts-setup ()
+    "Setup multi-language embedded parsers and continuous syntax highlighting for Astro templates."
+    (setq-local tab-width 2
+                indent-tabs-mode nil)
+    (when (treesit-ready-p 'astro)
+      (treesit-parser-create 'astro)
+      (when (treesit-ready-p 'tsx)
+        (treesit-parser-create 'tsx))
+      (when (treesit-ready-p 'css)
+        (treesit-parser-create 'css))
+      (treesit-update-ranges (point-min) (point-max))
+      (treesit-font-lock-recompute-features)))
+  :hook (astro-ts-mode . my/astro-ts-setup))
 
 (use-package python
   :ensure nil
@@ -79,17 +90,12 @@
    (go-ts-mode        . eglot-ensure)
    (go-mod-ts-mode    . eglot-ensure)
    (go-work-ts-mode   . eglot-ensure)
-   (php-mode          . eglot-ensure)
    (php-ts-mode       . eglot-ensure)
-   (astro-mode        . eglot-ensure)
    (astro-ts-mode     . eglot-ensure)
-   (lua-mode          . eglot-ensure)
    (lua-ts-mode       . eglot-ensure)
-   (json-mode         . eglot-ensure)
    (json-ts-mode      . eglot-ensure)
    (sh-mode           . eglot-ensure)
    (bash-ts-mode      . eglot-ensure)
-   (python-mode       . eglot-ensure)
    (python-ts-mode    . eglot-ensure))
   :config
 
@@ -117,9 +123,9 @@
                     "--completion-style=detailed"
                     "--header-insertion=iwyu")))
   (add-to-list 'eglot-server-programs
-               '((php-mode php-ts-mode) . ("intelephense" "--stdio")))
+               '(php-ts-mode . ("intelephense" "--stdio")))
   (add-to-list 'eglot-server-programs
-               '((astro-ts-mode astro-mode) . ("astro-ls" "--stdio")))
+               '(astro-ts-mode . ("astro-ls" "--stdio")))
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode) . ("ruff" "server"))))
 
