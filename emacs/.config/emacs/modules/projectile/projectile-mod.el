@@ -4,12 +4,59 @@
   :ensure t
   :custom
   (persp-mode-prefix-key (kbd "C-c M-p"))
-  (persp-kill-foreign-buffer t)
   (persp-state-default-file nil)
   (persp-auto-save-persps-to-file-p nil)
   (persp-auto-resume-time -1)
+  (persp-suppress-no-prefix-key-warning t)
+  (persp-initial-frame-name "main")
   :init
-  (persp-mode 1))
+  (persp-mode 1)
+  :config
+
+  (defun my/persp-safe-check-persp (orig-fn persp)
+    "Prevent fatal errors on killed/nil perspectives by self-healing frame state."
+    (if (or (null persp) (persp-killed-p persp))
+        (let* ((names (persp-names))
+               (fallback (or (car names) persp-initial-frame-name "main")))
+          (when (and (persp-last) (persp-killed-p (persp-last)))
+            (set-frame-parameter nil 'persp--last nil))
+          (when (and (persp-curr) (persp-killed-p (persp-curr)))
+            (set-frame-parameter nil 'persp--curr (gethash fallback (perspectives-hash)))))
+      (funcall orig-fn persp)))
+
+  (advice-add 'check-persp :around #'my/persp-safe-check-persp)
+
+  (defun my/persp-safe-activate (orig-fn persp &rest args)
+    "Ensure PERSP is live and registered before activating.
+If killed or missing, seamlessly fall back to an active perspective."
+    (let ((target-persp
+           (cond
+            ((and persp
+                  (not (persp-killed-p persp))
+                  (gethash (persp-name persp) (perspectives-hash)))
+             persp)
+            (t
+             (let* ((names (persp-names))
+                    (fallback-name (or (car names) persp-initial-frame-name "main"))
+                    (fallback-persp (gethash fallback-name (perspectives-hash))))
+               (or fallback-persp (persp-new fallback-name)))))))
+      (apply orig-fn target-persp args)))
+
+  (advice-add 'persp-activate :around #'my/persp-safe-activate)
+
+  (defun my/persp-cleanup-killed-frame-refs (&rest _args)
+    "Purge references to killed perspectives from all frame parameters."
+    (dolist (frame (frame-list))
+      (let ((last (frame-parameter frame 'persp--last))
+            (curr (frame-parameter frame 'persp--curr)))
+        (when (and last (persp-killed-p last))
+          (set-frame-parameter frame 'persp--last nil))
+        (when (and curr (persp-killed-p curr))
+          (let* ((names (persp-names frame))
+                 (fallback (or (car names) "main")))
+            (set-frame-parameter frame 'persp--curr (gethash fallback (perspectives-hash frame))))))))
+
+  (advice-add 'persp-kill :after #'my/persp-cleanup-killed-frame-refs))
 
 (use-package projectile
   :ensure t
