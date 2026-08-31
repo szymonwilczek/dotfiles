@@ -30,42 +30,47 @@
   "Alist mapping major-modes to external formatter CLI commands.")
 
 (defun my/format-buffer-with-command (cmd-args)
-  "Format current buffer by sending contents through external executable CMD-ARGS."
+  "Format current buffer by sending contents through external executable CMD-ARGS.
+If formatted output is identical to current buffer content, no modifications are made."
   (let* ((cmd (car cmd-args))
          (args (mapcar (lambda (arg)
                          (if (string-match-p "%f" arg)
-                             (replace-regexp-in-string "%f" (or (buffer-file-name) "temp.py") arg)
+                             (replace-regexp-in-string "%f" (or (buffer-file-name) "temp.txt") arg)
                            arg))
                        (cdr cmd-args))))
     (if (not (executable-find cmd))
         nil
-      (let ((orig-point (point))
-            (orig-window-start (window-start))
-            (orig-content (buffer-string))
-            (err-file (make-temp-file "formatter-err-")))
+      (let* ((orig-point (point))
+             (orig-window-start (window-start))
+             (err-file (make-temp-file "formatter-err-"))
+             (out-buf (generate-new-buffer " *formatter-out*")))
         (unwind-protect
             (let ((exit-code
                    (apply #'call-process-region
                           (point-min) (point-max)
                           cmd
-                          t
-                          (list t err-file)
+                          nil
+                          (list out-buf err-file)
                           nil
                           args)))
-              (if (= exit-code 0)
-                  (progn
+              (if (/= exit-code 0)
+                  (let ((err-msg (with-temp-buffer
+                                   (insert-file-contents err-file)
+                                   (buffer-string))))
+                    (message "Formatter %s error: %s" cmd (string-trim err-msg))
+                    nil)
+                (let ((identical (string= (buffer-string)
+                                          (with-current-buffer out-buf (buffer-string)))))
+                  (if identical
+                      (progn
+                        (message "Buffer is already formatted (no changes).")
+                        t)
+                    (replace-buffer-contents out-buf)
                     (goto-char (min orig-point (point-max)))
                     (set-window-start nil orig-window-start)
                     (message "Formatted buffer with %s" cmd)
-                    t)
-                (erase-buffer)
-                (insert orig-content)
-                (goto-char orig-point)
-                (let ((err-msg (with-temp-buffer
-                                 (insert-file-contents err-file)
-                                 (buffer-string))))
-                  (message "❌ Formatter %s error: %s" cmd (string-trim err-msg)))
-                nil))
+                    t))))
+          (kill-buffer out-buf)
           (when (file-exists-p err-file)
             (delete-file err-file)))))))
 
