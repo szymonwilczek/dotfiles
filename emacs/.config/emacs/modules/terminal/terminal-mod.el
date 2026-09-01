@@ -7,14 +7,36 @@
   (when (file-directory-p evil-ghostel-dir)
     (add-to-list 'load-path evil-ghostel-dir)))
 
+(defun my/get-clipboard-string ()
+  "Safely retrieve string from kill ring, Emacs GUI selection, or Wayland clipboard."
+  (let ((text (or (current-kill 0 t)
+                  (gui-get-selection 'CLIPBOARD)
+                  (when (fboundp 'gui-backend-get-selection)
+                    (gui-backend-get-selection 'CLIPBOARD 'UTF8_STRING))
+                  (when (executable-find "wl-paste")
+                    (ignore-errors
+                      (with-output-to-string
+                        (with-current-buffer standard-output
+                          (call-process "wl-paste" nil t nil "--no-newline"))))))))
+    (when (and text (stringp text) (not (string-empty-p text)))
+      (substring-no-properties text))))
+
 (defun my/ghostel-paste-clipboard ()
-  "Paste system clipboard into Ghostel terminal using bracketed paste."
+  "Paste system clipboard or kill ring into Ghostel terminal using bracketed paste."
   (interactive)
-  (let ((text (or (gui-get-selection 'CLIPBOARD)
-                  (gui-get-primary-selection)
-                  (current-kill 0 t))))
-    (when text
-      (ghostel-paste-string text))))
+  (let ((text (my/get-clipboard-string)))
+    (if text
+        (ghostel-paste-string text)
+      (user-error "Clipboard and kill ring are empty"))))
+
+(defun my/ghostel-normal-paste (&optional count)
+  "Paste system clipboard or kill ring in Ghostel normal state."
+  (interactive "p")
+  (let ((text (my/get-clipboard-string)))
+    (if text
+        (dotimes (_ (or count 1))
+          (ghostel-paste-string text))
+      (user-error "Clipboard and kill ring are empty"))))
 
 (defvar my/ghostel-double-escape-timeout 0.35
   "Timeout in seconds to distinguish single ESC (terminal) from double ESC (evil normal).")
@@ -184,15 +206,15 @@
     (kbd "C-S-V") #'my/ghostel-paste-clipboard
     [C-S-v]       #'my/ghostel-paste-clipboard
     [C-S-V]       #'my/ghostel-paste-clipboard
-    (kbd "C-v")   #'my/ghostel-paste-clipboard
-    (kbd "C-y")   #'my/ghostel-paste-clipboard
     (kbd "C-u")   #'my/ghostel-kill-line-backward
     (kbd "C-w")   #'my/ghostel-kill-word-backward
     (kbd "C-k")   #'my/ghostel-kill-line-forward)
 
   (evil-define-key* 'normal evil-ghostel-mode-map
-    "p"           #'my/ghostel-paste-clipboard
-    "P"           #'my/ghostel-paste-clipboard)
+    "p"                         #'my/ghostel-normal-paste
+    "P"                         #'my/ghostel-normal-paste
+    [remap evil-paste-after]    #'my/ghostel-normal-paste
+    [remap evil-paste-before]   #'my/ghostel-normal-paste)
 
   (evil-define-key* 'visual evil-ghostel-mode-map
     "y"           #'my/ghostel-visual-yank
