@@ -41,10 +41,6 @@
   (define-key evil-visual-state-map (kbd "M-j") #'evil-mc-make-cursor-move-next-line)
   (define-key evil-normal-state-map (kbd "M-k") #'evil-mc-make-cursor-move-prev-line)
   (define-key evil-visual-state-map (kbd "M-k") #'evil-mc-make-cursor-move-prev-line)
-  (define-key evil-normal-state-map (kbd "M-d") #'evil-mc-make-and-goto-next-match)
-  (define-key evil-visual-state-map (kbd "M-d") #'evil-mc-make-and-goto-next-match)
-  (define-key evil-normal-state-map (kbd "M-D") #'evil-mc-skip-and-goto-next-match)
-  (define-key evil-visual-state-map (kbd "M-D") #'evil-mc-skip-and-goto-next-match)
 
   ;; Window navigation
   (define-key evil-normal-state-map (kbd "C-w h") 'evil-window-left)
@@ -71,13 +67,7 @@
 
     ;; Multicursor Leader bindings
     "m"  '(:ignore t :which-key "Multicursor")
-    "mj" '(evil-mc-make-cursor-move-next-line :which-key "Cursor Down")
-    "mk" '(evil-mc-make-cursor-move-prev-line :which-key "Cursor Up")
-    "md" '(evil-mc-make-and-goto-next-match :which-key "Match Next")
-    "mD" '(evil-mc-skip-and-goto-next-match :which-key "Skip Match")
     "ma" '(evil-mc-make-all-cursors :which-key "Match All in Buffer")
-    "mu" '(evil-mc-undo-all-cursors :which-key "Clear All Cursors")
-    "mq" '(evil-mc-pause-cursors :which-key "Pause/Resume Cursors")
 
     ;; Window splits
     "s" '(evil-window-vsplit :which-key "Split Vertical")
