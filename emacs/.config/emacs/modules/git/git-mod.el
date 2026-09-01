@@ -132,6 +132,14 @@ Allowed during an active rebase at the current HEAD commit."
       (delete-other-windows)
       (switch-to-buffer buf))))
 
+;; GPG Pinentry Configuration
+(use-package pinentry
+  :ensure t
+  :init
+  (setq epg-pinentry-mode 'loopback)
+  :config
+  (pinentry-start))
+
 ;; Magit Configuration
 (use-package magit
   :ensure t
