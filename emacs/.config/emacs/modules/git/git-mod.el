@@ -252,6 +252,45 @@ Allowed during an active rebase at the current HEAD commit."
   (my/git-gutter-sync-theme-faces)
   (advice-add 'load-theme :after #'my/git-gutter-sync-theme-faces))
 
+;; Merge conflict resolution
+(defun my/smerge-try-enable ()
+  "Enable `smerge-mode' only if genuine merge conflict markers are found."
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "^<<<<<<< " nil t)
+      (smerge-mode 1))))
+
+(add-hook 'find-file-hook #'my/smerge-try-enable)
+(add-hook 'after-revert-hook #'my/smerge-try-enable)
+
+(defun my/smerge-sync-theme-faces (&rest _)
+  "Style smerge conflict blocks and markers with full-width theme colors."
+  (require 'smerge-mode nil t)
+  (let ((bg-ours   (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-err))
+                       "#3b1414"))
+        (fg-ours   (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'err))
+                       "#ff6666"))
+        (bg-sep    (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-warning))
+                       "#3b2e0e"))
+        (fg-sep    (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'warning))
+                       "#ffbb33"))
+        (bg-theirs (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-info))
+                       "#102542"))
+        (fg-theirs (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'info))
+                       "#4da6ff")))
+    (when (facep 'smerge-markers)
+      (set-face-attribute 'smerge-markers nil :background bg-sep :foreground fg-sep :weight 'bold :extend t))
+    (when (facep 'smerge-upper)
+      (set-face-attribute 'smerge-upper nil :background bg-ours :extend t))
+    (when (facep 'smerge-lower)
+      (set-face-attribute 'smerge-lower nil :background bg-theirs :extend t))
+    (when (facep 'smerge-base)
+      (set-face-attribute 'smerge-base nil :background 'unspecified :extend t))))
+
+(with-eval-after-load 'smerge-mode
+  (my/smerge-sync-theme-faces)
+  (advice-add 'load-theme :after #'my/smerge-sync-theme-faces))
+
 (require 'git-keys)
 
 (provide 'git-mod)
