@@ -50,16 +50,19 @@
     (format " %s%s%s " my/modeline--cached-base-name mod ro)))
 
 (defun my/modeline-location ()
-  "Render line and column location matching %2l:%-2v."
-  (let* ((state (and (bound-and-true-p evil-mode) evil-state))
-         (face (pcase state
-                 ('normal '(:inherit font-lock-keyword-face :weight bold))
-                 ('insert '(:inherit font-lock-string-face :weight bold))
-                 ('visual '(:inherit font-lock-type-face :weight bold))
-                 ('replace '(:inherit error :weight bold))
-                 (_ '(:inherit font-lock-constant-face :weight bold))))
-         (loc (format " %2d:%-2d " (line-number-at-pos (point) t) (1+ (current-column)))))
-    (propertize loc 'face face)))
+  "Render line and column location matching %2l:%-2v.
+Hidden in AI agent buffers."
+  (unless (or (bound-and-true-p my/agent-buffer-p)
+              (string-match-p "\\*agent-" (buffer-name)))
+    (let* ((state (and (bound-and-true-p evil-mode) evil-state))
+           (face (pcase state
+                   ('normal '(:inherit font-lock-keyword-face :weight bold))
+                   ('insert '(:inherit font-lock-string-face :weight bold))
+                   ('visual '(:inherit font-lock-type-face :weight bold))
+                   ('replace '(:inherit error :weight bold))
+                   (_ '(:inherit font-lock-constant-face :weight bold))))
+           (loc (format " %2d:%-2d " (line-number-at-pos (point) t) (1+ (current-column)))))
+      (propertize loc 'face face))))
 
 (defun my/modeline-filetype ()
   "Render simplified major mode filetype."
