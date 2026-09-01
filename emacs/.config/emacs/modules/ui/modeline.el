@@ -117,9 +117,13 @@ Hidden in AI agent buffers."
 (timeout-throttle #'my/modeline-update-fileinfo 0.5)
 
 (defun my/modeline-fileinfo ()
-  "Return cached fileinfo string."
-  (my/modeline-update-fileinfo)
-  my/modeline--cached-fileinfo)
+  "Return cached fileinfo string.
+Hidden in AI agent buffers."
+  (if (or (bound-and-true-p my/agent-buffer-p)
+          (string-match-p "\\*agent-" (buffer-name)))
+      ""
+    (my/modeline-update-fileinfo)
+    my/modeline--cached-fileinfo))
 
 (defun my/modeline-update-git-branch ()
   "Compute current git branch name in brackets."
