@@ -26,10 +26,12 @@
           new-win))))
 
 (defun my/agent-open (name command-name &optional args)
-  "Open or switch to AI agent NAME running COMMAND-NAME in right split."
+  "Open or switch to AI agent NAME running COMMAND-NAME in right split.
+Working directory is automatically set to the project root of the current buffer."
   (require 'ghostel)
   (setq my/agent-active-name name)
-  (let* ((buf-name (format "*agent-%s*" (downcase (replace-regexp-in-string "[^a-zA-Z0-9]" "-" name))))
+  (let* ((target-dir (my/project-root-dwim default-directory))
+         (buf-name (format "*agent-%s*" (downcase (replace-regexp-in-string "[^a-zA-Z0-9]" "-" name))))
          (cmd (or (executable-find command-name)
                   (executable-find (expand-file-name command-name "~/.local/bin"))
                   (executable-find (expand-file-name command-name "~/.npm-global/bin"))
@@ -41,16 +43,17 @@
         (switch-to-buffer existing)
       (let ((buf (get-buffer-create buf-name)))
         (switch-to-buffer buf)
+        (with-current-buffer buf
+          (setq default-directory target-dir)
+          (setq-local my/agent-buffer-p t)
+          (setq-local ghostel-buffer-name-function nil)
+          (setq-local display-line-numbers nil)
+          (display-line-numbers-mode -1))
         (let ((process-environment (append '("TERM=xterm-256color") process-environment))
               (exec-path (append (list (expand-file-name "~/.local/bin")
                                        (expand-file-name "~/.npm-global/bin"))
                                  exec-path)))
-          (ghostel-exec buf cmd args))
-        (with-current-buffer buf
-          (setq-local my/agent-buffer-p t)
-          (setq-local ghostel-buffer-name-function nil)
-          (setq-local display-line-numbers nil)
-          (display-line-numbers-mode -1))))))
+          (ghostel-exec buf cmd args))))))
 
 ;; Auto-close split window on agent exit
 (defun my/agent-cleanup-on-exit (buf _event)

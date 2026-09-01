@@ -136,4 +136,26 @@
       doc-view-resolution 180
       doc-view-continuous t)
 
+;; Universal Project Root detection
+(defun my/project-root-dwim (&optional dir)
+  "Find the project root for DIR or current buffer.
+Checks Projectile, project.el, Treemacs workspace, VC root, and fallbacks."
+  (let ((dir (or dir default-directory)))
+    (file-name-as-directory
+     (expand-file-name
+      (or (when (and (fboundp 'projectile-project-root)
+                     (projectile-project-p dir))
+            (projectile-project-root dir))
+          (when (fboundp 'project-current)
+            (when-let* ((pr (project-current nil dir)))
+              (project-root pr)))
+          (when (and (fboundp 'treemacs-project-of-path)
+                     (fboundp 'treemacs-project->path))
+            (when-let* ((p (treemacs-project-of-path dir)))
+              (treemacs-project->path p)))
+          (when (fboundp 'vc-root-dir)
+            (let ((default-directory dir))
+              (vc-root-dir)))
+          dir)))))
+
 (provide 'core)

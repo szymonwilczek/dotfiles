@@ -281,13 +281,16 @@ If the buffer exists but its process died, kill the stale buffer."
           (kill-buffer buf)
           nil)))))
 
-(defun my/ghostel-create-bottom-buffer ()
-  "Create, configure, and start a fresh Ghostel process for the bottom terminal."
+(defun my/ghostel-create-bottom-buffer (&optional target-dir)
+  "Create, configure, and start a fresh Ghostel process for the bottom terminal.
+Working directory is set to TARGET-DIR or current buffer project root."
   (when-let* ((old (get-buffer my/ghostel-bottom-buffer-name)))
     (when (buffer-live-p old)
       (kill-buffer old)))
-  (let ((buf (get-buffer-create my/ghostel-bottom-buffer-name)))
+  (let ((buf (get-buffer-create my/ghostel-bottom-buffer-name))
+        (dir (or target-dir (my/project-root-dwim default-directory))))
     (with-current-buffer buf
+      (setq default-directory dir)
       (setq-local my/ghostel-bottom-buffer-p t)
       (setq-local ghostel-buffer-name-function nil)
       (setq-local display-line-numbers nil)
