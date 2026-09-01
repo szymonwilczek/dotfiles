@@ -93,6 +93,42 @@ If formatted output is identical to current buffer content, no modifications are
       (indent-region (point-min) (point-max))
       (message "Formatted buffer with indent-region.")))))
 
+(defun my/goto-prev-diagnostic ()
+  "Jump to previous diagnostic error or warning across Flymake, Flycheck, or next-error."
+  (interactive)
+  (cond
+   ((and (bound-and-true-p flymake-mode) (fboundp 'flymake-goto-prev-error))
+    (flymake-goto-prev-error 1 t))
+   ((and (bound-and-true-p flycheck-mode) (fboundp 'flycheck-previous-error))
+    (flycheck-previous-error))
+   ((fboundp 'previous-error)
+    (condition-case nil (previous-error) (error (message "No previous diagnostic found"))))
+   (t (message "No active diagnostic engine"))))
+
+(defun my/goto-next-diagnostic ()
+  "Jump to next diagnostic error or warning across Flymake, Flycheck, or next-error."
+  (interactive)
+  (cond
+   ((and (bound-and-true-p flymake-mode) (fboundp 'flymake-goto-next-error))
+    (flymake-goto-next-error 1 t))
+   ((and (bound-and-true-p flycheck-mode) (fboundp 'flycheck-next-error))
+    (flycheck-next-error))
+   ((fboundp 'next-error)
+    (condition-case nil (next-error) (error (message "No next diagnostic found"))))
+   (t (message "No active diagnostic engine"))))
+
+(defun my/show-diagnostic ()
+  "Show diagnostic message under point."
+  (interactive)
+  (cond
+   ((and (bound-and-true-p flymake-mode) (fboundp 'flymake-show-diagnostic))
+    (flymake-show-diagnostic (point)))
+   ((and (bound-and-true-p flycheck-mode) (fboundp 'flycheck-display-error-at-point))
+    (flycheck-display-error-at-point))
+   ((fboundp 'eldoc-doc-buffer)
+    (eldoc-doc-buffer))
+   (t (message "No diagnostic at point"))))
+
 (with-eval-after-load 'evil
   (evil-define-key 'normal 'global
     "gd" 'xref-find-definitions
@@ -100,9 +136,9 @@ If formatted output is identical to current buffer content, no modifications are
     "gi" 'eglot-find-implementation
     "gr" 'xref-find-references
     "K"  'eldoc
-    "[d" 'flymake-goto-prev-error
-    "]d" 'flymake-goto-next-error
-    (kbd "C-w d") 'flymake-show-diagnostic))
+    "[d" #'my/goto-prev-diagnostic
+    "]d" #'my/goto-next-diagnostic
+    (kbd "C-w d") #'my/show-diagnostic))
 
 ;; Leader code actions & refactoring
 (with-eval-after-load 'evil-keys
