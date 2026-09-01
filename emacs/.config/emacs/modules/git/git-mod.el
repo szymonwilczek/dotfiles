@@ -338,6 +338,27 @@ Allowed during an active rebase at the current HEAD commit."
 
 (setq smerge-font-lock-keywords nil)
 
+(defvar my/git-conflict--idle-timer nil)
+
+(defun my/git-conflict--on-change (&rest _)
+  "Debounced live update when buffer content changes (pasted conflict, edited text)."
+  (when (and (bound-and-true-p my/git-conflict-highlight-enabled)
+             (not (minibufferp))
+             (not (derived-mode-p 'dired-mode 'magit-mode 'ghostel-mode))
+             (not (string-match-p "\\*agent-" (buffer-name)))
+             (not (string-match-p "\\*ghostel" (buffer-name))))
+    (when (timerp my/git-conflict--idle-timer)
+      (cancel-timer my/git-conflict--idle-timer))
+    (setq my/git-conflict--idle-timer
+          (run-with-idle-timer 0.4 nil
+                               (lambda (buf)
+                                 (when (buffer-live-p buf)
+                                   (with-current-buffer buf
+                                     (my/git-conflict-highlight-buffer))))
+                               (current-buffer)))))
+
+(add-hook 'after-change-functions #'my/git-conflict--on-change)
+(add-hook 'after-change-major-mode-hook #'my/git-conflict-highlight-buffer)
 (add-hook 'find-file-hook #'my/git-conflict-highlight-buffer)
 (add-hook 'after-save-hook #'my/git-conflict-highlight-buffer)
 (add-hook 'after-revert-hook #'my/git-conflict-highlight-buffer)
