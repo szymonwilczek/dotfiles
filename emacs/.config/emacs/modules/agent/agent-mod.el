@@ -113,41 +113,56 @@
         (_          (my/agent-shell-gemini))))))
 
 (defun my/agent-edit-prompt ()
-  "Draft a multiline prompt in a dedicated text buffer within the agent's window.
-Does not disturb other windows. Press C-c C-c to submit to the agent,
-or C-c C-k to cancel."
+  "Draft a prompt in a dedicated bottom split under the agent chat window.
+Leaves the chat history visible above. Resizable via mouse / window splits.
+Press C-c C-c to submit to the agent, or C-c C-k to cancel."
   (interactive)
   (let* ((orig-buf (current-buffer))
-         (orig-win (selected-window)))
+         (agent-win (selected-window)))
     (unless (or (buffer-local-value 'my/agent-buffer-p orig-buf)
                 (string-match-p "\\*agent-" (buffer-name orig-buf)))
       (user-error "Current buffer is not an AI agent terminal"))
-    (let ((prompt-buf (get-buffer-create "*agent-prompt*")))
-      (with-current-buffer prompt-buf
-        (erase-buffer)
-        (text-mode)
-        (setq-local header-line-format
-                    (propertize " [Agent Prompt Buffer] C-c C-c: Submit | C-c C-k: Cancel "
-                                'face '(:weight bold :foreground "#268bd2")))
-        (local-set-key (kbd "C-c C-c")
-                       (lambda ()
-                         (interactive)
-                         (let ((text (buffer-string)))
-                           (kill-buffer (current-buffer))
-                           (select-window orig-win)
-                           (switch-to-buffer orig-buf)
-                           (when (and text (not (string-blank-p text)))
-                             (ghostel-paste-string (string-trim text))
-                             (ghostel--send-encoded "enter" "")))))
-        (local-set-key (kbd "C-c C-k")
-                       (lambda ()
-                         (interactive)
-                         (kill-buffer (current-buffer))
-                         (select-window orig-win)
-                         (switch-to-buffer orig-buf))))
-      (switch-to-buffer prompt-buf)
-      (when (fboundp 'evil-insert-state)
-        (evil-insert-state 1)))))
+    ;; if prompt window is already open -> focus it
+    (let* ((existing-buf (get-buffer "*agent-prompt*"))
+           (existing-win (and existing-buf (get-buffer-window existing-buf t))))
+      (if (and existing-win (window-live-p existing-win))
+          (select-window existing-win)
+        (let* ((split-height (max 7 (floor (* (window-total-height agent-win) 0.35))))
+               (prompt-win (split-window agent-win (- split-height) 'below))
+               (prompt-buf (get-buffer-create "*agent-prompt*")))
+          (with-current-buffer prompt-buf
+            (erase-buffer)
+            (text-mode)
+            (setq-local header-line-format
+                        (propertize " [Prompt] C-c C-c: Submit | C-c C-k: Cancel | Drag border to resize "
+                                    'face '(:weight bold :foreground "#268bd2")))
+            (local-set-key (kbd "C-c C-c")
+                           (lambda ()
+                             (interactive)
+                             (let ((text (buffer-string)))
+                               (when (window-live-p (selected-window))
+                                 (delete-window (selected-window)))
+                               (when (get-buffer "*agent-prompt*")
+                                 (kill-buffer "*agent-prompt*"))
+                               (when (and (window-live-p agent-win) (buffer-live-p orig-buf))
+                                 (select-window agent-win)
+                                 (with-current-buffer orig-buf
+                                   (when (and text (not (string-blank-p text)))
+                                     (ghostel-paste-string (string-trim text))
+                                     (ghostel--send-encoded "enter" "")))))))
+            (local-set-key (kbd "C-c C-k")
+                           (lambda ()
+                             (interactive)
+                             (when (window-live-p (selected-window))
+                               (delete-window (selected-window)))
+                             (when (get-buffer "*agent-prompt*")
+                               (kill-buffer "*agent-prompt*"))
+                             (when (and (window-live-p agent-win) (buffer-live-p orig-buf))
+                               (select-window agent-win)))))
+          (set-window-buffer prompt-win prompt-buf)
+          (select-window prompt-win)
+          (when (fboundp 'evil-insert-state)
+            (evil-insert-state 1)))))))
 
 (require 'agent-keys)
 
