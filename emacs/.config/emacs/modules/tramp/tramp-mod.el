@@ -4,17 +4,19 @@
   :ensure nil
   :custom
   (tramp-default-method "ssh")
-  (tramp-use-ssh-controlmaster-options nil)
+  (tramp-use-ssh-controlmaster-options t)
   (tramp-use-scp-direct-remote-copying t)
   (tramp-copy-size-limit (* 1024 1024))
   (tramp-connection-timeout 10)
   (tramp-terminal-type "tramp")
   (tramp-verbose 1)
 
-  ;; Caching and performance
+  ;; Caching and persistency
   (remote-file-name-inhibit-cache nil)
   (tramp-completion-reread-directory-timeout 120)
+  (password-cache t)
   (password-cache-expiry 3600)
+  (tramp-persistency-file-name (expand-file-name "tramp-persistency.eld" user-emacs-directory))
 
   ;; Lockfiles and autosave
   (remote-file-name-inhibit-locks t)
