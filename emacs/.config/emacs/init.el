@@ -21,6 +21,7 @@
 (require 'writings-mod)
 (require 'jot-mod)
 (require 'dired-mod)
+(require 'tramp-mod)
 
 ;; Native-compile modules in background if modified
 (when (featurep 'native-compile)
