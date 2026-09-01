@@ -20,6 +20,7 @@
 (require 'agent-mod)
 (require 'writings-mod)
 (require 'jot-mod)
+(require 'dired-mod)
 
 ;; Native-compile modules in background if modified
 (when (featurep 'native-compile)
@@ -36,38 +37,13 @@
  ;; If there is more than one, they won't work right.
  '(global-wakatime-mode t)
  '(package-selected-packages
-   '(citar
-     citar-org
-     company
-     consult
-     ef-themes
-     evil
-     evil-collection
-     evil-surround
-     forge
-     general
-     ghostel
-     git-gutter
-     git-gutter-fringe
-     good-scroll
-     magit
-     marginalia
-     nerd-icons
-     nerd-icons-completion
-     olivetti
-     orderless
-     persp-projectile
-     perspective
-     plan-polsl
-     projectile
-     treemacs
-     treemacs-evil
-     treemacs-nerd-icons
-     treemacs-perspective
-     treemacs-projectile
-     vertico
-     vundo
-     wakatime-mode))
+   '(citar citar-org company consult ef-themes evil evil-collection
+           evil-surround forge general ghostel git-gutter
+           git-gutter-fringe good-scroll magit marginalia nerd-icons
+           nerd-icons-completion nerd-icons-dired olivetti orderless
+           persp-projectile perspective plan-polsl projectile treemacs
+           treemacs-evil treemacs-nerd-icons treemacs-perspective
+           treemacs-projectile vertico vundo wakatime-mode))
  '(package-vc-selected-packages
    '((plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"
                  :branch "main")
