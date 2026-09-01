@@ -11,8 +11,6 @@
 (with-eval-after-load 'smerge-mode
   (with-eval-after-load 'evil
     (evil-define-key 'normal smerge-mode-map
-      "[n" #'smerge-prev
-      "]n" #'smerge-next
       "[x" #'smerge-prev
       "]x" #'smerge-next)))
 
