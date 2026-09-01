@@ -42,6 +42,14 @@
   :config
   (global-evil-surround-mode 1))
 
+(use-package evil-mc
+  :after evil
+  :ensure t
+  :init
+  (global-evil-mc-mode 1)
+  :config
+  (add-hook 'evil-mc-after-cursors-deleted-hook #'evil-ex-nohighlight))
+
 (use-package vundo
   :ensure t
   :custom
