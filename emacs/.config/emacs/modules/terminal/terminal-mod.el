@@ -23,17 +23,30 @@
   "Timestamp of the last ESC keystroke in the buffer.")
 
 (defun my/ghostel-escape-dwim ()
-  "If pressed once, send ESC to terminal; if pressed twice quickly, enter Evil Normal mode."
+  "Single ESC switches to Evil Normal state. Double ESC quickly sends ESC to the terminal process."
   (interactive)
   (let ((now (float-time)))
     (if (< (- now my/ghostel-last-escape-time) my/ghostel-double-escape-timeout)
         (progn
           (setq my/ghostel-last-escape-time 0)
-          (evil-normal-state)
-          (message "-- NORMAL --"))
+          (ghostel--on-user-input)
+          (ghostel--send-encoded "escape" "")
+          (message "Sent ESC to terminal process"))
       (setq my/ghostel-last-escape-time now)
-      (ghostel--on-user-input)
-      (ghostel--send-encoded "escape" ""))))
+      (evil-normal-state))))
+
+(defun my/ghostel-normal-escape-dwim ()
+  "If pressed quickly after entering normal state (double-ESC), send ESC to the terminal process."
+  (interactive)
+  (let ((now (float-time)))
+    (if (< (- now my/ghostel-last-escape-time) my/ghostel-double-escape-timeout)
+        (progn
+          (setq my/ghostel-last-escape-time 0)
+          (ghostel--on-user-input)
+          (ghostel--send-encoded "escape" "")
+          (message "Sent ESC to terminal process"))
+      (setq my/ghostel-last-escape-time now)
+      (evil-force-normal-state))))
 
 (use-package ghostel
   :ensure nil
@@ -154,10 +167,15 @@
     [C-S-v]       #'my/ghostel-paste-clipboard
     [C-S-V]       #'my/ghostel-paste-clipboard)
 
-  ;; Double-ESC in insert state
+  ;; ESC handling:
+  ;; single ESC -> normal state, double ESC -> terminal process ESC
   (evil-define-key* 'insert evil-ghostel-mode-map
     (kbd "<escape>") #'my/ghostel-escape-dwim
     [escape]         #'my/ghostel-escape-dwim)
+
+  (evil-define-key* '(normal visual motion) evil-ghostel-mode-map
+    (kbd "<escape>") #'my/ghostel-normal-escape-dwim
+    [escape]         #'my/ghostel-normal-escape-dwim)
 
   ;; Multiline-aware cursor positioning
   (evil-define-key* '(normal visual motion) evil-ghostel-mode-map
