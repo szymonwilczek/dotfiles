@@ -253,19 +253,37 @@ Allowed during an active rebase at the current HEAD commit."
   (advice-add 'load-theme :after #'my/git-gutter-sync-theme-faces))
 
 ;;;; Merge conflict resolution
+(defvar my/git-conflict-highlight-enabled t
+  "When non-nil, Git merge conflict blocks are automatically highlighted with overlays.")
+
 (defvar-local my/git-conflict-overlays nil
   "List of active conflict marker overlays in current buffer.")
 
 (defun my/git-conflict-clear-overlays ()
   "Remove all conflict marker overlays from current buffer."
+  (interactive)
   (when my/git-conflict-overlays
     (mapc #'delete-overlay my/git-conflict-overlays)
     (setq my/git-conflict-overlays nil)))
 
+(defun my/git-conflict-toggle ()
+  "Toggle automatic Git merge conflict highlighting on or off across all buffers."
+  (interactive)
+  (setq my/git-conflict-highlight-enabled (not my/git-conflict-highlight-enabled))
+  (if my/git-conflict-highlight-enabled
+      (progn
+        (my/git-conflict-highlight-buffer)
+        (message "Git conflict highlighting: ENABLED"))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (my/git-conflict-clear-overlays)))
+    (message "Git conflict highlighting: DISABLED")))
+
 (defun my/git-conflict-highlight-buffer (&rest _)
   "Scan buffer for valid Git merge conflict blocks and apply full-line overlays."
   (interactive)
-  (when (and (not (minibufferp))
+  (when (and my/git-conflict-highlight-enabled
+             (not (minibufferp))
              (not (derived-mode-p 'dired-mode 'magit-mode 'ghostel-mode))
              (not (string-match-p "\\*agent-" (buffer-name)))
              (not (string-match-p "\\*ghostel" (buffer-name))))
