@@ -1,9 +1,9 @@
 return {
   {
-    'szymonwilczek/arete.nvim',
-    -- 'arete.nvim',
-    -- dir = vim.fn.expand '~/Dokumenty/GitHub/arete.nvim',
-    -- name = 'arete',
+    -- 'szymonwilczek/arete.nvim',
+    'arete.nvim',
+    dir = vim.fn.expand '~/Dokumenty/GitHub/arete.nvim',
+    name = 'arete',
     lazy = false,
     priority = 1000,
     config = function()
