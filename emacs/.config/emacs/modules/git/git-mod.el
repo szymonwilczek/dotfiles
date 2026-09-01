@@ -260,11 +260,15 @@ Allowed during an active rebase at the current HEAD commit."
   "List of active conflict marker overlays in current buffer.")
 
 (defun my/git-conflict-clear-overlays ()
-  "Remove all conflict marker overlays from current buffer."
+  "Remove all conflict marker overlays and restore clean buffer state."
   (interactive)
+  (when (bound-and-true-p smerge-mode)
+    (smerge-mode -1))
   (when my/git-conflict-overlays
     (mapc #'delete-overlay my/git-conflict-overlays)
-    (setq my/git-conflict-overlays nil)))
+    (setq my/git-conflict-overlays nil))
+  (when (fboundp 'font-lock-flush)
+    (font-lock-flush)))
 
 (defun my/git-conflict-toggle ()
   "Toggle automatic Git merge conflict highlighting on or off across all buffers."
@@ -329,14 +333,16 @@ Allowed during an active rebase at the current HEAD commit."
                     (overlay-put ov-sep 'face `(:background ,bg-sep :foreground ,fg-sep :weight bold :extend t))
                     (overlay-put ov-sep 'priority 200)
                     (overlay-put ov-theirs 'face `(:background ,bg-theirs :foreground ,fg-theirs :weight bold :extend t))
-                    (overlay-put ov-theirs 'priority 200)
                     (push ov-ours my/git-conflict-overlays)
                     (push ov-sep my/git-conflict-overlays)
-                    (push ov-theirs my/git-conflict-overlays)
-                    (when (fboundp 'smerge-mode)
-                      (smerge-mode 1))))))))))))
+                    (push ov-theirs my/git-conflict-overlays)))))))))))
 
-(setq smerge-font-lock-keywords nil)
+(with-eval-after-load 'smerge-mode
+  (setq smerge-font-lock-keywords nil)
+  (dolist (face '(smerge-markers smerge-upper smerge-lower smerge-base
+                                 smerge-refined-added smerge-refined-removed))
+    (when (facep face)
+      (set-face-attribute face nil :background 'unspecified :foreground 'unspecified :weight 'unspecified))))
 
 (defvar my/git-conflict--idle-timer nil)
 
