@@ -76,7 +76,7 @@
   :init
   ;; so window switching, toggle, and jot prefix work in all states
   (with-eval-after-load 'ghostel
-    (dolist (key '("C-w" "M-f" "C-s"))
+    (dolist (key '("C-w" "M-f" "C-s" "C-<backspace>"))
       (unless (member key ghostel-keymap-exceptions)
         (setq ghostel-keymap-exceptions (append (list key) ghostel-keymap-exceptions)))))
   :config
@@ -202,13 +202,22 @@
 
   ;; Clipboard pasting
   (evil-define-key* 'insert evil-ghostel-mode-map
-    (kbd "C-S-v") #'my/ghostel-paste-clipboard
-    (kbd "C-S-V") #'my/ghostel-paste-clipboard
-    [C-S-v]       #'my/ghostel-paste-clipboard
-    [C-S-V]       #'my/ghostel-paste-clipboard
-    (kbd "C-u")   #'my/ghostel-kill-line-backward
-    (kbd "C-w")   #'my/ghostel-kill-word-backward
-    (kbd "C-k")   #'my/ghostel-kill-line-forward)
+    (kbd "C-S-v")         #'my/ghostel-paste-clipboard
+    (kbd "C-S-V")         #'my/ghostel-paste-clipboard
+    [C-S-v]               #'my/ghostel-paste-clipboard
+    [C-S-V]               #'my/ghostel-paste-clipboard
+    (kbd "C-u")           #'my/ghostel-kill-line-backward
+    (kbd "C-w")           #'my/ghostel-kill-word-backward
+    (kbd "C-k")           #'my/ghostel-kill-line-forward
+    (kbd "C-<backspace>") #'my/ghostel-kill-word-backward
+    [C-backspace]         #'my/ghostel-kill-word-backward
+    (kbd "<C-backspace>") #'my/ghostel-kill-word-backward)
+
+  ;; Normal state Ctrl+Backspace
+  (evil-define-key* '(normal visual motion) evil-ghostel-mode-map
+    (kbd "C-<backspace>") #'backward-kill-word
+    [C-backspace]         #'backward-kill-word
+    (kbd "<C-backspace>") #'backward-kill-word)
 
   (evil-define-key* 'normal evil-ghostel-mode-map
     "p"                         #'my/ghostel-normal-paste

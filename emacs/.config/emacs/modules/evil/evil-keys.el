@@ -52,6 +52,19 @@
   (define-key evil-normal-state-map (kbd "C-w k") 'evil-window-up)
   (define-key evil-normal-state-map (kbd "C-w l") 'evil-window-right)
 
+  ;; Ctrl+Backspace to delete whole word backward
+  (global-set-key (kbd "C-<backspace>") #'backward-kill-word)
+  (global-set-key [C-backspace]         #'backward-kill-word)
+  (global-set-key (kbd "<C-backspace>") #'backward-kill-word)
+
+  (dolist (state '(insert normal visual motion emacs replace))
+    (evil-global-set-key state (kbd "C-<backspace>") #'backward-kill-word)
+    (evil-global-set-key state [C-backspace]         #'backward-kill-word)
+    (evil-global-set-key state (kbd "<C-backspace>") #'backward-kill-word))
+
+  (define-key minibuffer-local-map (kbd "C-<backspace>") #'backward-kill-word)
+  (define-key minibuffer-local-map [C-backspace]         #'backward-kill-word)
+
   ;; Base Leader Bindings
   (my-leader-def
     "u" '(vundo :which-key "Undo Tree")
