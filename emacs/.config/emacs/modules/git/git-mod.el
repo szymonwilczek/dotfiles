@@ -252,44 +252,70 @@ Allowed during an active rebase at the current HEAD commit."
   (my/git-gutter-sync-theme-faces)
   (advice-add 'load-theme :after #'my/git-gutter-sync-theme-faces))
 
-;; Merge conflict resolution
-(defun my/smerge-try-enable ()
-  "Enable `smerge-mode' only if genuine merge conflict markers are found."
-  (save-excursion
-    (goto-char (point-min))
-    (when (re-search-forward "^<<<<<<< " nil t)
-      (smerge-mode 1))))
+;;;; Merge conflict resolution
+(defvar-local my/git-conflict-overlays nil
+  "List of active conflict marker overlays in current buffer.")
 
-(add-hook 'find-file-hook #'my/smerge-try-enable)
-(add-hook 'after-revert-hook #'my/smerge-try-enable)
+(defun my/git-conflict-clear-overlays ()
+  "Remove all conflict marker overlays from current buffer."
+  (when my/git-conflict-overlays
+    (mapc #'delete-overlay my/git-conflict-overlays)
+    (setq my/git-conflict-overlays nil)))
 
-(defun my/smerge-sync-theme-faces (&rest _)
-  "Style smerge conflict blocks and markers with full-width theme colors."
-  (require 'smerge-mode nil t)
-  (let ((bg-ours   (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-err))
-                       "#3b1414"))
-        (fg-ours   (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'err))
-                       "#ff6666"))
-        (bg-sep    (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-warning))
-                       "#3b2e0e"))
-        (fg-sep    (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'warning))
-                       "#ffbb33"))
-        (bg-theirs (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-info))
-                       "#102542"))
-        (fg-theirs (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'info))
-                       "#4da6ff")))
-    (when (facep 'smerge-markers)
-      (set-face-attribute 'smerge-markers nil :background bg-sep :foreground fg-sep :weight 'bold :extend t))
-    (when (facep 'smerge-upper)
-      (set-face-attribute 'smerge-upper nil :background bg-ours :extend t))
-    (when (facep 'smerge-lower)
-      (set-face-attribute 'smerge-lower nil :background bg-theirs :extend t))
-    (when (facep 'smerge-base)
-      (set-face-attribute 'smerge-base nil :background 'unspecified :extend t))))
+(defun my/git-conflict-highlight-buffer (&rest _)
+  "Scan buffer for valid Git merge conflict blocks and apply full-line overlays."
+  (interactive)
+  (when (and (not (minibufferp))
+             (not (derived-mode-p 'dired-mode 'magit-mode 'ghostel-mode)))
+    (my/git-conflict-clear-overlays)
+    (save-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (while (re-search-forward "^<<<<<<<[ \t\n]" nil t)
+          (let* ((ours-beg (line-beginning-position))
+                 (ours-end (min (point-max) (1+ (line-end-position))))
+                 (end-match (save-excursion
+                              (re-search-forward "^>>>>>>>[ \t\n]" nil t)))
+                 (theirs-beg (and end-match (save-excursion (goto-char end-match) (line-beginning-position))))
+                 (theirs-end (and end-match (min (point-max) (1+ (line-end-position))))))
+            (when (and end-match theirs-beg)
+              (let ((sep-match (save-excursion
+                                 (goto-char ours-end)
+                                 (re-search-forward "^=======[ \t]*$" theirs-beg t))))
+                (when sep-match
+                  (let* ((sep-beg (save-excursion (goto-char sep-match) (line-beginning-position)))
+                         (sep-end (min (point-max) (1+ (line-end-position))))
+                         (bg-ours   (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-err))
+                                        "#4a151b"))
+                         (fg-ours   (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'err))
+                                        "#ff7b72"))
+                         (bg-sep    (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-warning))
+                                        "#3e2e04"))
+                         (fg-sep    (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'warning))
+                                        "#f2cc60"))
+                         (bg-theirs (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-info))
+                                        "#0c2d6b"))
+                         (fg-theirs (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'info))
+                                        "#58a6ff"))
+                         (ov-ours (make-overlay ours-beg ours-end))
+                         (ov-sep (make-overlay sep-beg sep-end))
+                         (ov-theirs (make-overlay theirs-beg theirs-end)))
+                    (overlay-put ov-ours 'face `(:background ,bg-ours :foreground ,fg-ours :weight bold :extend t))
+                    (overlay-put ov-ours 'priority 150)
+                    (overlay-put ov-sep 'face `(:background ,bg-sep :foreground ,fg-sep :weight bold :extend t))
+                    (overlay-put ov-sep 'priority 150)
+                    (overlay-put ov-theirs 'face `(:background ,bg-theirs :foreground ,fg-theirs :weight bold :extend t))
+                    (overlay-put ov-theirs 'priority 150)
+                    (push ov-ours my/git-conflict-overlays)
+                    (push ov-sep my/git-conflict-overlays)
+                    (push ov-theirs my/git-conflict-overlays)
+                    (when (fboundp 'smerge-mode)
+                      (smerge-mode 1))))))))))))
 
-(with-eval-after-load 'smerge-mode
-  (my/smerge-sync-theme-faces)
-  (advice-add 'load-theme :after #'my/smerge-sync-theme-faces))
+(add-hook 'find-file-hook #'my/git-conflict-highlight-buffer)
+(add-hook 'after-save-hook #'my/git-conflict-highlight-buffer)
+(add-hook 'after-revert-hook #'my/git-conflict-highlight-buffer)
+(advice-add 'load-theme :after #'my/git-conflict-highlight-buffer)
 
 (require 'git-keys)
 

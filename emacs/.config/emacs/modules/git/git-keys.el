@@ -7,12 +7,55 @@
     "[c" 'git-gutter:previous-hunk
     "]c" 'git-gutter:next-hunk))
 
+(defun my/git-conflict-next ()
+  "Jump to the next conflict marker line."
+  (interactive)
+  (let ((orig (point)))
+    (forward-line 1)
+    (if (re-search-forward "^\\(<<<<<<<\\|=======\\|>>>>>>>\\)" nil t)
+        (goto-char (line-beginning-position))
+      (goto-char orig)
+      (message "No next conflict marker"))))
+
+(defun my/git-conflict-prev ()
+  "Jump to the previous conflict marker line."
+  (interactive)
+  (let ((orig (point)))
+    (forward-line -1)
+    (if (re-search-backward "^\\(<<<<<<<\\|=======\\|>>>>>>>\\)" nil t)
+        (goto-char (line-beginning-position))
+      (goto-char orig)
+      (message "No previous conflict marker"))))
+
+(defun my/git-conflict-keep-upper ()
+  "Keep our / upper version and refresh overlays."
+  (interactive)
+  (require 'smerge-mode)
+  (smerge-keep-upper)
+  (when (fboundp 'my/git-conflict-highlight-buffer)
+    (my/git-conflict-highlight-buffer)))
+
+(defun my/git-conflict-keep-lower ()
+  "Keep their / lower version and refresh overlays."
+  (interactive)
+  (require 'smerge-mode)
+  (smerge-keep-lower)
+  (when (fboundp 'my/git-conflict-highlight-buffer)
+    (my/git-conflict-highlight-buffer)))
+
+(defun my/git-conflict-keep-all ()
+  "Keep both versions and refresh overlays."
+  (interactive)
+  (require 'smerge-mode)
+  (smerge-keep-all)
+  (when (fboundp 'my/git-conflict-highlight-buffer)
+    (my/git-conflict-highlight-buffer)))
+
 ;; Smerge conflict navigation jumps
-(with-eval-after-load 'smerge-mode
-  (with-eval-after-load 'evil
-    (evil-define-key 'normal smerge-mode-map
-      "[x" #'smerge-prev
-      "]x" #'smerge-next)))
+(with-eval-after-load 'evil
+  (evil-define-key 'normal 'global
+    "[x" #'my/git-conflict-prev
+    "]x" #'my/git-conflict-next))
 
 ;; Leader bindings
 (with-eval-after-load 'evil-keys
@@ -37,8 +80,8 @@
 
       ;; Conflict resolution
       "gc"  '(:ignore t :which-key "Conflicts")
-      "gcu" '(smerge-keep-upper :which-key "Keep Ours (Upper)")
-      "gcl" '(smerge-keep-lower :which-key "Keep Theirs (Lower)")
-      "gca" '(smerge-keep-all :which-key "Keep Both (All)"))))
+      "gcu" '(my/git-conflict-keep-upper :which-key "Keep Ours (Upper)")
+      "gcl" '(my/git-conflict-keep-lower :which-key "Keep Theirs (Lower)")
+      "gca" '(my/git-conflict-keep-all :which-key "Keep Both (All)"))))
 
 (provide 'git-keys)
