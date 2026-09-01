@@ -74,9 +74,9 @@
   :ensure nil
   :commands (ghostel ghostel-project)
   :init
-  ;; so window switching and toggle work in all states
+  ;; so window switching, toggle, and jot prefix work in all states
   (with-eval-after-load 'ghostel
-    (dolist (key '("C-w" "M-f"))
+    (dolist (key '("C-w" "M-f" "C-s"))
       (unless (member key ghostel-keymap-exceptions)
         (setq ghostel-keymap-exceptions (append (list key) ghostel-keymap-exceptions)))))
   :config
