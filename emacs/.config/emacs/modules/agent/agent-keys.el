@@ -9,11 +9,4 @@
       "at" '(my/agent-shell-toggle :which-key "Toggle Agent Split")
       "ae" '(my/agent-edit-prompt :which-key "Edit Prompt in Buffer"))))
 
-(with-eval-after-load 'ghostel
-  (define-key ghostel-mode-map (kbd "C-c C-e") #'my/agent-edit-prompt)
-  (with-eval-after-load 'evil
-    (when (boundp 'evil-ghostel-mode-map)
-      (evil-define-key* '(normal insert) evil-ghostel-mode-map
-        (kbd "C-c C-e") #'my/agent-edit-prompt))))
-
 (provide 'agent-keys)
