@@ -102,51 +102,69 @@
   (add-hook 'ghostel-exit-functions #'my/ghostel-auto-close-on-exit))
 
 ;; Evil integration for Ghostel
-(defun my/ghostel-insert-dwim ()
-  "Enter insert state at point, driving the terminal cursor to match across multiple lines."
+(defun my/ghostel-visual-yank ()
+  "Copy visual selection to kill ring and system clipboard."
   (interactive)
-  (let ((target (point)))
-    (when (and (derived-mode-p 'ghostel-mode)
-               (bound-and-true-p ghostel--term)
-               (bound-and-true-p ghostel--cursor-pos))
-      (evil-ghostel-goto-input-position target))
-    (evil-insert-state 1)))
+  (let ((beg (min (point) (mark)))
+        (end (max (point) (mark))))
+    (copy-region-as-kill beg end)
+    (when (fboundp 'gui-set-selection)
+      (gui-set-selection 'CLIPBOARD (buffer-substring-no-properties beg end)))
+    (evil-exit-visual-state)
+    (message "Copied selection to clipboard")))
+
+(defun my/ghostel-kill-line-backward ()
+  "Send Ctrl-U to terminal process to instantly clear line."
+  (interactive)
+  (ghostel--send-encoded "u" "ctrl"))
+
+(defun my/ghostel-kill-word-backward ()
+  "Send Ctrl-W to terminal process to instantly delete previous word."
+  (interactive)
+  (ghostel--send-encoded "w" "ctrl"))
+
+(defun my/ghostel-kill-line-forward ()
+  "Send Ctrl-K to terminal process to instantly delete to end of line."
+  (interactive)
+  (ghostel--send-encoded "k" "ctrl"))
+
+(defun my/ghostel-insert-dwim ()
+  "Enter insert state cleanly. Jump to live prompt if reviewing scrollback."
+  (interactive)
+  (when (derived-mode-p 'ghostel-mode)
+    (if (ghostel-point-on-cursor-row-p)
+        (evil-ghostel-goto-input-position (point))
+      (evil-ghostel--reset-cursor-point)))
+  (evil-insert-state 1))
 
 (defun my/ghostel-append-dwim ()
-  "Append after point, driving the terminal cursor to match across multiple lines."
+  "Append after point cleanly. Jump to live prompt if reviewing scrollback."
   (interactive)
-  (let ((target (save-excursion
-                  (if (eolp) (point) (min (1+ (point)) (line-end-position))))))
-    (when (and (derived-mode-p 'ghostel-mode)
-               (bound-and-true-p ghostel--term)
-               (bound-and-true-p ghostel--cursor-pos))
-      (evil-ghostel-goto-input-position target))
-    (evil-insert-state 1)))
+  (when (derived-mode-p 'ghostel-mode)
+    (if (ghostel-point-on-cursor-row-p)
+        (let ((target (save-excursion
+                        (if (eolp) (point) (min (1+ (point)) (line-end-position))))))
+          (evil-ghostel-goto-input-position target))
+      (evil-ghostel--reset-cursor-point)))
+  (evil-insert-state 1))
 
 (defun my/ghostel-insert-line-dwim ()
-  "Move to start of current line and enter insert."
+  "Move to start of input and enter insert state."
   (interactive)
-  (let ((target (save-excursion
-                  (back-to-indentation)
-                  (point))))
-    (when (and (derived-mode-p 'ghostel-mode)
-               (bound-and-true-p ghostel--term)
-               (bound-and-true-p ghostel--cursor-pos))
-      (evil-ghostel-goto-input-position target))
-    (evil-insert-state 1)))
+  (when (derived-mode-p 'ghostel-mode)
+    (if (ghostel-point-on-cursor-row-p)
+        (evil-ghostel-goto-input-position (line-beginning-position))
+      (evil-ghostel--reset-cursor-point)))
+  (evil-insert-state 1))
 
 (defun my/ghostel-append-line-dwim ()
-  "Move to end of current line and enter insert."
+  "Move to end of input and enter insert state."
   (interactive)
-  (let ((target (save-excursion
-                  (end-of-line)
-                  (skip-chars-backward " \t" (line-beginning-position))
-                  (point))))
-    (when (and (derived-mode-p 'ghostel-mode)
-               (bound-and-true-p ghostel--term)
-               (bound-and-true-p ghostel--cursor-pos))
-      (evil-ghostel-goto-input-position target))
-    (evil-insert-state 1)))
+  (when (derived-mode-p 'ghostel-mode)
+    (if (ghostel-point-on-cursor-row-p)
+        (evil-ghostel-goto-input-position (line-end-position))
+      (evil-ghostel--reset-cursor-point)))
+  (evil-insert-state 1))
 
 (use-package evil-ghostel
   :ensure nil
@@ -160,12 +178,26 @@
   (evil-define-key* '(insert normal visual motion emacs) evil-ghostel-mode-map
     (kbd "C-w") evil-window-map)
 
-  ;; Ctrl+Shift+V for pasting
-  (evil-define-key* '(insert normal visual motion emacs) evil-ghostel-mode-map
+  ;; Clipboard pasting
+  (evil-define-key* 'insert evil-ghostel-mode-map
     (kbd "C-S-v") #'my/ghostel-paste-clipboard
     (kbd "C-S-V") #'my/ghostel-paste-clipboard
     [C-S-v]       #'my/ghostel-paste-clipboard
-    [C-S-V]       #'my/ghostel-paste-clipboard)
+    [C-S-V]       #'my/ghostel-paste-clipboard
+    (kbd "C-v")   #'my/ghostel-paste-clipboard
+    (kbd "C-y")   #'my/ghostel-paste-clipboard
+    (kbd "C-u")   #'my/ghostel-kill-line-backward
+    (kbd "C-w")   #'my/ghostel-kill-word-backward
+    (kbd "C-k")   #'my/ghostel-kill-line-forward)
+
+  (evil-define-key* 'normal evil-ghostel-mode-map
+    "p"           #'my/ghostel-paste-clipboard
+    "P"           #'my/ghostel-paste-clipboard)
+
+  (evil-define-key* 'visual evil-ghostel-mode-map
+    "y"           #'my/ghostel-visual-yank
+    "Y"           #'my/ghostel-visual-yank
+    "gy"          #'my/ghostel-visual-yank)
 
   ;; ESC handling:
   ;; single ESC -> normal state, double ESC -> terminal process ESC

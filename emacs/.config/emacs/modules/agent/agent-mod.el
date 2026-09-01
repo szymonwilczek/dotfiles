@@ -112,6 +112,43 @@
         ("Codex"    (my/agent-shell-codex))
         (_          (my/agent-shell-gemini))))))
 
+(defun my/agent-edit-prompt ()
+  "Draft a multiline prompt in a dedicated text buffer within the agent's window.
+Does not disturb other windows. Press C-c C-c to submit to the agent,
+or C-c C-k to cancel."
+  (interactive)
+  (let* ((orig-buf (current-buffer))
+         (orig-win (selected-window)))
+    (unless (or (buffer-local-value 'my/agent-buffer-p orig-buf)
+                (string-match-p "\\*agent-" (buffer-name orig-buf)))
+      (user-error "Current buffer is not an AI agent terminal"))
+    (let ((prompt-buf (get-buffer-create "*agent-prompt*")))
+      (with-current-buffer prompt-buf
+        (erase-buffer)
+        (text-mode)
+        (setq-local header-line-format
+                    (propertize " [Agent Prompt Buffer] C-c C-c: Submit | C-c C-k: Cancel "
+                                'face '(:weight bold :foreground "#268bd2")))
+        (local-set-key (kbd "C-c C-c")
+                       (lambda ()
+                         (interactive)
+                         (let ((text (buffer-string)))
+                           (kill-buffer (current-buffer))
+                           (select-window orig-win)
+                           (switch-to-buffer orig-buf)
+                           (when (and text (not (string-blank-p text)))
+                             (ghostel-paste-string (string-trim text))
+                             (ghostel--send-encoded "enter" "")))))
+        (local-set-key (kbd "C-c C-k")
+                       (lambda ()
+                         (interactive)
+                         (kill-buffer (current-buffer))
+                         (select-window orig-win)
+                         (switch-to-buffer orig-buf))))
+      (switch-to-buffer prompt-buf)
+      (when (fboundp 'evil-insert-state)
+        (evil-insert-state 1)))))
+
 (require 'agent-keys)
 
 (provide 'agent-mod)
