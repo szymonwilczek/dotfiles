@@ -179,4 +179,16 @@ Hidden in AI agent buffers."
                                        (with-current-buffer buf
                                          (setq my/modeline--cached-git-branch "")))))
 
+;; Force modeline refresh whenever point moves in active window
+(defvar-local my/modeline--last-point nil)
+
+(defun my/modeline-refresh-on-motion ()
+  "Ensure line:column and active statusline update immediately on cursor movement."
+  (let ((pt (point)))
+    (unless (eq pt my/modeline--last-point)
+      (setq my/modeline--last-point pt)
+      (force-mode-line-update))))
+
+(add-hook 'post-command-hook #'my/modeline-refresh-on-motion)
+
 (provide 'modeline)
