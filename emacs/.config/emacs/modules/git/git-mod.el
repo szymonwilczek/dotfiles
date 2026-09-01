@@ -139,8 +139,8 @@ Allowed during an active rebase at the current HEAD commit."
   :init
   (setq with-editor-emacsclient-executable "emacsclient")
   :custom
-  (magit-diff-refine-hunk all)
-  (magit-save-repository-buffers dontask)
+  (magit-diff-refine-hunk 'all)
+  (magit-save-repository-buffers 'dontask)
   :config
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
   (setq epa-file-default-user-key "B8E944071CB7EB8A")

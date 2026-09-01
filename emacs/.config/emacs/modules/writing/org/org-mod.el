@@ -54,7 +54,7 @@
   :ensure nil
   :custom
   (calendar-week-start-day 1) ; Monday
-  (calendar-date-style iso)
+  (calendar-date-style 'iso)
   (calendar-day-name-array ["Niedziela" "Poniedziałek" "Wtorek" "Środa" "Czwartek" "Piątek" "Sobota"])
   (calendar-month-name-array ["Styczeń" "Luty" "Marzec" "Kwiecień" "Maj" "Czerwiec" "Lipiec" "Sierpień" "Wrzesień" "Październik" "Listopad" "Grudzień"]))
 
@@ -62,7 +62,7 @@
   :ensure nil
   :after org
   :custom
-  (org-agenda-span week)
+  (org-agenda-span 'week)
   (org-agenda-start-on-weekday 1) ; Monday
   (org-agenda-show-all-dates t)
   (org-agenda-time-leading-zero t)
