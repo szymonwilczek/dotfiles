@@ -135,20 +135,10 @@
     (evil-exit-visual-state)
     (message "Copied selection to clipboard")))
 
-(defun my/ghostel-kill-line-backward ()
-  "Send Ctrl-U to terminal process to instantly clear line."
-  (interactive)
-  (ghostel--send-encoded "u" "ctrl"))
-
 (defun my/ghostel-kill-word-backward ()
   "Send Ctrl-W to terminal process to instantly delete previous word."
   (interactive)
   (ghostel--send-encoded "w" "ctrl"))
-
-(defun my/ghostel-kill-line-forward ()
-  "Send Ctrl-K to terminal process to instantly delete to end of line."
-  (interactive)
-  (ghostel--send-encoded "k" "ctrl"))
 
 (defun my/ghostel-insert-dwim ()
   "Enter insert state cleanly. Jump to live prompt if reviewing scrollback."
@@ -206,9 +196,6 @@
     (kbd "C-S-V")         #'my/ghostel-paste-clipboard
     [C-S-v]               #'my/ghostel-paste-clipboard
     [C-S-V]               #'my/ghostel-paste-clipboard
-    (kbd "C-u")           #'my/ghostel-kill-line-backward
-    (kbd "C-w")           #'my/ghostel-kill-word-backward
-    (kbd "C-k")           #'my/ghostel-kill-line-forward
     (kbd "C-<backspace>") #'my/ghostel-kill-word-backward
     [C-backspace]         #'my/ghostel-kill-word-backward
     (kbd "<C-backspace>") #'my/ghostel-kill-word-backward)
