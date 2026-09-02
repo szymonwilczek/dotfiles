@@ -202,6 +202,12 @@ Allowed during an active rebase at the current HEAD commit."
 (defvar-local my/forge-image-overlays nil
   "List of active inline image overlays in current buffer.")
 
+(defun my/forge-get-github-token ()
+  "Retrieve GitHub auth token from Ghub/auth-source if available."
+  (and (featurep 'ghub)
+       (or (condition-case nil (ghub--token "api.github.com" "szymonwilczek" 'forge) (error nil))
+           (condition-case nil (ghub--token "api.github.com" user-login-name 'forge) (error nil)))))
+
 (defun my/forge-clear-image-overlays ()
   "Remove all inline image overlays from current buffer."
   (interactive)
@@ -211,7 +217,9 @@ Allowed during an active rebase at the current HEAD commit."
 
 (defun my/forge-display-image-at (buf beg end file-path url)
   "Display cached image file at BEG..END in BUF."
-  (when (and (buffer-live-p buf) (file-exists-p file-path))
+  (when (and (buffer-live-p buf)
+             (file-exists-p file-path)
+             (> (file-attribute-size (file-attributes file-path)) 100))
     (with-current-buffer buf
       (save-excursion
         (let* ((win (get-buffer-window buf t))
@@ -229,19 +237,28 @@ Allowed during an active rebase at the current HEAD commit."
           (push ov my/forge-image-overlays))))))
 
 (defun my/forge-fetch-and-display-image (buf beg end url)
-  "Asynchronously fetch image URL via curl to /tmp and display it in BUF."
+  "Asynchronously fetch image URL into /tmp and display in BUF."
   (make-directory my/forge-image-cache-dir t)
   (let* ((cache-file (expand-file-name (md5 url) my/forge-image-cache-dir)))
-    (if (file-exists-p cache-file)
+    (if (and (file-exists-p cache-file)
+             (> (file-attribute-size (file-attributes cache-file)) 100))
         (my/forge-display-image-at buf beg end cache-file url)
-      (make-process
-       :name (format "forge-img-%s" (md5 url))
-       :buffer nil
-       :command (list "curl" "-sL" url "-o" cache-file)
-       :sentinel
-       (lambda (proc event)
-         (when (string-prefix-p "finished" event)
-           (my/forge-display-image-at buf beg end cache-file url)))))))
+      (let* ((tok (my/forge-get-github-token))
+             (auth-hdr (if (and tok (not (string-empty-p tok)))
+                           (format "-H \"Authorization: token %s\"" tok)
+                         ""))
+             (cmd (if (string-match-p "github\\.com" url)
+                      (format "LOC=$(curl -sI %s \"%s\" | grep -i '^location:' | tr -d '\r' | cut -d' ' -f2-); if [ -n \"$LOC\" ]; then curl -sL \"$LOC\" -o \"%s\"; else curl -sL %s \"%s\" -o \"%s\"; fi"
+                              auth-hdr url cache-file auth-hdr url cache-file)
+                    (format "curl -sL \"%s\" -o \"%s\"" url cache-file))))
+        (make-process
+         :name (format "forge-img-%s" (md5 url))
+         :buffer nil
+         :command (list "sh" "-c" cmd)
+         :sentinel
+         (lambda (proc event)
+           (when (string-prefix-p "finished" event)
+             (my/forge-display-image-at buf beg end cache-file url))))))))
 
 (defun my/forge-render-images (&optional target-buf)
   "Scan TARGET-BUF (or current buffer) for GitHub HTML/Markdown images and render inline."
@@ -254,7 +271,7 @@ Allowed during an active rebase at the current HEAD commit."
           (save-match-data
             (goto-char (point-min))
             ;; <img ... src="url" ... />
-            (while (re-search-forward "<img\\s-+[^>]*?src=[\"']\\(https?://[^\"']+\\)[\"'][^>]*?/?>\\(?:</img>\\)?" nil t)
+            (while (re-search-forward "<img[ \t\n\r]+[^>]*?src=[\"']\\(https?://[^\"']+\\)[\"'][^>]*?\\(?:/?>\\|</img>\\)" nil t)
               (let ((beg (match-beginning 0))
                     (end (match-end 0))
                     (url (match-string-no-properties 1)))
@@ -287,7 +304,7 @@ Allowed during an active rebase at the current HEAD commit."
   :config
   (advice-add 'forge-topic-setup-buffer :after
               (lambda (&rest _)
-                (run-at-time 0.1 nil (lambda (buf)
+                (run-at-time 0.2 nil (lambda (buf)
                                        (when (buffer-live-p buf)
                                          (my/forge-render-images buf)))
                              (current-buffer)))))
