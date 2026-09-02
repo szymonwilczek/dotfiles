@@ -383,10 +383,13 @@ Allowed during an active rebase at the current HEAD commit."
   (setq my/git-conflict-highlight-enabled (not my/git-conflict-highlight-enabled))
   (if my/git-conflict-highlight-enabled
       (progn
-        (my/git-conflict-highlight-buffer)
+        (dolist (buf (buffer-list))
+          (with-current-buffer buf
+            (my/git-conflict--setup-buffer)))
         (message "Git conflict highlighting: ENABLED"))
     (dolist (buf (buffer-list))
       (with-current-buffer buf
+        (remove-hook 'after-change-functions #'my/git-conflict--on-change t)
         (my/git-conflict-clear-overlays)))
     (message "Git conflict highlighting: DISABLED")))
 
@@ -451,28 +454,47 @@ Allowed during an active rebase at the current HEAD commit."
     (when (facep face)
       (set-face-attribute face nil :background 'unspecified :foreground 'unspecified :weight 'unspecified))))
 
-(defvar my/git-conflict--idle-timer nil)
+(defvar-local my/git-conflict--idle-timer nil
+  "Buffer-local debounce timer for Git merge conflict re-scanning.")
 
-(defun my/git-conflict--on-change (&rest _)
+(defun my/git-conflict--on-change (beg end _len)
   "Debounced live update when buffer content changes (pasted conflict, edited text)."
   (when (and (bound-and-true-p my/git-conflict-highlight-enabled)
              (not (minibufferp))
              (not (derived-mode-p 'dired-mode 'magit-mode 'ghostel-mode))
              (not (string-match-p "\\*agent-" (buffer-name)))
              (not (string-match-p "\\*ghostel" (buffer-name))))
-    (when (timerp my/git-conflict--idle-timer)
-      (cancel-timer my/git-conflict--idle-timer))
-    (setq my/git-conflict--idle-timer
-          (run-with-idle-timer 0.4 nil
-                               (lambda (buf)
-                                 (when (buffer-live-p buf)
-                                   (with-current-buffer buf
-                                     (my/git-conflict-highlight-buffer))))
-                               (current-buffer)))))
 
-(add-hook 'after-change-functions #'my/git-conflict--on-change)
-(add-hook 'after-change-major-mode-hook #'my/git-conflict-highlight-buffer)
-(add-hook 'find-file-hook #'my/git-conflict-highlight-buffer)
+    ;; only trigger scan if buffer already has conflicts or changed region has conflict marker chars
+    (when (or my/git-conflict-overlays
+              (save-excursion
+                (save-match-data
+                  (goto-char (max (point-min) (- beg 2)))
+                  (re-search-forward "^\\(<<<<<<<\\|=======\\|>>>>>>>\\)"
+                                     (min (point-max) (+ end 8)) t))))
+      (when (timerp my/git-conflict--idle-timer)
+        (cancel-timer my/git-conflict--idle-timer))
+      (setq my/git-conflict--idle-timer
+            (run-with-idle-timer 0.4 nil
+                                 (lambda (buf)
+                                   (when (buffer-live-p buf)
+                                     (with-current-buffer buf
+                                       (my/git-conflict-highlight-buffer))))
+                                 (current-buffer))))))
+
+(defun my/git-conflict--setup-buffer ()
+  "Enable conflict detection and highlight conflicts for current editing buffer."
+  (when (and (not (minibufferp))
+             (not (derived-mode-p 'dired-mode 'magit-mode 'ghostel-mode))
+             (not (string-match-p "\\*agent-" (buffer-name)))
+             (not (string-match-p "\\*ghostel" (buffer-name))))
+    (add-hook 'after-change-functions #'my/git-conflict--on-change nil t)
+    (my/git-conflict-highlight-buffer)))
+
+(add-hook 'find-file-hook #'my/git-conflict--setup-buffer)
+(add-hook 'prog-mode-hook #'my/git-conflict--setup-buffer)
+(add-hook 'text-mode-hook #'my/git-conflict--setup-buffer)
+(add-hook 'after-change-major-mode-hook #'my/git-conflict--setup-buffer)
 (add-hook 'after-save-hook #'my/git-conflict-highlight-buffer)
 (add-hook 'after-revert-hook #'my/git-conflict-highlight-buffer)
 (advice-add 'load-theme :after #'my/git-conflict-highlight-buffer)
