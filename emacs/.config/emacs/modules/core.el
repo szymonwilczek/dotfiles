@@ -12,7 +12,9 @@
 ;; Disable line numbers for large files
 (defun my/disable-line-numbers-if-large-file ()
   "Disable line numbers if the buffer has more than 3000 lines."
-  (when (> (count-lines (point-min) (point-max)) 3000)
+  (when (save-excursion
+          (goto-char (point-min))
+          (= (forward-line 3000) 0))
     (setq-local display-line-numbers nil)
     (display-line-numbers-mode -1)))
 
