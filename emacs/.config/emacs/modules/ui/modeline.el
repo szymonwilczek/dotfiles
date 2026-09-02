@@ -61,8 +61,8 @@ Hidden in AI agent buffers."
                    ('visual '(:inherit font-lock-type-face :weight bold))
                    ('replace '(:inherit error :weight bold))
                    (_ '(:inherit font-lock-constant-face :weight bold))))
-           (loc (format " %2d:%-2d " (line-number-at-pos (point) t) (1+ (current-column)))))
-      (propertize loc 'face face))))
+           (loc (propertize " %2l:%C " 'face face)))
+      loc)))
 
 (defun my/modeline-filetype ()
   "Render simplified major mode filetype."
@@ -179,16 +179,7 @@ Hidden in AI agent buffers."
                                        (with-current-buffer buf
                                          (setq my/modeline--cached-git-branch "")))))
 
-;; Force modeline refresh whenever point moves in active window
-(defvar-local my/modeline--last-point nil)
-
-(defun my/modeline-refresh-on-motion ()
-  "Ensure line:column and active statusline update immediately on cursor movement."
-  (let ((pt (point)))
-    (unless (eq pt my/modeline--last-point)
-      (setq my/modeline--last-point pt)
-      (force-mode-line-update))))
-
-(add-hook 'post-command-hook #'my/modeline-refresh-on-motion)
+(line-number-mode 1)
+(column-number-mode 1)
 
 (provide 'modeline)
