@@ -195,12 +195,102 @@ Allowed during an active rebase at the current HEAD commit."
       (evil-define-key* '(normal visual motion emacs) map "o" #'my/magit-browse-at-point))))
 
 ;; GitHub Issues and Pull Requests
+(defvar my/forge-image-cache-dir
+  (expand-file-name "emacs-forge-images" temporary-file-directory)
+  "Temporary directory in /tmp to cache downloaded Forge images.")
+
+(defvar-local my/forge-image-overlays nil
+  "List of active inline image overlays in current buffer.")
+
+(defun my/forge-clear-image-overlays ()
+  "Remove all inline image overlays from current buffer."
+  (interactive)
+  (when my/forge-image-overlays
+    (mapc #'delete-overlay my/forge-image-overlays)
+    (setq my/forge-image-overlays nil)))
+
+(defun my/forge-display-image-at (buf beg end file-path url)
+  "Display cached image file at BEG..END in BUF."
+  (when (and (buffer-live-p buf) (file-exists-p file-path))
+    (with-current-buffer buf
+      (save-excursion
+        (let* ((win (get-buffer-window buf t))
+               (win-w (if win (- (window-body-width win t) 60) 800))
+               (max-w (min 850 (max 300 win-w)))
+               (img (create-image file-path nil nil :max-width max-w :max-height 600))
+               (ov (make-overlay beg end buf t nil)))
+          (overlay-put ov 'display img)
+          (overlay-put ov 'help-echo (format "%s\n(Click or RET to open in browser)" url))
+          (let ((map (make-sparse-keymap)))
+            (define-key map [mouse-1] (lambda () (interactive) (browse-url url)))
+            (define-key map [return]  (lambda () (interactive) (browse-url url)))
+            (overlay-put ov 'keymap map)
+            (overlay-put ov 'pointer 'hand))
+          (push ov my/forge-image-overlays))))))
+
+(defun my/forge-fetch-and-display-image (buf beg end url)
+  "Asynchronously fetch image URL via curl to /tmp and display it in BUF."
+  (make-directory my/forge-image-cache-dir t)
+  (let* ((cache-file (expand-file-name (md5 url) my/forge-image-cache-dir)))
+    (if (file-exists-p cache-file)
+        (my/forge-display-image-at buf beg end cache-file url)
+      (make-process
+       :name (format "forge-img-%s" (md5 url))
+       :buffer nil
+       :command (list "curl" "-sL" url "-o" cache-file)
+       :sentinel
+       (lambda (proc event)
+         (when (string-prefix-p "finished" event)
+           (my/forge-display-image-at buf beg end cache-file url)))))))
+
+(defun my/forge-render-images (&optional target-buf)
+  "Scan TARGET-BUF (or current buffer) for GitHub HTML/Markdown images and render inline."
+  (interactive)
+  (let ((buf (or target-buf (current-buffer))))
+    (when (buffer-live-p buf)
+      (with-current-buffer buf
+        (my/forge-clear-image-overlays)
+        (save-excursion
+          (save-match-data
+            (goto-char (point-min))
+            ;; <img ... src="url" ... />
+            (while (re-search-forward "<img\\s-+[^>]*?src=[\"']\\(https?://[^\"']+\\)[\"'][^>]*?/?>\\(?:</img>\\)?" nil t)
+              (let ((beg (match-beginning 0))
+                    (end (match-end 0))
+                    (url (match-string-no-properties 1)))
+                (my/forge-fetch-and-display-image buf beg end url)))
+
+            (goto-char (point-min))
+            ;; ![alt](url)
+            (while (re-search-forward "!\\[\\(.*?\\)\\](\\(\\(?:https?\\)://[^)]+\\))" nil t)
+              (let ((beg (match-beginning 0))
+                    (end (match-end 0))
+                    (url (match-string-no-properties 2)))
+                (my/forge-fetch-and-display-image buf beg end url)))))))))
+
+(defun my/forge-toggle-images ()
+  "Toggle inline images in current Forge topic buffer."
+  (interactive)
+  (if my/forge-image-overlays
+      (progn
+        (my/forge-clear-image-overlays)
+        (message "Forge inline images hidden"))
+    (my/forge-render-images)
+    (message "Forge inline images rendered")))
+
 (use-package forge
   :ensure t
   :defer t
   :after magit
   :init
-  (setq forge-add-default-bindings nil))
+  (setq forge-add-default-bindings nil)
+  :config
+  (advice-add 'forge-topic-setup-buffer :after
+              (lambda (&rest _)
+                (run-at-time 0.1 nil (lambda (buf)
+                                       (when (buffer-live-p buf)
+                                         (my/forge-render-images buf)))
+                             (current-buffer)))))
 
 ;; Git gutter indicators
 (use-package git-gutter
