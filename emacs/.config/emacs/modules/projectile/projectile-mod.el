@@ -69,16 +69,7 @@ If killed or missing, seamlessly fall back to an active perspective."
         projectile-indexing-method 'alien
         projectile-enable-caching t
         projectile-auto-discover t)
-  (run-with-idle-timer 4.0 nil #'projectile-discover-projects-in-search-path)
-
-  (defun my/projectile-auto-discover-advice (&rest _args)
-    "Re-discover projects in search path before switching."
-    (when projectile-project-search-path
-      (let ((inhibit-message t))
-        (projectile-discover-projects-in-search-path))))
-
-  (advice-add 'projectile-switch-project :before #'my/projectile-auto-discover-advice)
-  (advice-add 'projectile-persp-switch-project :before #'my/projectile-auto-discover-advice))
+  (run-with-idle-timer 4.0 nil #'projectile-discover-projects-in-search-path))
 
 (use-package persp-projectile
   :ensure t
