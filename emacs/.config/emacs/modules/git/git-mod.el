@@ -314,7 +314,7 @@ Allowed during an active rebase at the current HEAD commit."
   :ensure t
   :hook (prog-mode . git-gutter-mode)
   :config
-  (setq git-gutter:update-interval 0)
+  (setq git-gutter:update-interval 1)
   (add-hook 'magit-post-refresh-hook #'git-gutter:update-all-windows)
   (add-hook 'focus-in-hook           #'git-gutter:update-all-windows)
   (add-hook 'after-save-hook         #'git-gutter:update-all-windows)
