@@ -92,18 +92,40 @@
 
 (setq-default scroll-conservatively 101
               scroll-margin 5
-              scroll-preserve-screen-position t
+              scroll-preserve-screen-position 'always
               auto-window-vscroll nil)
 
-;; Smooth pixel scrolling animation
-(use-package good-scroll
-  :ensure t
-  :init
-  (setq good-scroll-render-rate 0.0055
-        good-scroll-duration 0.10
-        good-scroll-step 60)
-  :config
-  (good-scroll-mode 1))
+(defun my/mwheel-scroll-up (&optional arg)
+  "Scroll up (viewport moves down towards buffer end)."
+  (interactive "^P")
+  (let ((amt (or arg 1)))
+    (if (pos-visible-in-window-p (point-max))
+        (forward-line amt)
+      (scroll-up amt)
+      (let* ((pt-row (cdr (posn-col-row (posn-at-point)))))
+        (when (and pt-row (< pt-row scroll-margin))
+          (forward-line (- scroll-margin pt-row)))))))
+
+(defun my/mwheel-scroll-down (&optional arg)
+  "Scroll down (viewport moves up towards buffer start)."
+  (interactive "^P")
+  (let ((amt (or arg 1)))
+    (if (<= (window-start) (point-min))
+        (forward-line (- amt))
+      (scroll-down amt)
+      (let* ((h (window-body-height))
+             (max-row (- h scroll-margin 1))
+             (pt-row (cdr (posn-col-row (posn-at-point)))))
+        (when (and pt-row (> pt-row max-row))
+          (forward-line (- max-row pt-row)))))))
+
+(put 'my/mwheel-scroll-up 'scroll-command t)
+(put 'my/mwheel-scroll-down 'scroll-command t)
+
+(setq mwheel-scroll-up-function #'my/mwheel-scroll-up
+      mwheel-scroll-down-function #'my/mwheel-scroll-down
+      mouse-wheel-scroll-amount '(1 ((shift) . 1))
+      mouse-wheel-progressive-speed t)
 
 ;; Window layout tiling compatibility
 (setq transpose-dedicated-windows t)
