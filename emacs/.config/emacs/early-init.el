@@ -30,7 +30,6 @@
                   gc-cons-percentage 0.1)
             (makunbound 'my/initial-file-name-handler-alist)))
 
-(setenv "LSP_USE_PLISTS" "true")
 (setq package-enable-at-startup nil)
 
 
