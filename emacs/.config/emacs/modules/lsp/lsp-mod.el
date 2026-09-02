@@ -161,7 +161,7 @@
   (setq eglot-events-buffer-size 0
         eglot-autoshutdown t
         eglot-sync-connect nil
-        eglot-send-changes-idle-time 0.05)
+        eglot-send-changes-idle-time 0.2)
   (add-to-list 'warning-suppress-types '(jsonrpc))
   (add-to-list 'warning-suppress-types '(eglot))
 

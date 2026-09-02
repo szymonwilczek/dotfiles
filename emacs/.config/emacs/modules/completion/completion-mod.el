@@ -54,12 +54,13 @@
                           (company-mode 1))))
          (conf-mode . company-mode))
   :config
-  (setq company-minimum-prefix-length 1
-        company-idle-delay 0.05
+  (setq company-minimum-prefix-length 2
+        company-idle-delay 0.2
         company-selection-wrap-around t
         company-tooltip-limit 10
         company-tooltip-align-annotations t
         company-require-match nil
+        company-dabbrev-other-buffers nil
         company-frontends '(company-pseudo-tooltip-frontend)
         company-backends '((company-capf :with company-dabbrev)))
 
