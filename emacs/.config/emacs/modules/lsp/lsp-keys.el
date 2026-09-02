@@ -59,8 +59,8 @@ If formatted output is identical to current buffer content, no modifications are
                                    (buffer-string))))
                     (message "Formatter %s error: %s" cmd (string-trim err-msg))
                     nil)
-                (let ((identical (string= (buffer-string)
-                                          (with-current-buffer out-buf (buffer-string)))))
+                (let ((identical (and (= (buffer-size) (buffer-size out-buf))
+                                      (zerop (compare-buffer-substrings (current-buffer) nil nil out-buf nil nil)))))
                   (if identical
                       (progn
                         (message "Buffer is already formatted (no changes).")
@@ -90,8 +90,14 @@ If formatted output is identical to current buffer content, no modifications are
      ((derived-mode-p 'python-mode 'python-ts-mode)
       (message "No Python formatter available."))
      (t
-      (indent-region (point-min) (point-max))
-      (message "Formatted buffer with indent-region.")))))
+      (let ((was-modified (buffer-modified-p))
+            (tick (buffer-chars-modified-tick)))
+        (indent-region (point-min) (point-max))
+        (if (= tick (buffer-chars-modified-tick))
+            (progn
+              (set-buffer-modified-p was-modified)
+              (message "Buffer is already formatted (no changes)."))
+          (message "Formatted buffer with indent-region.")))))))
 
 (defun my/goto-prev-diagnostic ()
   "Jump to previous diagnostic error or warning across Flymake, Flycheck, or next-error."
