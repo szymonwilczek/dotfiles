@@ -35,6 +35,12 @@
                 treemacs-mode-hook))
   (add-hook hook #'my/disable-line-numbers))
 
+(add-hook 'display-line-numbers-mode-hook
+          (lambda ()
+            (when (or (bound-and-true-p my/agent-buffer-p)
+                      (string-match-p "\\*agent-" (buffer-name)))
+              (setq display-line-numbers nil))))
+
 ;; Themes & Theme Persistence
 (defvar my/theme-cache-file (expand-file-name ".theme-cache" user-emacs-directory))
 
