@@ -32,6 +32,10 @@
 
 (setq package-enable-at-startup nil)
 
+;; Cache directory lookups in load-path to accelerate repeated 'require' and 'load'
+(when (and (boundp 'load-path-filter-function)
+           (fboundp 'load-path-filter-cache-directory-files))
+  (setq load-path-filter-function #'load-path-filter-cache-directory-files))
 
 ;; .#filename), ~filename, #filename#
 (setq create-lockfiles nil
