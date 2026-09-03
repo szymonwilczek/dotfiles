@@ -11,7 +11,7 @@
 (declare-function my/modeline-filename "modeline")
 
 (defun my/agents-modeline-buffer-type (&optional buffer)
-  "Return agent type symbol for BUFFER ('claude, 'antigravity, 'codex, etc.)."
+  "Return agent type symbol for BUFFER ('claude, 'antigravity, etc.)."
   (let* ((buf (or buffer (current-buffer)))
          (name (downcase (buffer-name buf))))
     (with-current-buffer buf
@@ -20,7 +20,6 @@
           (cond
            ((string-match-p "agent-claude" name) 'claude)
            ((string-match-p "agent-antigravity" name) 'antigravity)
-           ((string-match-p "agent-codex" name) 'codex)
            ((string-match-p "claude" name) 'claude)
            ((string-match-p "antigravity\\|agy" name) 'antigravity)
            ((or (bound-and-true-p my/agent-buffer-p)

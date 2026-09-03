@@ -111,20 +111,14 @@ Working directory is automatically set to the project root of the current buffer
   (interactive)
   (my/agent-open "Claude" "claude"))
 
-(defun my/agent-shell-codex ()
-  "Start or switch to OpenAI Codex in right split."
-  (interactive)
-  (my/agent-open "Codex" "codex"))
-
 (defun my/agent-shell-select ()
   "Interactively choose from the AI agents and open in right split."
   (interactive)
-  (let* ((choices '("Antigravity" "Claude Code" "OpenAI Codex"))
+  (let* ((choices '("Antigravity" "Claude Code"))
          (choice (completing-read "Select AI Agent: " choices nil t)))
     (pcase choice
-      ("Antigravity"  (my/agent-shell-gemini))
-      ("Claude Code"  (my/agent-shell-claude))
-      ("OpenAI Codex" (my/agent-shell-codex)))))
+      ("Antigravity" (my/agent-shell-gemini))
+      ("Claude Code" (my/agent-shell-claude)))))
 
 (defun my/agent-shell-toggle ()
   "Toggle visibility of active agent split."
@@ -138,9 +132,8 @@ Working directory is automatically set to the project root of the current buffer
     (if agent-win
         (delete-window agent-win)
       (pcase my/agent-active-name
-        ("Claude"   (my/agent-shell-claude))
-        ("Codex"    (my/agent-shell-codex))
-        (_          (my/agent-shell-gemini))))))
+        ("Claude" (my/agent-shell-claude))
+        (_        (my/agent-shell-gemini))))))
 
 (defun my/agent-edit-prompt ()
   "Draft a prompt in a dedicated bottom split under the agent chat window.
@@ -195,7 +188,7 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
             (evil-insert-state 1)))))))
 
 (defvar-local my/agent-type nil
-  "Type of the AI agent running in this buffer ('claude, 'antigravity, 'codex).")
+  "Type of the AI agent running in this buffer ('claude, 'antigravity).")
 
 (defvar my/agent-claude-quota-data nil
   "Alist of Claude quota data: ((5h-util . N) (5h-reset . S) (7d-util . N) (7d-reset . S)).")
@@ -207,7 +200,7 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
   "Timer that refreshes agent usage every minute.")
 
 (defun my/agent-buffer-type (&optional buffer)
-  "Return agent type symbol for BUFFER ('claude, 'antigravity, 'codex, etc.)."
+  "Return agent type symbol for BUFFER ('claude, 'antigravity, etc.)."
   (let* ((buf (or buffer (current-buffer)))
          (name (downcase (buffer-name buf))))
     (with-current-buffer buf
@@ -215,7 +208,6 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
           (cond
            ((string-match-p "claude" name) 'claude)
            ((string-match-p "antigravity\\|agy" name) 'antigravity)
-           ((string-match-p "codex" name) 'codex)
            ((or (bound-and-true-p my/agent-buffer-p)
                 (string-match-p "\\*agent-" name))
             'generic)
