@@ -1,6 +1,7 @@
 ;;; Statusline -*- lexical-binding: t; -*-
 
 (require 'timeout)
+(require 'agents-modeline)
 
 (defvar-local my/modeline--cached-base-name nil)
 (defvar-local my/modeline--cached-filetype nil)
@@ -49,25 +50,17 @@
         (ro (if buffer-read-only "[RO]" "")))
     (format " %s%s%s " my/modeline--cached-base-name mod ro)))
 
-(defun my/modeline--agent-buffer-p ()
-  "Non-nil if current buffer is an AI agent terminal."
-  (or (bound-and-true-p my/agent-buffer-p)
-      (and (fboundp 'my/agent-buffer-type) (my/agent-buffer-type))
-      (string-match-p "\\*agent-\\|\\*ghostel:.*" (buffer-name))))
-
 (defun my/modeline-location ()
-  "Render line and column location matching %2l:%-2v.
-Hidden in AI agent buffers."
-  (unless (my/modeline--agent-buffer-p)
-    (let* ((state (and (bound-and-true-p evil-mode) evil-state))
-           (face (pcase state
-                   ('normal '(:inherit font-lock-keyword-face :weight bold))
-                   ('insert '(:inherit font-lock-string-face :weight bold))
-                   ('visual '(:inherit font-lock-type-face :weight bold))
-                   ('replace '(:inherit error :weight bold))
-                   (_ '(:inherit font-lock-constant-face :weight bold))))
-           (loc (propertize " %2l:%C " 'face face)))
-      loc)))
+  "Render line and column location matching %2l:%-2v."
+  (let* ((state (and (bound-and-true-p evil-mode) evil-state))
+         (face (pcase state
+                 ('normal '(:inherit font-lock-keyword-face :weight bold))
+                 ('insert '(:inherit font-lock-string-face :weight bold))
+                 ('visual '(:inherit font-lock-type-face :weight bold))
+                 ('replace '(:inherit error :weight bold))
+                 (_ '(:inherit font-lock-constant-face :weight bold))))
+         (loc (propertize " %2l:%C " 'face face)))
+    loc))
 
 (defun my/modeline-filetype ()
   "Render simplified major mode filetype."
@@ -122,12 +115,9 @@ Hidden in AI agent buffers."
 (timeout-throttle #'my/modeline-update-fileinfo 0.5)
 
 (defun my/modeline-fileinfo ()
-  "Return cached fileinfo string.
-Hidden in AI agent buffers."
-  (if (my/modeline--agent-buffer-p)
-      ""
-    (my/modeline-update-fileinfo)
-    my/modeline--cached-fileinfo))
+  "Return cached fileinfo string."
+  (my/modeline-update-fileinfo)
+  my/modeline--cached-fileinfo)
 
 (defun my/modeline-update-git-branch ()
   "Compute current git branch name in brackets."
@@ -147,48 +137,26 @@ Hidden in AI agent buffers."
   (my/modeline-update-git-branch)
   my/modeline--cached-git-branch)
 
-(defun my/modeline-agent-usage (&optional active)
-  "Render usage percent in AI agent buffers for the specific agent type."
-  (if (fboundp 'my/agent-render-usage)
-      (my/agent-render-usage active)
-    (if (fboundp 'my/agent-get-usage-string)
-        (my/agent-get-usage-string)
-      "")))
-
 (defun my/render-modeline ()
   "Assemble active or inactive statusline."
-  (let* ((is-agent (my/modeline--agent-buffer-p))
-         (selected (mode-line-window-selected-p))
-         (usage (if is-agent (my/modeline-agent-usage selected) ""))
-         (usage-w (string-width (format-mode-line usage))))
-    (if (not selected)
-        ;; inactive window
-        (if is-agent
-            (let ((lhs-w (string-width (format-mode-line (concat " " (my/modeline-filename))))))
-              (if (and (> usage-w 0) (< (+ lhs-w usage-w 2) (window-width)))
-                  (concat " " (my/modeline-filename)
-                          (propertize " " 'display `(space :align-to (- right ,usage-w)))
-                          usage)
-                (concat " " (my/modeline-filename) " " usage)))
-          (concat " " (my/modeline-filename)))
-
-      ;; active window
+  (if (and (fboundp 'my/agents-modeline-buffer-p)
+           (my/agents-modeline-buffer-p))
+      (my/agents-modeline-render)
+    (if (not (mode-line-window-selected-p))
+        ;; inactive standard window
+        (concat " " (my/modeline-filename))
+      ;; active standard window
       (let* ((lhs (concat (my/modeline-evil-mode-info)
                           (my/modeline-filename)))
-             (rhs (if is-agent
-                      usage
-                    (concat (my/modeline-location)
-                            (my/modeline-filetype)
-                            (my/modeline-diagnostics)
-                            (my/modeline-fileinfo)
-                            (my/modeline-git-branch))))
-             (lhs-w (string-width (format-mode-line lhs)))
+             (rhs (concat (my/modeline-location)
+                          (my/modeline-filetype)
+                          (my/modeline-diagnostics)
+                          (my/modeline-fileinfo)
+                          (my/modeline-git-branch)))
              (rhs-w (string-width (format-mode-line rhs))))
-        (if (and (> rhs-w 0) (< (+ lhs-w rhs-w 2) (window-width)))
-            (concat lhs
-                    (propertize " " 'display `(space :align-to (- right ,rhs-w)))
-                    rhs)
-          (concat lhs " " rhs))))))
+        (concat lhs
+                (propertize " " 'display `(space :align-to (- right ,rhs-w)))
+                rhs)))))
 
 (setq-default mode-line-format '(:eval (my/render-modeline)))
 

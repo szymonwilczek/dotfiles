@@ -98,6 +98,7 @@
   :config
   (global-wakatime-mode 1))
 
+(require 'agents-modeline)
 (require 'modeline)
 (require 'ui-keys)
 
