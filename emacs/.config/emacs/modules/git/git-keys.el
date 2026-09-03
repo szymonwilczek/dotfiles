@@ -73,10 +73,6 @@
       "gb"  '(magit-blame :which-key "Git Blame")
       "gl"  '(magit-log-current :which-key "Git Log")
       "gd"  '(magit-diff-dwim :which-key "Git Diff")
-      "gi"  '(forge-list-issues :which-key "GitHub Issues")
-      "gp"  '(forge-list-pullreqs :which-key "GitHub Pull Requests")
-      "gn"  '(forge-list-notifications :which-key "GitHub Notifications")
-      "gf"  '(forge-pull :which-key "Fetch Forge (Issues/PRs)")
 
       ;; Conflict resolution
       "gc"  '(:ignore t :which-key "Conflicts")
