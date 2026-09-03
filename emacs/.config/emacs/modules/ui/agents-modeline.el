@@ -18,9 +18,11 @@
       (or (and (bound-and-true-p my/agent-type)
                (intern (downcase (format "%s" my/agent-type))))
           (cond
+           ((string-match-p "agent-claude" name) 'claude)
+           ((string-match-p "agent-antigravity" name) 'antigravity)
+           ((string-match-p "agent-codex" name) 'codex)
            ((string-match-p "claude" name) 'claude)
            ((string-match-p "antigravity\\|agy" name) 'antigravity)
-           ((string-match-p "codex" name) 'codex)
            ((or (bound-and-true-p my/agent-buffer-p)
                 (string-match-p "\\*agent-" name))
             'generic)

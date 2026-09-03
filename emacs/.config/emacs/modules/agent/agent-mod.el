@@ -25,8 +25,19 @@
                (new-win (split-window root target-width 'right)))
           new-win))))
 
+(defun my/agent--ghostel-buffer-name-fn (title)
+  "Prevent ghostel from renaming agent buffers (*agent-*) on terminal TITLE updates."
+  (if (or (bound-and-true-p my/agent-buffer-p)
+          (string-prefix-p "*agent-" (buffer-name)))
+      nil
+    (and (fboundp 'ghostel-buffer-name-by-title)
+         (ghostel-buffer-name-by-title title))))
+
+(with-eval-after-load 'ghostel
+  (setq ghostel-buffer-name-function #'my/agent--ghostel-buffer-name-fn))
+
 (defun my/agent-open (name command-name &optional args)
-  "Open or switch to AI agent NAME running COMMAND-NAME in right split.
+  "Open or switch to an agent buffer with NAME running COMMAND-NAME with ARGS.
 Working directory is automatically set to the project root of the current buffer."
   (require 'ghostel)
   (setq my/agent-active-name name)
@@ -39,22 +50,36 @@ Working directory is automatically set to the project root of the current buffer
          (existing (get-buffer buf-name))
          (right-win (my/agent-get-or-create-window)))
     (select-window right-win)
-    (if (and existing (buffer-live-p existing) (get-buffer-process existing))
+    (if (and existing
+             (buffer-live-p existing)
+             (or (get-buffer-process existing)
+                 (with-current-buffer existing
+                   (and (boundp 'ghostel--process) (process-live-p ghostel--process)))))
         (switch-to-buffer existing)
       (let ((buf (get-buffer-create buf-name)))
         (switch-to-buffer buf)
         (with-current-buffer buf
           (setq default-directory target-dir)
+          (setq-local ghostel-buffer-name-function nil)
+          (setq-local ghostel-set-title-function nil)
           (setq-local my/agent-buffer-p t)
           (setq-local my/agent-type (downcase name))
-          (setq-local ghostel-buffer-name-function nil)
           (setq-local display-line-numbers nil)
           (display-line-numbers-mode -1))
         (let ((process-environment (append '("TERM=xterm-256color") process-environment))
               (exec-path (append (list (expand-file-name "~/.local/bin")
                                        (expand-file-name "~/.npm-global/bin"))
                                  exec-path)))
-          (ghostel-exec buf cmd args))))
+          (ghostel-exec buf cmd args))
+        (with-current-buffer buf
+          (setq-local ghostel-buffer-name-function nil)
+          (setq-local ghostel-set-title-function nil)
+          (setq-local my/agent-buffer-p t)
+          (setq-local my/agent-type (downcase name))
+          (setq-local display-line-numbers nil)
+          (display-line-numbers-mode -1)
+          (unless (string= (buffer-name) buf-name)
+            (rename-buffer buf-name t)))))
     (my/agent-update-usage-async)))
 
 ;; Auto-close split window on agent exit
