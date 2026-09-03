@@ -148,7 +148,6 @@
    (go-work-ts-mode   . eglot-ensure)
    (php-ts-mode       . eglot-ensure)
    (astro-ts-mode     . eglot-ensure)
-   (lua-ts-mode       . eglot-ensure)
    (json-ts-mode      . eglot-ensure)
    (sh-mode           . eglot-ensure)
    (bash-ts-mode      . eglot-ensure)
