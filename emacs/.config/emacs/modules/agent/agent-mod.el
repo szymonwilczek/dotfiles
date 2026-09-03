@@ -381,6 +381,25 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
   (setq my/agent-usage-timer
         (run-with-timer 0 60 #'my/agent-update-usage-async)))
 
+(defvar my/agent--last-focus-update-time 0
+  "Timestamp of the last focus-triggered quota update to prevent flooding.")
+
+(defun my/agent--on-focus-change (&optional frame-or-window)
+  "Trigger instant single-shot quota refresh when focusing an agent buffer."
+  (let* ((win (if (windowp frame-or-window) frame-or-window (selected-window)))
+         (buf (and (window-live-p win) (window-buffer win)))
+         (type (and buf (my/agent-buffer-type buf)))
+         (now (float-time)))
+    (when (and (memq type '(claude antigravity))
+               (eq win (selected-window))
+               (> (- now my/agent--last-focus-update-time) 2.0))
+      (setq my/agent--last-focus-update-time now)
+      (cond
+       ((eq type 'claude) (my/agent-claude-update-usage-async))
+       ((eq type 'antigravity) (my/agent-antigravity-update-usage-async))))))
+
+(add-hook 'window-selection-change-functions #'my/agent--on-focus-change)
+
 (require 'agent-keys)
 
 (provide 'agent-mod)
