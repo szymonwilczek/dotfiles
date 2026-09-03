@@ -61,15 +61,15 @@
       (error ""))))
 
 (defun my/agents-modeline--usage-face (pct)
-  "Return face for usage PCT: <75 white, 75-89 yellow, >=90 red."
+  "Return face for usage PCT from active theme: <75 default, 75-89 warning, >=90 error."
   (cond
-   ((>= pct 90) '(:foreground "#e06c75" :weight bold))
-   ((>= pct 75) '(:foreground "#e5c07b" :weight bold))
-   (t '(:foreground "#ffffff" :weight bold))))
+   ((>= pct 90) '(:inherit error :weight bold))
+   ((>= pct 75) '(:inherit warning :weight bold))
+   (t '(:inherit default :weight bold))))
 
 (defun my/agents-modeline--format-quota-item (label pct reset-str)
-  "Format LABEL (white), PCT (threshold colored) and RESET-STR (comment face)."
-  (let* ((lbl-face '(:foreground "#ffffff" :weight bold))
+  "Format LABEL (theme text), PCT (warning/error/default) and RESET-STR (comment face)."
+  (let* ((lbl-face '(:inherit default :weight bold))
          (val-face (my/agents-modeline--usage-face (or pct 0)))
          (rst-str (my/agents-modeline--format-reset-time reset-str))
          (rst-part (if (string-empty-p rst-str)
@@ -84,13 +84,13 @@
 (defun my/agents-modeline-render-usage (active &optional buffer)
   "Render formatted usage string for BUFFER depending on ACTIVE state."
   (let ((type (my/agents-modeline-buffer-type buffer))
-        (sep (propertize " | " 'face '(:foreground "#7f848e"))))
+        (sep (propertize " | " 'face 'shadow)))
     (pcase type
       ('claude
        (when (bound-and-true-p my/agent-claude-quota-data)
          (let* ((c-logo (propertize "󰘑" 'face (if active
                                                   '(:foreground "#da7756" :weight bold)
-                                                '(:foreground "#7f848e"))))
+                                                'shadow)))
                 (u5 (alist-get '5h-util my/agent-claude-quota-data))
                 (r5 (alist-get '5h-reset my/agent-claude-quota-data))
                 (u7 (alist-get '7d-util my/agent-claude-quota-data))
@@ -104,7 +104,7 @@
        (when (bound-and-true-p my/agent-antigravity-quota-data)
          (let* ((g-logo (propertize "󰊭" 'face (if active
                                                   '(:foreground "#4285f4" :weight bold)
-                                                '(:foreground "#7f848e"))))
+                                                'shadow)))
                 (g-5h (alist-get 'gemini-5h-util my/agent-antigravity-quota-data))
                 (g-5r (alist-get 'gemini-5h-reset my/agent-antigravity-quota-data))
                 (g-7d (alist-get 'gemini-7d-util my/agent-antigravity-quota-data))
