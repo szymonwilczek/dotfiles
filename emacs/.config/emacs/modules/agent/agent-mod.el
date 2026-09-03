@@ -214,6 +214,17 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
            (t nil))))))
 
 
+(defun my/agent--live-buffer-p (type)
+  "Return non-nil if an agent buffer of TYPE ('claude, 'antigravity) is open with a live process."
+  (cl-some (lambda (b)
+             (when (eq (my/agent-buffer-type b) type)
+               (and (buffer-live-p b)
+                    (or (get-buffer-process b)
+                        (with-current-buffer b
+                          (and (boundp 'ghostel--process)
+                               (process-live-p ghostel--process)))))))
+           (buffer-list)))
+
 (defun my/agent--get-claude-token ()
   "Extract current OAuth accessToken from ~/.claude/.credentials.json."
   (let ((cred-file (expand-file-name "~/.claude/.credentials.json")))
@@ -228,7 +239,8 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
 
 (defun my/agent-claude-update-usage-async ()
   "Asynchronously fetch 5h and weekly usage from official Anthropic API."
-  (when (cl-some (lambda (b) (eq (my/agent-buffer-type b) 'claude)) (buffer-list))
+  (when (and (my/agent--live-buffer-p 'claude)
+             (not (process-live-p (get-process "agent-claude-usage-fetch"))))
     (let ((token (my/agent--get-claude-token)))
       (when token
         (make-process
@@ -303,63 +315,67 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
 
 (defun my/agent-antigravity-update-usage-async ()
   "Fetch 5h and weekly usage for Antigravity (agy) agent asynchronously in pure Elisp."
-  (when (cl-some (lambda (b) (eq (my/agent-buffer-type b) 'antigravity)) (buffer-list))
+  (when (my/agent--live-buffer-p 'antigravity)
     (let ((ports (my/agent--find-agy-ports)))
       (dolist (port ports)
-        (make-process
-         :name (format "agent-agy-usage-fetch-%d" port)
-         :buffer (generate-new-buffer (format " *agent-agy-usage-temp-%d*" port))
-         :command (list "curl" "-s" "-m" "1"
-                        "-H" "Content-Type: application/json"
-                        "-H" "Connect-Protocol-Version: 1"
-                        "-d" "{}"
-                        (format "http://127.0.0.1:%d/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary" port))
-         :sentinel (lambda (proc _event)
-                     (when (eq (process-status proc) 'exit)
-                       (unwind-protect
-                           (when (= (process-exit-status proc) 0)
-                             (with-current-buffer (process-buffer proc)
-                               (goto-char (point-min))
-                               (ignore-errors
-                                 (let* ((json (json-parse-buffer :object-type 'alist :array-type 'list))
-                                        gemini-5h gemini-5r gemini-7d gemini-7r
-                                        tp-5h tp-5r tp-7d tp-7r)
-                                   (dolist (g (alist-get 'groups (alist-get 'response json)))
-                                     (let* ((name (or (alist-get 'displayName g) ""))
-                                            (is-gemini (string-match-p "Gemini" name))
-                                            (is-3p (string-match-p "Claude\\|GPT\\|3p" name)))
-                                       (dolist (b (alist-get 'buckets g))
-                                         (let* ((win (alist-get 'window b))
-                                                (rem (or (alist-get 'remainingFraction b) 1.0))
-                                                (rst (alist-get 'resetTime b))
-                                                (used (max 0 (min 100 (round (* (- 1.0 rem) 100))))))
-                                           (cond
-                                            ((and is-gemini (string= win "5h"))
-                                             (setq gemini-5h used gemini-5r rst))
-                                            ((and is-gemini (string= win "weekly"))
-                                             (setq gemini-7d used gemini-7r rst))
-                                            ((and is-3p (string= win "5h"))
-                                             (setq tp-5h used tp-5r rst))
-                                            ((and is-3p (string= win "weekly"))
-                                             (setq tp-7d used tp-7r rst)))))))
-                                   (when (and gemini-5h gemini-7d)
-                                     (setq my/agent-antigravity-quota-data
-                                           `((gemini-5h-util . ,gemini-5h)
-                                             (gemini-5h-reset . ,gemini-5r)
-                                             (gemini-7d-util . ,gemini-7d)
-                                             (gemini-7d-reset . ,gemini-7r)
-                                             (3p-5h-util . ,(or tp-5h 0))
-                                             (3p-5h-reset . ,tp-5r)
-                                             (3p-7d-util . ,(or tp-7d 0))
-                                             (3p-7d-reset . ,tp-7r)))
-                                     (force-mode-line-update t))))))
-                         (when (buffer-live-p (process-buffer proc))
-                           (kill-buffer (process-buffer proc)))))))))))
+        (let ((proc-name (format "agent-agy-usage-fetch-%d" port)))
+          (unless (process-live-p (get-process proc-name))
+            (make-process
+             :name proc-name
+             :buffer (generate-new-buffer (format " *agent-agy-usage-temp-%d*" port))
+             :command (list "curl" "-s" "-m" "1"
+                            "-H" "Content-Type: application/json"
+                            "-H" "Connect-Protocol-Version: 1"
+                            "-d" "{}"
+                            (format "http://127.0.0.1:%d/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary" port))
+             :sentinel (lambda (proc _event)
+                         (when (eq (process-status proc) 'exit)
+                           (unwind-protect
+                               (when (= (process-exit-status proc) 0)
+                                 (with-current-buffer (process-buffer proc)
+                                   (goto-char (point-min))
+                                   (ignore-errors
+                                     (let* ((json (json-parse-buffer :object-type 'alist :array-type 'list))
+                                            gemini-5h gemini-5r gemini-7d gemini-7r
+                                            tp-5h tp-5r tp-7d tp-7r)
+                                       (dolist (g (alist-get 'groups (alist-get 'response json)))
+                                         (let* ((name (or (alist-get 'displayName g) ""))
+                                                (is-gemini (string-match-p "Gemini" name))
+                                                (is-3p (string-match-p "Claude\\|GPT\\|3p" name)))
+                                           (dolist (b (alist-get 'buckets g))
+                                             (let* ((win (alist-get 'window b))
+                                                    (rem (or (alist-get 'remainingFraction b) 1.0))
+                                                    (rst (alist-get 'resetTime b))
+                                                    (used (max 0 (min 100 (round (* (- 1.0 rem) 100))))))
+                                               (cond
+                                                ((and is-gemini (string= win "5h"))
+                                                 (setq gemini-5h used gemini-5r rst))
+                                                ((and is-gemini (string= win "weekly"))
+                                                 (setq gemini-7d used gemini-7r rst))
+                                                ((and is-3p (string= win "5h"))
+                                                 (setq tp-5h used tp-5r rst))
+                                                ((and is-3p (string= win "weekly"))
+                                                 (setq tp-7d used tp-7r rst)))))))
+                                       (when (and gemini-5h gemini-7d)
+                                         (setq my/agent-antigravity-quota-data
+                                               `((gemini-5h-util . ,gemini-5h)
+                                                 (gemini-5h-reset . ,gemini-5r)
+                                                 (gemini-7d-util . ,gemini-7d)
+                                                 (gemini-7d-reset . ,gemini-7r)
+                                                 (3p-5h-util . ,(or tp-5h 0))
+                                                 (3p-5h-reset . ,tp-5r)
+                                                 (3p-7d-util . ,(or tp-7d 0))
+                                                 (3p-7d-reset . ,tp-7r)))
+                                         (force-mode-line-update t))))))
+                             (when (buffer-live-p (process-buffer proc))
+                               (kill-buffer (process-buffer proc)))))))))))))
 
 (defun my/agent-update-usage-async ()
-  "Dispatch usage update for all active agent types."
-  (my/agent-claude-update-usage-async)
-  (my/agent-antigravity-update-usage-async))
+  "Dispatch usage update for all active agent types if any agent buffer is open."
+  (when (my/agent--live-buffer-p 'claude)
+    (my/agent-claude-update-usage-async))
+  (when (my/agent--live-buffer-p 'antigravity)
+    (my/agent-antigravity-update-usage-async)))
 
 (unless my/agent-usage-timer
   (setq my/agent-usage-timer
