@@ -49,11 +49,16 @@
         (ro (if buffer-read-only "[RO]" "")))
     (format " %s%s%s " my/modeline--cached-base-name mod ro)))
 
+(defun my/modeline--agent-buffer-p ()
+  "Non-nil if current buffer is an AI agent terminal."
+  (or (bound-and-true-p my/agent-buffer-p)
+      (and (fboundp 'my/agent-buffer-type) (my/agent-buffer-type))
+      (string-match-p "\\*agent-\\|\\*ghostel:.*" (buffer-name))))
+
 (defun my/modeline-location ()
   "Render line and column location matching %2l:%-2v.
 Hidden in AI agent buffers."
-  (unless (or (bound-and-true-p my/agent-buffer-p)
-              (string-match-p "\\*agent-" (buffer-name)))
+  (unless (my/modeline--agent-buffer-p)
     (let* ((state (and (bound-and-true-p evil-mode) evil-state))
            (face (pcase state
                    ('normal '(:inherit font-lock-keyword-face :weight bold))
@@ -119,8 +124,7 @@ Hidden in AI agent buffers."
 (defun my/modeline-fileinfo ()
   "Return cached fileinfo string.
 Hidden in AI agent buffers."
-  (if (or (bound-and-true-p my/agent-buffer-p)
-          (string-match-p "\\*agent-" (buffer-name)))
+  (if (my/modeline--agent-buffer-p)
       ""
     (my/modeline-update-fileinfo)
     my/modeline--cached-fileinfo))
@@ -143,27 +147,29 @@ Hidden in AI agent buffers."
   (my/modeline-update-git-branch)
   my/modeline--cached-git-branch)
 
-(defun my/modeline-agent-usage ()
-  "Render 5h and 7d usage percent in AI agent buffers."
-  (if (and (boundp 'my/agent-usage-string)
-           (stringp my/agent-usage-string)
-           (not (string-empty-p my/agent-usage-string)))
-      (propertize my/agent-usage-string 'face '(:inherit font-lock-comment-face :weight bold))
-    ""))
+(defun my/modeline-agent-usage (&optional active)
+  "Render usage percent in AI agent buffers for the specific agent type."
+  (if (fboundp 'my/agent-render-usage)
+      (my/agent-render-usage active)
+    (if (fboundp 'my/agent-get-usage-string)
+        (my/agent-get-usage-string)
+      "")))
 
 (defun my/render-modeline ()
   "Assemble active or inactive statusline."
-  (let* ((is-agent (or (bound-and-true-p my/agent-buffer-p)
-                       (string-match-p "\\*agent-" (buffer-name))))
-         (usage (if is-agent (my/modeline-agent-usage) ""))
+  (let* ((is-agent (my/modeline--agent-buffer-p))
+         (selected (mode-line-window-selected-p))
+         (usage (if is-agent (my/modeline-agent-usage selected) ""))
          (usage-w (string-width (format-mode-line usage))))
-    (if (not (mode-line-window-selected-p))
+    (if (not selected)
         ;; inactive window
         (if is-agent
-            (concat " " (my/modeline-filename)
-                    (when (> usage-w 0)
-                      (propertize " " 'display `(space :align-to (- right ,usage-w))))
-                    usage)
+            (let ((lhs-w (string-width (format-mode-line (concat " " (my/modeline-filename))))))
+              (if (and (> usage-w 0) (< (+ lhs-w usage-w 2) (window-width)))
+                  (concat " " (my/modeline-filename)
+                          (propertize " " 'display `(space :align-to (- right ,usage-w)))
+                          usage)
+                (concat " " (my/modeline-filename) " " usage)))
           (concat " " (my/modeline-filename)))
 
       ;; active window
@@ -176,10 +182,13 @@ Hidden in AI agent buffers."
                             (my/modeline-diagnostics)
                             (my/modeline-fileinfo)
                             (my/modeline-git-branch))))
-             (rhs-width (string-width (format-mode-line rhs))))
-        (concat lhs
-                (propertize " " 'display `(space :align-to (- right ,rhs-width)))
-                rhs)))))
+             (lhs-w (string-width (format-mode-line lhs)))
+             (rhs-w (string-width (format-mode-line rhs))))
+        (if (and (> rhs-w 0) (< (+ lhs-w rhs-w 2) (window-width)))
+            (concat lhs
+                    (propertize " " 'display `(space :align-to (- right ,rhs-w)))
+                    rhs)
+          (concat lhs " " rhs))))))
 
 (setq-default mode-line-format '(:eval (my/render-modeline)))
 

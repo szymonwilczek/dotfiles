@@ -46,6 +46,7 @@ Working directory is automatically set to the project root of the current buffer
         (with-current-buffer buf
           (setq default-directory target-dir)
           (setq-local my/agent-buffer-p t)
+          (setq-local my/agent-type (downcase name))
           (setq-local ghostel-buffer-name-function nil)
           (setq-local display-line-numbers nil)
           (display-line-numbers-mode -1))
@@ -168,11 +169,113 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
           (when (fboundp 'evil-insert-state)
             (evil-insert-state 1)))))))
 
-(defvar my/agent-usage-string ""
-  "Formatted string of AI agent 5h and 7d quota usage.")
+(defvar-local my/agent-type nil
+  "Type of the AI agent running in this buffer ('claude, 'antigravity, 'codex).")
+
+(defvar my/agent-claude-quota-data nil
+  "Alist of Claude quota data: ((5h-util . N) (5h-reset . S) (7d-util . N) (7d-reset . S)).")
+
+(defvar my/agent-antigravity-quota-data nil
+  "Alist of Antigravity quota data for Gemini and 3P models.")
 
 (defvar my/agent-usage-timer nil
   "Timer that refreshes agent usage every minute.")
+
+(defun my/agent-buffer-type (&optional buffer)
+  "Return agent type symbol for BUFFER ('claude, 'antigravity, 'codex, etc.)."
+  (let* ((buf (or buffer (current-buffer)))
+         (name (downcase (buffer-name buf))))
+    (with-current-buffer buf
+      (or (and (bound-and-true-p my/agent-type) (intern (downcase (format "%s" my/agent-type))))
+          (cond
+           ((string-match-p "claude" name) 'claude)
+           ((string-match-p "antigravity\\|agy" name) 'antigravity)
+           ((string-match-p "codex" name) 'codex)
+           ((or (bound-and-true-p my/agent-buffer-p)
+                (string-match-p "\\*agent-" name))
+            'generic)
+           (t nil))))))
+
+(defun my/agent--format-reset-time (reset-str)
+  "Format time remaining until RESET-STR as compact human-readable string."
+  (if (or (null reset-str) (string-empty-p reset-str))
+      ""
+    (condition-case nil
+        (let* ((target-time (parse-iso8601-time-string reset-str))
+               (diff (ceiling (float-time (time-subtract target-time (current-time)))))
+               (diff (max 0 diff)))
+          (cond
+           ((<= diff 0) "0m")
+           ((< diff 3600) (format "%dm" (ceiling (/ diff 60.0))))
+           ((< diff 86400)
+            (let ((hours (/ diff 3600))
+                  (mins (/ (% diff 3600) 60)))
+              (if (> mins 0)
+                  (format "%dh%dm" hours mins)
+                (format "%dh" hours))))
+           (t
+            (let ((days (/ diff 86400))
+                  (hours (/ (% diff 86400) 3600)))
+              (if (> hours 0)
+                  (format "%dd%dh" days hours)
+                (format "%dd" days))))))
+      (error ""))))
+
+(defun my/agent--usage-face (pct)
+  "Return face for usage PCT: <75 white, 75-89 yellow, >=90 red."
+  (cond
+   ((>= pct 90) '(:foreground "#e06c75" :weight bold))
+   ((>= pct 75) '(:foreground "#e5c07b" :weight bold))
+   (t '(:foreground "#ffffff" :weight bold))))
+
+(defun my/agent--format-quota-item (label pct reset-str)
+  "Format LABEL (white), PCT (threshold colored) and RESET-STR (comment face)."
+  (let* ((lbl-face '(:foreground "#ffffff" :weight bold))
+         (val-face (my/agent--usage-face (or pct 0)))
+         (rst-str (my/agent--format-reset-time reset-str))
+         (rst-part (if (string-empty-p rst-str)
+                       ""
+                     (concat " " (propertize (format "(%s)" rst-str)
+                                             'face 'font-lock-comment-face)))))
+    (concat (propertize label 'face lbl-face)
+            " "
+            (propertize (format "%d%%%%" (or pct 0)) 'face val-face)
+            rst-part)))
+
+(defun my/agent-render-usage (active &optional buffer)
+  "Render formatted usage string for BUFFER depending on ACTIVE state."
+  (let ((type (my/agent-buffer-type buffer))
+        (sep (propertize " | " 'face 'font-lock-comment-face)))
+    (pcase type
+      ('claude
+       (when my/agent-claude-quota-data
+         (let* ((c-logo (propertize "󰘑" 'face (if active
+                                                  '(:foreground "#da7756" :weight bold)
+                                                'font-lock-comment-face)))
+                (u5 (alist-get '5h-util my/agent-claude-quota-data))
+                (r5 (alist-get '5h-reset my/agent-claude-quota-data))
+                (u7 (alist-get '7d-util my/agent-claude-quota-data))
+                (r7 (alist-get '7d-reset my/agent-claude-quota-data)))
+           (concat " " c-logo sep
+                   (my/agent--format-quota-item "5h:" u5 r5)
+                   sep
+                   (my/agent--format-quota-item "7d:" u7 r7)
+                   " "))))
+      ('antigravity
+       (when my/agent-antigravity-quota-data
+         (let* ((g-logo (propertize "󰊭" 'face (if active
+                                                  '(:foreground "#4285f4" :weight bold)
+                                                'font-lock-comment-face)))
+                (g-5h (alist-get 'gemini-5h-util my/agent-antigravity-quota-data))
+                (g-5r (alist-get 'gemini-5h-reset my/agent-antigravity-quota-data))
+                (g-7d (alist-get 'gemini-7d-util my/agent-antigravity-quota-data))
+                (g-7r (alist-get 'gemini-7d-reset my/agent-antigravity-quota-data)))
+           (concat " " g-logo sep
+                   (my/agent--format-quota-item "5h:" g-5h g-5r)
+                   sep
+                   (my/agent--format-quota-item "7d:" g-7d g-7r)
+                   " "))))
+      (_ ""))))
 
 (defun my/agent--get-claude-token ()
   "Extract current OAuth accessToken from ~/.claude/.credentials.json."
@@ -186,17 +289,14 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
                (oauth (alist-get 'claudeAiOauth json)))
           (alist-get 'accessToken oauth))))))
 
-(defun my/agent-update-usage-async ()
+(defun my/agent-claude-update-usage-async ()
   "Asynchronously fetch 5h and weekly usage from official Anthropic API."
-  (when (cl-some (lambda (b)
-                   (or (buffer-local-value 'my/agent-buffer-p b)
-                       (string-match-p "\\*agent-" (buffer-name b))))
-                 (buffer-list))
+  (when (cl-some (lambda (b) (eq (my/agent-buffer-type b) 'claude)) (buffer-list))
     (let ((token (my/agent--get-claude-token)))
       (when token
         (make-process
-         :name "agent-usage-fetch"
-         :buffer (generate-new-buffer " *agent-usage-temp*")
+         :name "agent-claude-usage-fetch"
+         :buffer (generate-new-buffer " *agent-claude-usage-temp*")
          :command (list "curl" "-s" "-m" "5"
                         "-H" (format "Authorization: Bearer %s" token)
                         "-H" "User-Agent: claude-code"
@@ -208,18 +308,121 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
                              (with-current-buffer (process-buffer proc)
                                (goto-char (point-min))
                                (ignore-errors
-                                 (let* ((json (json-parse-buffer :object-type 'alist))
+                                 (let* ((json (json-parse-buffer :object-type 'alist :array-type 'list))
                                         (fh (alist-get 'five_hour json))
                                         (sd (alist-get 'seven_day json))
                                         (u5 (and fh (alist-get 'utilization fh)))
-                                        (u7 (and sd (alist-get 'utilization sd))))
+                                        (r5 (and fh (alist-get 'resets_at fh)))
+                                        (u7 (and sd (alist-get 'utilization sd)))
+                                        (r7 (and sd (alist-get 'resets_at sd))))
                                    (when (and u5 u7)
-                                     (setq my/agent-usage-string
-                                           (format " [5h: %d%%%% | 7d: %d%%%%] "
-                                                   (round u5) (round u7)))
+                                     (setq my/agent-claude-quota-data
+                                           `((5h-util . ,(round u5))
+                                             (5h-reset . ,r5)
+                                             (7d-util . ,(round u7))
+                                             (7d-reset . ,r7)))
                                      (force-mode-line-update t))))))
                          (when (buffer-live-p (process-buffer proc))
                            (kill-buffer (process-buffer proc)))))))))))
+
+(defun my/agent--find-agy-ports ()
+  "Find candidate local TCP listening ports for running `agy` processes via /proc."
+  (let* ((pids (delq nil (mapcar (lambda (f)
+                                   (and (string-match-p "^[0-9]+$" f)
+                                        (let ((cmd (expand-file-name (format "/proc/%s/cmdline" f))))
+                                          (when (file-readable-p cmd)
+                                            (with-temp-buffer
+                                              (insert-file-contents cmd nil 0 64)
+                                              (and (string-match-p "agy" (buffer-string))
+                                                   f))))))
+                                 (directory-files "/proc" nil "^[0-9]+$"))))
+         (inodes (make-hash-table :test 'equal)))
+    (dolist (pid pids)
+      (let ((fd-dir (format "/proc/%s/fd" pid)))
+        (when (file-directory-p fd-dir)
+          (dolist (fd (ignore-errors (directory-files fd-dir t "^[0-9]+$")))
+            (let ((target (ignore-errors (file-symlink-p fd))))
+              (when (and target (string-match "socket:\\[\\([0-9]+\\)\\]" target))
+                (puthash (match-string 1 target) t inodes)))))))
+    (let (ports)
+      (dolist (net-file '("/proc/net/tcp" "/proc/net/tcp6"))
+        (when (file-readable-p net-file)
+          (with-temp-buffer
+            (insert-file-contents net-file)
+            (goto-char (point-min))
+            (forward-line 1)
+            (while (not (eobp))
+              (let* ((line (buffer-substring-no-properties (point) (line-end-position)))
+                     (parts (split-string line "[ \t]+" t)))
+                (when (and (>= (length parts) 10)
+                           (string= (nth 3 parts) "0A") ; TCP_LISTEN
+                           (gethash (nth 9 parts) inodes))
+                  (let* ((addr (nth 1 parts))
+                         (colon (string-search ":" addr)))
+                    (when colon
+                      (push (string-to-number (substring addr (1+ colon)) 16) ports)))))
+              (forward-line 1)))))
+      (nreverse ports))))
+
+(defun my/agent-antigravity-update-usage-async ()
+  "Fetch 5h and weekly usage for Antigravity (agy) agent asynchronously in pure Elisp."
+  (when (cl-some (lambda (b) (eq (my/agent-buffer-type b) 'antigravity)) (buffer-list))
+    (let ((ports (my/agent--find-agy-ports)))
+      (dolist (port ports)
+        (make-process
+         :name (format "agent-agy-usage-fetch-%d" port)
+         :buffer (generate-new-buffer (format " *agent-agy-usage-temp-%d*" port))
+         :command (list "curl" "-s" "-m" "1"
+                        "-H" "Content-Type: application/json"
+                        "-H" "Connect-Protocol-Version: 1"
+                        "-d" "{}"
+                        (format "http://127.0.0.1:%d/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary" port))
+         :sentinel (lambda (proc _event)
+                     (when (eq (process-status proc) 'exit)
+                       (unwind-protect
+                           (when (= (process-exit-status proc) 0)
+                             (with-current-buffer (process-buffer proc)
+                               (goto-char (point-min))
+                               (ignore-errors
+                                 (let* ((json (json-parse-buffer :object-type 'alist :array-type 'list))
+                                        gemini-5h gemini-5r gemini-7d gemini-7r
+                                        tp-5h tp-5r tp-7d tp-7r)
+                                   (dolist (g (alist-get 'groups (alist-get 'response json)))
+                                     (let* ((name (or (alist-get 'displayName g) ""))
+                                            (is-gemini (string-match-p "Gemini" name))
+                                            (is-3p (string-match-p "Claude\\|GPT\\|3p" name)))
+                                       (dolist (b (alist-get 'buckets g))
+                                         (let* ((win (alist-get 'window b))
+                                                (rem (or (alist-get 'remainingFraction b) 1.0))
+                                                (rst (alist-get 'resetTime b))
+                                                (used (max 0 (min 100 (round (* (- 1.0 rem) 100))))))
+                                           (cond
+                                            ((and is-gemini (string= win "5h"))
+                                             (setq gemini-5h used gemini-5r rst))
+                                            ((and is-gemini (string= win "weekly"))
+                                             (setq gemini-7d used gemini-7r rst))
+                                            ((and is-3p (string= win "5h"))
+                                             (setq tp-5h used tp-5r rst))
+                                            ((and is-3p (string= win "weekly"))
+                                             (setq tp-7d used tp-7r rst)))))))
+                                   (when (and gemini-5h gemini-7d)
+                                     (setq my/agent-antigravity-quota-data
+                                           `((gemini-5h-util . ,gemini-5h)
+                                             (gemini-5h-reset . ,gemini-5r)
+                                             (gemini-7d-util . ,gemini-7d)
+                                             (gemini-7d-reset . ,gemini-7r)
+                                             (3p-5h-util . ,(or tp-5h 0))
+                                             (3p-5h-reset . ,tp-5r)
+                                             (3p-7d-util . ,(or tp-7d 0))
+                                             (3p-7d-reset . ,tp-7r)))
+                                     (force-mode-line-update t))))))
+                         (when (buffer-live-p (process-buffer proc))
+                           (kill-buffer (process-buffer proc)))))))))))
+
+(defun my/agent-update-usage-async ()
+  "Dispatch usage update for all active agent types."
+  (my/agent-claude-update-usage-async)
+  (my/agent-antigravity-update-usage-async))
 
 (unless my/agent-usage-timer
   (setq my/agent-usage-timer
