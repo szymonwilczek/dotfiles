@@ -53,7 +53,8 @@ Working directory is automatically set to the project root of the current buffer
               (exec-path (append (list (expand-file-name "~/.local/bin")
                                        (expand-file-name "~/.npm-global/bin"))
                                  exec-path)))
-          (ghostel-exec buf cmd args))))))
+          (ghostel-exec buf cmd args))))
+    (my/agent-update-usage-async)))
 
 ;; Auto-close split window on agent exit
 (defun my/agent-cleanup-on-exit (buf _event)
@@ -166,6 +167,63 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
           (select-window prompt-win)
           (when (fboundp 'evil-insert-state)
             (evil-insert-state 1)))))))
+
+(defvar my/agent-usage-string ""
+  "Formatted string of AI agent 5h and 7d quota usage.")
+
+(defvar my/agent-usage-timer nil
+  "Timer that refreshes agent usage every minute.")
+
+(defun my/agent--get-claude-token ()
+  "Extract current OAuth accessToken from ~/.claude/.credentials.json."
+  (let ((cred-file (expand-file-name "~/.claude/.credentials.json")))
+    (when (file-readable-p cred-file)
+      (ignore-errors
+        (let* ((json (json-parse-string (with-temp-buffer
+                                          (insert-file-contents cred-file)
+                                          (buffer-string))
+                                        :object-type 'alist))
+               (oauth (alist-get 'claudeAiOauth json)))
+          (alist-get 'accessToken oauth))))))
+
+(defun my/agent-update-usage-async ()
+  "Asynchronously fetch 5h and weekly usage from official Anthropic API."
+  (when (cl-some (lambda (b)
+                   (or (buffer-local-value 'my/agent-buffer-p b)
+                       (string-match-p "\\*agent-" (buffer-name b))))
+                 (buffer-list))
+    (let ((token (my/agent--get-claude-token)))
+      (when token
+        (make-process
+         :name "agent-usage-fetch"
+         :buffer (generate-new-buffer " *agent-usage-temp*")
+         :command (list "curl" "-s" "-m" "5"
+                        "-H" (format "Authorization: Bearer %s" token)
+                        "-H" "User-Agent: claude-code"
+                        "https://api.anthropic.com/api/oauth/usage")
+         :sentinel (lambda (proc _event)
+                     (when (eq (process-status proc) 'exit)
+                       (unwind-protect
+                           (when (= (process-exit-status proc) 0)
+                             (with-current-buffer (process-buffer proc)
+                               (goto-char (point-min))
+                               (ignore-errors
+                                 (let* ((json (json-parse-buffer :object-type 'alist))
+                                        (fh (alist-get 'five_hour json))
+                                        (sd (alist-get 'seven_day json))
+                                        (u5 (and fh (alist-get 'utilization fh)))
+                                        (u7 (and sd (alist-get 'utilization sd))))
+                                   (when (and u5 u7)
+                                     (setq my/agent-usage-string
+                                           (format " [5h: %d%%%% | 7d: %d%%%%] "
+                                                   (round u5) (round u7)))
+                                     (force-mode-line-update t))))))
+                         (when (buffer-live-p (process-buffer proc))
+                           (kill-buffer (process-buffer proc)))))))))))
+
+(unless my/agent-usage-timer
+  (setq my/agent-usage-timer
+        (run-with-timer 0 60 #'my/agent-update-usage-async)))
 
 (require 'agent-keys)
 

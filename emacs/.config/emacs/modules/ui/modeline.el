@@ -143,24 +143,43 @@ Hidden in AI agent buffers."
   (my/modeline-update-git-branch)
   my/modeline--cached-git-branch)
 
+(defun my/modeline-agent-usage ()
+  "Render 5h and 7d usage percent in AI agent buffers."
+  (if (and (boundp 'my/agent-usage-string)
+           (stringp my/agent-usage-string)
+           (not (string-empty-p my/agent-usage-string)))
+      (propertize my/agent-usage-string 'face '(:inherit font-lock-comment-face :weight bold))
+    ""))
+
 (defun my/render-modeline ()
   "Assemble active or inactive statusline."
-  (if (not (mode-line-window-selected-p))
-      ;; inactive window
-      (concat " " (my/modeline-filename))
+  (let* ((is-agent (or (bound-and-true-p my/agent-buffer-p)
+                       (string-match-p "\\*agent-" (buffer-name))))
+         (usage (if is-agent (my/modeline-agent-usage) ""))
+         (usage-w (string-width (format-mode-line usage))))
+    (if (not (mode-line-window-selected-p))
+        ;; inactive window
+        (if is-agent
+            (concat " " (my/modeline-filename)
+                    (when (> usage-w 0)
+                      (propertize " " 'display `(space :align-to (- right ,usage-w))))
+                    usage)
+          (concat " " (my/modeline-filename)))
 
-    ;; active window
-    (let* ((lhs (concat (my/modeline-evil-mode-info)
-                        (my/modeline-filename)))
-           (rhs (concat (my/modeline-location)
-                        (my/modeline-filetype)
-                        (my/modeline-diagnostics)
-                        (my/modeline-fileinfo)
-                        (my/modeline-git-branch)))
-           (rhs-width (string-width (format-mode-line rhs))))
-      (concat lhs
-              (propertize " " 'display `(space :align-to (- right ,rhs-width)))
-              rhs))))
+      ;; active window
+      (let* ((lhs (concat (my/modeline-evil-mode-info)
+                          (my/modeline-filename)))
+             (rhs (if is-agent
+                      usage
+                    (concat (my/modeline-location)
+                            (my/modeline-filetype)
+                            (my/modeline-diagnostics)
+                            (my/modeline-fileinfo)
+                            (my/modeline-git-branch))))
+             (rhs-width (string-width (format-mode-line rhs))))
+        (concat lhs
+                (propertize " " 'display `(space :align-to (- right ,rhs-width)))
+                rhs)))))
 
 (setq-default mode-line-format '(:eval (my/render-modeline)))
 
