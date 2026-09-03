@@ -68,8 +68,8 @@
       auto-revert-interval 3
       auto-revert-check-vc-info nil)
 
-;; Process read buffer for LSP (16MB) and performance flags
-(setq read-process-output-max (* 16 1024 1024))
+;; Process read buffer for LSP (3MB) and performance flags
+(setq read-process-output-max (* 3 1024 1024))
 (setq idle-update-delay 1.0)
 (setq native-comp-async-report-warnings-errors nil
       warning-minimum-level :emergency
