@@ -17,7 +17,6 @@
 (require 'org-mod)
 (require 'bibliography-mod)
 (require 'agent-mod)
-(require 'writings-mod)
 (require 'jot-mod)
 (require 'dired-mod)
 (require 'tramp-mod)

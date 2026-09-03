@@ -97,6 +97,33 @@
   :config
   (global-wakatime-mode 1))
 
+(use-package olivetti
+  :ensure t
+  :custom
+  (olivetti-body-width 74)
+  (olivetti-minimum-body-width 60)
+  (olivetti-recall-visual-line-mode-entry-state t))
+
+(defvar-local my/zen--saved-line-numbers nil
+  "Stores state of line numbers before entering zen mode.")
+
+(defun my/zen-mode-toggle ()
+  "Toggle distraction-free Zen mode with centered text and soft wrap."
+  (interactive)
+  (if (bound-and-true-p olivetti-mode)
+      (progn
+        (olivetti-mode -1)
+        (when my/zen--saved-line-numbers
+          (display-line-numbers-mode 1))
+        (message "Zen Mode: OFF"))
+    (setq my/zen--saved-line-numbers (bound-and-true-p display-line-numbers-mode))
+    (display-line-numbers-mode -1)
+    (visual-line-mode 1)
+    (olivetti-mode 1)
+    (message "🧘 ON (%d columns)" olivetti-body-width)))
+
+(defalias 'my/writings-zen-toggle #'my/zen-mode-toggle)
+
 (require 'agents-modeline)
 (require 'modeline)
 (require 'ui-keys)
