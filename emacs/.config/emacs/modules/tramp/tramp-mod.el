@@ -2,6 +2,7 @@
 
 (use-package tramp
   :ensure nil
+  :defer t
   :custom
   (tramp-default-method "ssh")
   (tramp-use-ssh-controlmaster-options t)
@@ -24,15 +25,7 @@
   (remote-file-name-inhibit-auto-save-visited t)
   (tramp-auto-save-directory (expand-file-name "tramp-autosave" user-emacs-directory))
 
-  :config
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-
-  ;; Disable VC on remote files
-  (setq vc-ignore-dir-regexp
-        (format "\\(%s\\)\\|\\(%s\\)"
-                vc-ignore-dir-regexp
-                tramp-file-name-regexp))
-
+  :init
   (defun my/tramp-optimize-remote-buffer ()
     "Disable heavy background hooks on remote files to prevent UI freezes."
     (when (file-remote-p (or buffer-file-name default-directory))
@@ -42,6 +35,15 @@
 
   (add-hook 'find-file-hook #'my/tramp-optimize-remote-buffer)
   (add-hook 'dired-mode-hook #'my/tramp-optimize-remote-buffer)
+
+  :config
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+
+  ;; Disable VC on remote files
+  (setq vc-ignore-dir-regexp
+        (format "\\(%s\\)\\|\\(%s\\)"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
 
   (with-eval-after-load 'projectile
     (setq projectile-enable-caching t)))

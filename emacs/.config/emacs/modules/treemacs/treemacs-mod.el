@@ -2,6 +2,8 @@
 
 (use-package treemacs
   :ensure t
+  :defer t
+  :commands (treemacs treemacs-select-window)
   :config
   (setq treemacs-no-png-images t
         treemacs-width 35

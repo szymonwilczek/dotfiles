@@ -1,9 +1,6 @@
 ;;; Treemacs keybindings and shortcuts -*- lexical-binding: t; -*-
 
-(use-package general
-  :after (treemacs evil)
-  :config
-
+(with-eval-after-load 'evil
   ;; Global Ctrl-n toggle across all Evil states
   ;; (I have strong Neovim muscle memory with this)
   (general-define-key
