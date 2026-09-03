@@ -245,13 +245,13 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
 (defun my/agent-render-usage (active &optional buffer)
   "Render formatted usage string for BUFFER depending on ACTIVE state."
   (let ((type (my/agent-buffer-type buffer))
-        (sep (propertize " | " 'face 'font-lock-comment-face)))
+        (sep (propertize " | " 'face '(:foreground "#7f848e"))))
     (pcase type
       ('claude
        (when my/agent-claude-quota-data
          (let* ((c-logo (propertize "󰘑" 'face (if active
                                                   '(:foreground "#da7756" :weight bold)
-                                                'font-lock-comment-face)))
+                                                '(:foreground "#7f848e"))))
                 (u5 (alist-get '5h-util my/agent-claude-quota-data))
                 (r5 (alist-get '5h-reset my/agent-claude-quota-data))
                 (u7 (alist-get '7d-util my/agent-claude-quota-data))
@@ -265,7 +265,7 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
        (when my/agent-antigravity-quota-data
          (let* ((g-logo (propertize "󰊭" 'face (if active
                                                   '(:foreground "#4285f4" :weight bold)
-                                                'font-lock-comment-face)))
+                                                '(:foreground "#7f848e"))))
                 (g-5h (alist-get 'gemini-5h-util my/agent-antigravity-quota-data))
                 (g-5r (alist-get 'gemini-5h-reset my/agent-antigravity-quota-data))
                 (g-7d (alist-get 'gemini-7d-util my/agent-antigravity-quota-data))
