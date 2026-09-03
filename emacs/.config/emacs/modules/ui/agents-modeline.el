@@ -61,15 +61,15 @@
       (error ""))))
 
 (defun my/agents-modeline--usage-face (pct)
-  "Return face for usage PCT from active theme: <75 default, 75-89 warning, >=90 error."
+  "Return face for usage PCT from active theme: <75 bold, 75-89 warning, >=90 error."
   (cond
    ((>= pct 90) '(:inherit error :weight bold))
    ((>= pct 75) '(:inherit warning :weight bold))
-   (t '(:inherit default :weight bold))))
+   (t '(:weight bold))))
 
 (defun my/agents-modeline--format-quota-item (label pct reset-str)
-  "Format LABEL (theme text), PCT (warning/error/default) and RESET-STR (comment face)."
-  (let* ((lbl-face '(:inherit default :weight bold))
+  "Format LABEL, PCT (warning/error/bold) and RESET-STR (comment face)."
+  (let* ((lbl-face '(:weight bold))
          (val-face (my/agents-modeline--usage-face (or pct 0)))
          (rst-str (my/agents-modeline--format-reset-time reset-str))
          (rst-part (if (string-empty-p rst-str)
