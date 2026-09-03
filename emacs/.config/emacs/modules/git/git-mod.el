@@ -368,6 +368,12 @@ Allowed during an active rebase at the current HEAD commit."
 (add-hook 'after-revert-hook #'my/git-conflict-highlight-buffer)
 (advice-add 'load-theme :after #'my/git-conflict-highlight-buffer)
 
+(use-package octo
+  :load-path "~/Dokumenty/GitHub/octo.el"
+  :demand t
+  :config
+  (octo-sync-mode 1))
+
 (require 'git-keys)
 
 (provide 'git-mod)

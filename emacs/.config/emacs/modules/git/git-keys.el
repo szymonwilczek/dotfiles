@@ -74,6 +74,13 @@
       "gl"  '(magit-log-current :which-key "Git Log")
       "gd"  '(magit-diff-dwim :which-key "Git Diff")
 
+      ;; GitHub octo.el integration
+      "go"  '(:ignore t :which-key "Octo")
+      "goi" '(octo-issues :which-key "Issues")
+      "gop" '(octo-pulls :which-key "Pull Requests")
+      "goI" '(octo-issue :which-key "Open Issue")
+      "goP" '(octo-pr :which-key "Open PR")
+
       ;; Conflict resolution
       "gc"  '(:ignore t :which-key "Conflicts")
       "gcu" '(my/git-conflict-keep-upper :which-key "Keep Ours (Upper)")
