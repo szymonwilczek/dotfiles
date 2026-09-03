@@ -32,7 +32,7 @@
  '(package-selected-packages
    '(citar citar-org company consult ef-themes evil evil-collection
            evil-surround general ghostel git-gutter
-           git-gutter-fringe good-scroll magit marginalia nerd-icons
+           git-gutter-fringe magit marginalia nerd-icons
            nerd-icons-completion nerd-icons-dired olivetti orderless
            persp-projectile perspective plan-polsl projectile
            vertico vundo wakatime-mode))
