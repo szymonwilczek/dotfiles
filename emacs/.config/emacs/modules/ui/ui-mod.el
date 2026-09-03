@@ -23,7 +23,7 @@
 (global-hl-line-mode 1)
 (setq-default display-line-numbers-width 3)
 
-;; Disable line numbers in PDF, images, terminal, treemacs and agent windows
+;; Disable line numbers in PDF, images, terminal and agent windows
 (defun my/disable-line-numbers ()
   "Disable line numbers in special and terminal buffers."
   (setq-local display-line-numbers nil)
@@ -31,8 +31,7 @@
 
 (dolist (hook '(doc-view-mode-hook
                 image-mode-hook
-                ghostel-mode-hook
-                treemacs-mode-hook))
+                ghostel-mode-hook))
   (add-hook hook #'my/disable-line-numbers))
 
 (add-hook 'display-line-numbers-mode-hook

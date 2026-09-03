@@ -75,16 +75,6 @@ If killed or missing, seamlessly fall back to an active perspective."
   :ensure t
   :after (perspective projectile))
 
-(use-package treemacs-perspective
-  :ensure t
-  :after (treemacs perspective)
-  :config
-  (treemacs-set-scope-type 'Perspectives))
-
-(use-package treemacs-projectile
-  :ensure t
-  :after (treemacs projectile))
-
 (require 'projectile-keys)
 
 (provide 'projectile-mod)

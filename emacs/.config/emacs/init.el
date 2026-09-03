@@ -9,7 +9,6 @@
 (require 'ui-mod)
 (require 'completion-mod)
 (require 'lsp-mod)
-(require 'treemacs-mod)
 (require 'projectile-mod)
 (require 'git-mod)
 (require 'terminal-mod)
@@ -36,9 +35,8 @@
            evil-surround forge general ghostel git-gutter
            git-gutter-fringe good-scroll magit marginalia nerd-icons
            nerd-icons-completion nerd-icons-dired olivetti orderless
-           persp-projectile perspective plan-polsl projectile treemacs
-           treemacs-evil treemacs-nerd-icons treemacs-perspective
-           treemacs-projectile vertico vundo wakatime-mode))
+           persp-projectile perspective plan-polsl projectile
+           vertico vundo wakatime-mode))
  '(package-vc-selected-packages
    '((plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"
                  :branch "main")
