@@ -13,7 +13,7 @@ exec swaync
 exec_always sh -c "killall waybar 2>/dev/null; sleep 0.5; env LC_ALL=pl_PL.UTF-8 waybar"
 
 # Output configuration
-output * bg ~/Pulpit/Personalne/Tapety/IMG_1692_lossless.png fill
+output * bg ~/Pulpit/Personalne/Tapety/1.jpg fill
 output * subpixel rgb
 # output * render_bit_depth 10
 output HDMI-A-1 mode 1920x1080@75Hz pos 0 0
