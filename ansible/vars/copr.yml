@@ -1,0 +1,7 @@
+---
+copr_repositories:
+  - atim/lazygit
+  - erikreider/swayosd
+  - scottames/ghostty
+  - szymon-wilczek/alloyctl
+  - szymon-wilczek/carmenta

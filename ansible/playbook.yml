@@ -1,0 +1,201 @@
+---
+- name: Idempotent Fedora Management
+  hosts: all
+  connection: local
+  gather_facts: true
+
+  vars:
+    enable_common: true
+    enable_dev: true
+    enable_apps: true
+    enable_sway: true
+    enable_docker: true
+    enable_latex: true
+    enable_system_hw: true
+    enable_libs: true
+    enable_flatpak: true
+    enable_kde: false
+
+  vars_files:
+    - vars/repos.yml
+    - vars/copr.yml
+    - vars/dnf_common.yml
+    - vars/dnf_dev.yml
+    - vars/dnf_apps.yml
+    - vars/dnf_sway.yml
+    - vars/dnf_docker.yml
+    - vars/dnf_latex.yml
+    - vars/dnf_system_hw.yml
+    - vars/dnf_libs.yml
+    - vars/dnf_kde.yml
+    - vars/dnf_inbox.yml
+    - vars/dnf_exclude.yml
+    - vars/flatpaks.yml
+
+  tasks:
+    - name: Install RPM Fusion
+      ansible.builtin.dnf:
+        name:
+          - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_distribution_major_version }}.noarch.rpm"
+          - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_distribution_major_version }}.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+      become: true
+      tags:
+        - repos
+        - rpmfusion
+
+    - name: Add external repos DNF/Yum
+      ansible.builtin.yum_repository:
+        name: "{{ item.name }}"
+        description: "{{ item.description }}"
+        baseurl: "{{ item.baseurl }}"
+        gpgkey: "{{ item.gpgkey | default(omit) }}"
+        gpgcheck: "{{ item.gpgcheck | default(true) }}"
+        enabled: true
+      loop: "{{ custom_yum_repositories }}"
+      become: true
+      tags:
+        - repos
+
+    - name: Add COPR repos
+      community.general.copr:
+        name: "{{ item }}"
+        state: enabled
+      loop: "{{ copr_repositories }}"
+      become: true
+      tags:
+        - repos
+        - copr
+
+    - name: Install CLI tools and fonts
+      ansible.builtin.dnf:
+        name: "{{ dnf_common_packages }}"
+        state: present
+      when: enable_common | bool
+      become: true
+      tags:
+        - dnf
+        - common
+
+    - name: Install developer tools, compilers and toolchains
+      ansible.builtin.dnf:
+        name: "{{ dnf_dev_packages }}"
+        state: present
+      when: enable_dev | bool
+      become: true
+      tags:
+        - dnf
+        - dev
+
+    - name: Install Docker CE
+      ansible.builtin.dnf:
+        name: "{{ dnf_docker_packages }}"
+        state: present
+      when: enable_docker | bool
+      become: true
+      tags:
+        - dnf
+        - docker
+
+    - name: Install GUI apps
+      ansible.builtin.dnf:
+        name: "{{ dnf_app_packages }}"
+        state: present
+      when: enable_apps | bool
+      become: true
+      tags:
+        - dnf
+        - apps
+
+    - name: Install Sway and related components
+      ansible.builtin.dnf:
+        name: "{{ dnf_sway_packages }}"
+        state: present
+      when: enable_sway | bool
+      become: true
+      tags:
+        - dnf
+        - sway
+
+    - name: Install LaTeX and TeX Live
+      ansible.builtin.dnf:
+        name: "{{ dnf_latex_packages }}"
+        state: present
+      when: enable_latex | bool
+      become: true
+      tags:
+        - dnf
+        - latex
+
+    - name: Install codecs, ROCm and virt
+      ansible.builtin.dnf:
+        name: "{{ dnf_system_hw_packages }}"
+        state: present
+      when: enable_system_hw | bool
+      become: true
+      tags:
+        - dnf
+        - system_hw
+
+    - name: Install Boost library and devel headers
+      ansible.builtin.dnf:
+        name: "{{ dnf_libs_packages }}"
+        state: present
+      when: enable_libs | bool
+      become: true
+      tags:
+        - dnf
+        - libs
+
+    - name: Install KDE-related packages
+      ansible.builtin.dnf:
+        name: "{{ dnf_kde_packages }}"
+        state: present
+      when: enable_kde | bool
+      become: true
+      tags:
+        - dnf
+        - kde
+
+    - name: Install packages from Inbox
+      ansible.builtin.dnf:
+        name: "{{ dnf_inbox_packages }}"
+        state: present
+      when: dnf_inbox_packages | default([]) | length > 0
+      become: true
+      tags:
+        - dnf
+        - inbox
+
+    - name: Remove excluded packages
+      ansible.builtin.dnf:
+        name: "{{ dnf_exclude_packages }}"
+        state: absent
+      when: dnf_exclude_packages | length > 0
+      become: true
+      tags:
+        - dnf
+        - exclude
+        - cleanup
+
+    - name: Make sure that Flathub is enabled
+      community.general.flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+        method: system
+      become: true
+      tags:
+        - flatpak
+
+    - name: Install Flatpak apps
+      community.general.flatpak:
+        name: "{{ flatpak_applications }}"
+        state: present
+        remote: flathub
+        method: system
+      when: enable_flatpak | bool
+      become: true
+      tags:
+        - flatpak

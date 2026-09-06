@@ -1,0 +1,10 @@
+---
+dnf_kde_packages:
+  - breeze-gtk-gtk2
+  - desktop-backgrounds-kde
+  - fedora-release-kde-desktop
+  - kcm-plasma-keyboard
+  - kde-l10n
+  - kwin-effect-roundcorners
+  - plasma-keyboard
+  - plasma-welcome-fedora

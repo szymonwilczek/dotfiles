@@ -1,0 +1,6 @@
+---
+flatpak_applications:
+  - com.discordapp.Discord
+  - com.spotify.Client
+  - com.termius.Termius
+  - com.unity.UnityHub

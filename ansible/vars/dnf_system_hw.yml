@@ -1,0 +1,29 @@
+---
+dnf_system_hw_packages:
+  - amdsmi
+  - ffmpeg
+  - fsverity-utils
+  - gstreamer1-plugins-bad-free-extras
+  - gstreamer1-plugins-good-extras
+  - gstreamer1-plugins-ugly
+  - kernel
+  - kernel-core
+  - kernel-modules
+  - kernel-modules-core
+  - kernel-modules-extra
+  - libvirt
+  - mesa-va-drivers-freeworld
+  - miopen
+  - mozilla-openh264
+  - openh264
+  - qemu-user
+  - rccl
+  - rocblas
+  - rocfft
+  - rocm-hip
+  - rocm-opencl
+  - rocminfo
+  - rocrand
+  - rpmfusion-free-release
+  - rpmfusion-nonfree-release
+  - softhsm

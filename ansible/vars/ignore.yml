@@ -1,0 +1,44 @@
+---
+ignored_dnf_packages:
+  - aajohan-comfortaa-fonts
+  - dotnet-sdk-10.0
+  - gromit-mpx
+  - kitty
+
+  - isync
+  - maildir-utils
+  - msmtp
+  - mu
+  - notmuch
+
+  - audacity
+  - blender
+  - code-insiders
+  - gimp
+  - google-chrome-stable
+  - inkscape
+  - kdenlive
+  - libreoffice-draw
+  - libreoffice-math
+  - mediawriter
+  - obs-studio
+  - thunderbird
+  - unityhub
+
+  - anaconda-live
+  - dracut-live
+  - f44-backgrounds-base
+  - f44-backgrounds-kde
+  - livesys-scripts
+
+ignored_flatpaks:
+  - dev.vencord.Vesktop
+  - im.riot.Riot
+  - io.github.alainm23.planify
+  - io.github.shiftey.Desktop
+
+ignored_coprs:
+  - lihaohong/yazi
+  - matinlotfali/KDE-Rounded-Corners
+  - phracek/PyCharm
+  - varlad/zellij

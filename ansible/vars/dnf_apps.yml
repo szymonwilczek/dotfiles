@@ -1,0 +1,6 @@
+---
+dnf_app_packages:
+  - mongodb-compass
+  - mpv
+  - wine
+  - winetricks

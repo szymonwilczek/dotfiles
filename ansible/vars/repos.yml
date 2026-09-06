@@ -1,0 +1,36 @@
+---
+custom_yum_repositories:
+  - name: google-chrome
+    description: Google Chrome
+    baseurl: https://dl.google.com/linux/chrome/rpm/stable/x86_64
+    gpgkey: https://dl.google.com/linux/linux_signing_key.pub
+    gpgcheck: true
+
+  - name: code
+    description: Visual Studio Code
+    baseurl: https://packages.microsoft.com/yumrepos/vscode
+    gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+    gpgcheck: true
+
+  - name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: "https://download.docker.com/linux/fedora/$releasever/$basearch/stable"
+    gpgkey: https://download.docker.com/linux/fedora/gpg
+    gpgcheck: true
+
+  - name: tailscale-stable
+    description: Tailscale stable
+    baseurl: "https://pkgs.tailscale.com/stable/fedora/$basearch"
+    gpgkey: https://pkgs.tailscale.com/stable/fedora/repo.gpg
+    gpgcheck: true
+
+  - name: gh-cli
+    description: GitHub CLI
+    baseurl: https://cli.github.com/packages/rpm
+    gpgkey: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x23F3D4EA75716059
+    gpgcheck: true
+
+  - name: antigravity-rpm
+    description: Antigravity RPM Repository
+    baseurl: https://us-central1-yum.pkg.dev/projects/antigravity-auto-updater-dev/antigravity-rpm
+    gpgcheck: false

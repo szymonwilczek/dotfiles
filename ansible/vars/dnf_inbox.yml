@@ -1,0 +1,4 @@
+---
+# Newly installed packages in system (staging / inbox)
+# Packages goes here through ./diff.sh --sync
+dnf_inbox_packages: []

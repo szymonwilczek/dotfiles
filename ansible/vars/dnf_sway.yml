@@ -1,0 +1,19 @@
+---
+dnf_sway_packages:
+  - SwayNotificationCenter
+  - fuzzel
+  - gcolor3
+  - grim
+  - mako
+  - pavucontrol
+  - rofi
+  - slurp
+  - sway
+  - swayosd
+  - waybar
+  - wayvnc
+  - wlogout
+  - xdg-desktop-portal-wlr
+  - zathura
+  - zathura-djvu
+  - zathura-pdf-poppler
