@@ -28,7 +28,9 @@
       "i"  #'wdired-change-to-wdired-mode
       "("  #'dired-hide-details-mode
       "Y"  #'my/dired-copy-path
-      "gy" #'my/dired-copy-name)))
+      "gy" #'my/dired-copy-name
+      "+"  #'dired-create-directory
+      "%"  #'dired-create-empty-file)))
 
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)
