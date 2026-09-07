@@ -1,10 +1,10 @@
 ;;; -*- lexical-binding: t; -*-
 
 (add-to-list 'load-path (expand-file-name "modules/calendar" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "~/Dokumenty/GitHub/icloud-calendar.el"))
 
 (use-package icloud-calendar
-  :load-path "~/Dokumenty/GitHub/icloud-calendar.el"
-  :commands (icloud-calendar)
+  :commands (icloud-calendar icloud-sidebar-toggle)
   :custom
   (icloud-calendar-default-view 'week)
   (icloud-calendar-day-start-hour 7)
