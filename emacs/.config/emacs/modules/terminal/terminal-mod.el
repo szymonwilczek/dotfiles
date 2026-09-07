@@ -72,7 +72,7 @@
 
 (use-package ghostel
   :ensure nil
-  :commands (ghostel ghostel-project)
+  :commands (ghostel ghostel-project ghostel-exec)
   :init
   ;; so window switching, toggle, and jot prefix work in all states
   (with-eval-after-load 'ghostel
