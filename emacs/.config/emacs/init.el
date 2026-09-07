@@ -20,6 +20,7 @@
 (require 'jot-mod)
 (require 'dired-mod)
 (require 'tramp-mod)
+(require 'calendar-mod)
 
 
 (provide 'init)
