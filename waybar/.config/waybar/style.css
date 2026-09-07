@@ -55,14 +55,10 @@ window#waybar {
   border-right: 1px solid @border_subtle;
 }
 
-#network {
-  padding: 0 12px;
-  background-color: transparent;
-  border-left: 1px solid @border_subtle;
-  color: @text_main;
-  font-weight: 600;
-}
-
+#cpu,
+#temperature,
+#memory,
+#network,
 #pulseaudio {
   padding: 0 12px;
   background-color: transparent;
@@ -78,10 +74,17 @@ window#waybar {
   color: @text_main;
 }
 
+#cpu:hover,
+#temperature:hover,
+#memory:hover,
 #network:hover,
 #pulseaudio:hover {
   background-color: @bg_surface;
   color: @text_focused;
+}
+
+#temperature.critical {
+  color: @accent_urgent;
 }
 
 #custom-recording {
