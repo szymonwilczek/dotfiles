@@ -1,4 +1,10 @@
 ;;; -*- lexical-binding: t; -*-
+
+;; Redirect custom-set-variables to separate file
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file 'noerror 'nomessage))
+
 ;; Package Management
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")

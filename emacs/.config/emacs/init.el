@@ -24,27 +24,3 @@
 
 
 (provide 'init)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(global-wakatime-mode t)
- '(package-selected-packages
-   '(citar citar-org company consult ef-themes evil evil-collection
-           evil-surround general ghostel git-gutter
-           git-gutter-fringe magit marginalia nerd-icons
-           nerd-icons-completion nerd-icons-dired olivetti orderless
-           persp-projectile perspective plan-polsl projectile
-           vertico vundo wakatime-mode))
- '(package-vc-selected-packages
-   '((plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"
-                 :branch "main")
-     (astro-ts-mode :url "https://github.com/Sorixelle/astro-ts-mode"
-                    :branch "main"))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
