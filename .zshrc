@@ -34,6 +34,7 @@ alias nvim-dev="VIMRUNTIME=/home/wolfie/Dokumenty/GitHub/neovim/runtime /home/wo
 alias nd="VIMRUNTIME=/home/wolfie/Dokumenty/GitHub/neovim/runtime /home/wolfie/Dokumenty/GitHub/neovim/build/bin/nvim"
 alias claude='WAKATIME_DISABLE=true claude'
 alias f='fzf'
+alias emacs='emacs --init-directory=~/.config/emacs'
 
 #################
 ### FUNCTIONS ###
