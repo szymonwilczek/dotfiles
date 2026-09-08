@@ -94,8 +94,11 @@
 
 ;; Daemon and initial frame theme application
 (defun my/setup-frame-theme (frame)
-  "Ensure theme is applied properly to newly created graphical frames."
-  (when (display-graphic-p frame)
+  "Ensure theme is applied once to the initial graphical frame in daemon mode."
+  (when (and (display-graphic-p frame)
+             (not (frame-parent frame))
+             (null custom-enabled-themes))
+    (remove-hook 'after-make-frame-functions #'my/setup-frame-theme)
     (with-selected-frame frame
       (load-theme (my/get-cached-theme) t))))
 
