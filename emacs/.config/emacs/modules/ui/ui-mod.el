@@ -41,43 +41,67 @@
               (setq display-line-numbers nil))))
 
 ;; Themes & Theme Persistence
-(defvar my/theme-cache-file (expand-file-name ".theme-cache" user-emacs-directory))
+(defvar my/theme-cache-file
+  (expand-file-name ".theme-cache" user-emacs-directory))
 
 (defun my/get-cached-theme ()
+  "Return saved theme symbol from `.theme-cache', or fallback to `ef-autumn'."
   (if (file-exists-p my/theme-cache-file)
       (intern (with-temp-buffer
                 (insert-file-contents my/theme-cache-file)
                 (string-trim (buffer-string))))
-    'ef-bio))
+    'ef-autumn))
 
 (defun my/apply-custom-face-overrides (&rest _)
-  (set-face-attribute 'font-lock-comment-face nil :slant 'italic :weight 'extra-light)
-  (set-face-attribute 'font-lock-comment-delimiter-face nil :slant 'italic :weight 'extra-light)
+  "Apply custom italic and weight overrides to active font-lock faces."
+  (set-face-attribute 'font-lock-comment-face nil
+                      :slant 'italic :weight 'extra-light)
+  (set-face-attribute 'font-lock-comment-delimiter-face nil
+                      :slant 'italic :weight 'extra-light)
   (set-face-attribute 'font-lock-keyword-face nil :weight 'demi-bold)
   (set-face-attribute 'font-lock-type-face nil :weight 'demi-bold)
   (set-face-attribute 'font-lock-preprocessor-face nil :weight 'demi-bold))
 
-(my/apply-custom-face-overrides)
 (advice-add 'load-theme :after #'my/apply-custom-face-overrides)
 
 (advice-add 'load-theme :around
             (lambda (orig-fun theme &rest args)
               (mapc #'disable-theme custom-enabled-themes)
               (apply orig-fun theme args)
+              (my/apply-custom-face-overrides)
               (with-temp-file my/theme-cache-file
                 (insert (symbol-name theme)))))
+
+(defcustom my/theme-toggle-pair '(ef-autumn ef-arcadia)
+  "Two themes to switch between via `my/theme-toggle'."
+  :type '(list symbol symbol)
+  :group 'ui)
+
+(defun my/theme-toggle ()
+  "Toggle cleanly between dark and light themes in `my/theme-toggle-pair'."
+  (interactive)
+  (let* ((cur (or (car custom-enabled-themes) (my/get-cached-theme)))
+         (next (if (eq cur (car my/theme-toggle-pair))
+                   (cadr my/theme-toggle-pair)
+                 (car my/theme-toggle-pair))))
+    (load-theme next t)
+    (message "Theme switched to %s" next)))
 
 (use-package ef-themes
   :ensure t
   :config
-  (setq ef-themes-to-toggle '(ef-bio ef-autumn))
-  (defun my/apply-cached-theme (&optional frame)
-    (let ((theme (my/get-cached-theme)))
-      (with-selected-frame (or frame (selected-frame))
-        (mapc #'disable-theme custom-enabled-themes)
-        (load-theme theme t))))
+  (setq ef-themes-to-toggle my/theme-toggle-pair))
 
-  (my/apply-cached-theme))
+;; Daemon and initial frame theme application
+(defun my/setup-frame-theme (frame)
+  "Ensure theme is applied properly to newly created graphical frames."
+  (when (display-graphic-p frame)
+    (with-selected-frame frame
+      (load-theme (my/get-cached-theme) t))))
+
+(if (daemonp)
+    (add-hook 'after-make-frame-functions #'my/setup-frame-theme)
+  (load-theme (my/get-cached-theme) t))
 
 (use-package nerd-icons
   :ensure t

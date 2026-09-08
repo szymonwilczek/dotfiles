@@ -5,15 +5,6 @@
 (push '(tool-bar-lines . 0) default-frame-alist)
 (push '(vertical-scroll-bars . nil) default-frame-alist)
 
-(defvar my-bg-cache-file (expand-file-name ".bg-cache" user-emacs-directory))
-
-(let ((bg-color (if (file-exists-p my-bg-cache-file)
-                    (with-temp-buffer
-                      (insert-file-contents my-bg-cache-file)
-                      (string-trim (buffer-string)))
-                  "#121212")))
-  (when (and bg-color (string-prefix-p "#" bg-color))
-    (push `(background-color . ,bg-color) default-frame-alist)))
 
 ;; Temporarily disable file-name-handler-alist during startup for faster boot
 (defvar my/initial-file-name-handler-alist file-name-handler-alist)

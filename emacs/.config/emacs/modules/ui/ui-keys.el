@@ -12,7 +12,8 @@
   (when (fboundp 'my-leader-def)
     (my-leader-def
       "t"  '(:ignore t :which-key "Terminal / Themes")
-      "tt" '(ef-themes-select :which-key "Theme Picker")
+      "tt" '(my/theme-toggle :which-key "Toggle Theme (Dark/Light)")
+      "tp" '(ef-themes-select :which-key "Ef Themes Picker")
       "w"  '(:ignore t :which-key "Writings / Zen")
       "wz" '(my/zen-mode-toggle :which-key "Toggle Zen Mode"))))
 
