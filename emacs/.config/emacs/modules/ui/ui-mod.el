@@ -151,68 +151,24 @@
 
 (defalias 'my/writings-zen-toggle #'my/zen-mode-toggle)
 
-;; Visual hex-only color preview and interactive color picker
-(defvar my/color-picker-keymap
+;; Visual hex-only color preview and clickable integration
+(defvar my/color-picker-click-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] #'my/color-picker-at-point)
     (define-key map [down-mouse-1] #'mouse-set-point)
     map)
   "Keymap for clickable hex color strings.")
 
-(defun my/color-picker-at-point (&optional event)
-  "Open visual color picker for the hex color at point, and replace it."
-  (interactive (list last-input-event))
-  (when (and event (mouse-event-p event))
-    (mouse-set-point event))
-  (let* ((hex-regexp "#[0-9a-fA-F]\\{3,8\\}")
-         (bounds (save-excursion
-                   (skip-chars-backward "#0-9a-fA-F")
-                   (when (looking-at hex-regexp)
-                     (cons (match-beginning 0) (match-end 0)))))
-         (old-hex (when bounds (buffer-substring-no-properties (car bounds) (cdr bounds)))))
-    (if (not (and bounds old-hex))
-        (message "Brak koloru hex pod kursorem!")
-      (let* ((zenity (executable-find "zenity"))
-             (new-color
-              (if zenity
-                  (with-temp-buffer
-                    (let ((exit-code
-                           (call-process zenity nil t nil
-                                         "--color-selection"
-                                         "--show-palette"
-                                         (format "--color=%s" old-hex))))
-                      (when (= exit-code 0)
-                        (string-trim (buffer-string)))))
-                (read-color (format "Dostosuj kolor (obecny %s): " old-hex) nil t old-hex))))
-        (when (and new-color (not (string-empty-p new-color)))
-          (let ((formatted-hex
-                 (cond
-                  ((string-match "^#\\([0-9a-fA-F]\\{6\\}\\)" new-color)
-                   (concat "#" (downcase (match-string 1 new-color))))
-                  ((string-match "rgba?([ \t]*\\([0-9]+\\)[ \t]*,[ \t]*\\([0-9]+\\)[ \t]*,[ \t]*\\([0-9]+\\)" new-color)
-                   (format "#%02x%02x%02x"
-                           (string-to-number (match-string 1 new-color))
-                           (string-to-number (match-string 2 new-color))
-                           (string-to-number (match-string 3 new-color))))
-                  (t nil))))
-            (when formatted-hex
-              (save-excursion
-                (delete-region (car bounds) (cdr bounds))
-                (goto-char (car bounds))
-                (insert formatted-hex))
-              (font-lock-flush (car bounds) (+ (car bounds) (length formatted-hex)))
-              (message "Zaktualizowano kolor: %s -> %s" old-hex formatted-hex))))))))
-
 (defun my/rainbow-colorize-clickable (orig-fn color &optional match)
-  "Make highlighted hex colors clickable to open the visual color picker."
+  "Make highlighted hex colors clickable to open native Emacs color picker."
   (let ((m (or match 0)))
     (funcall orig-fn color m)
     (let ((beg (match-beginning m))
           (end (match-end m)))
       (when (and beg end)
-        (put-text-property beg end 'keymap my/color-picker-keymap)
+        (put-text-property beg end 'keymap my/color-picker-click-map)
         (put-text-property beg end 'mouse-face 'highlight)
-        (put-text-property beg end 'help-echo "mouse-1: Dostosuj kolor w pickerze")))))
+        (put-text-property beg end 'help-echo "mouse-1: Otwórz picker kolorów HSL/RGB")))))
 
 (use-package rainbow-mode
   :ensure t
@@ -227,6 +183,7 @@
   :hook ((prog-mode . rainbow-mode)
          (conf-mode . rainbow-mode)))
 
+(require 'color-picker)
 (require 'agents-modeline)
 (require 'modeline)
 (require 'ui-keys)
