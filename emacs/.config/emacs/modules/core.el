@@ -186,6 +186,11 @@ Checks Projectile, project.el, Treemacs workspace, VC root, and fallbacks."
 
 ;; Protect PGTK against accidental X11 / Xwayland frame requests
 (when (featurep 'pgtk)
+  (setq select-enable-primary nil
+        select-enable-clipboard t
+        mouse-drag-copy-region nil
+        pgtk-use-im-context nil)
+
   (defun my/pgtk-normalize-display (orig-fn display &rest args)
     "Ensure PGTK frames never attempt to open an X11 display like :0."
     (let ((clean-display (if (and (stringp display)
