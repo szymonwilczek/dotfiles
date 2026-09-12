@@ -41,9 +41,9 @@
               (setq display-line-numbers nil))))
 
 ;; Themes & Theme Persistence
-(let ((rainforest-dir (expand-file-name "~/Dokumenty/GitHub/rainforest.el")))
-  (when (file-directory-p rainforest-dir)
-    (add-to-list 'custom-theme-load-path rainforest-dir)))
+(let ((au-themes-dir (expand-file-name "~/Dokumenty/GitHub/au-themes")))
+  (when (file-directory-p au-themes-dir)
+    (add-to-list 'custom-theme-load-path au-themes-dir)))
 
 (defvar my/theme-cache-file
   (expand-file-name ".theme-cache" user-emacs-directory))
