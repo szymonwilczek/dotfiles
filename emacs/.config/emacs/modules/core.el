@@ -184,4 +184,17 @@ Checks Projectile, project.el, Treemacs workspace, VC root, and fallbacks."
               (vc-root-dir)))
           dir)))))
 
+;; Protect PGTK against accidental X11 / Xwayland frame requests
+(when (featurep 'pgtk)
+  (defun my/pgtk-normalize-display (orig-fn display &rest args)
+    "Ensure PGTK frames never attempt to open an X11 display like :0."
+    (let ((clean-display (if (and (stringp display)
+                                  (or (string-prefix-p ":" display)
+                                      (string-prefix-p "unix:" display)))
+                             (or (getenv "WAYLAND_DISPLAY") "wayland-1" "wayland-0")
+                           display)))
+      (apply orig-fn clean-display args)))
+  (advice-add 'make-frame-on-display :around #'my/pgtk-normalize-display)
+  (advice-add 'server-select-display :around #'my/pgtk-normalize-display))
+
 (provide 'core)

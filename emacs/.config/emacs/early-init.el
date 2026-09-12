@@ -1,4 +1,9 @@
 ;;; -*- lexical-binding: t; -*-
+
+;; Force pure Wayland backend for PGTK
+(when (featurep 'pgtk)
+  (setenv "GDK_BACKEND" "wayland"))
+
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 (push '(menu-bar-lines . 0) default-frame-alist)
