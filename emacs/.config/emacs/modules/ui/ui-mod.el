@@ -151,17 +151,6 @@
 
 (defalias 'my/writings-zen-toggle #'my/zen-mode-toggle)
 
-(use-package rainbow-mode
-  :ensure t
-  :hook ((prog-mode . rainbow-mode)
-         (conf-mode . rainbow-mode)))
-
-(use-package helm
-  :ensure t
-  :commands (helm-colors)
-  :config
-  (require 'helm-color))
-
 (require 'agents-modeline)
 (require 'modeline)
 (require 'ui-keys)
