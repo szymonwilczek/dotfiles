@@ -274,17 +274,122 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
                          (when (buffer-live-p (process-buffer proc))
                            (kill-buffer (process-buffer proc)))))))))))
 
+(defun my/agent--find-agy-pids ()
+  "Return list of PIDs of running `agy` processes via /proc."
+  (let (pids)
+    (dolist (f (directory-files "/proc" nil "^[0-9]+$"))
+      (let ((cmd-file (format "/proc/%s/cmdline" f)))
+        (when (and (not (string= f (number-to-string (emacs-pid))))
+                   (file-readable-p cmd-file))
+          (with-temp-buffer
+            (insert-file-contents cmd-file nil 0 128)
+            (let* ((cmd-str (buffer-string))
+                   (first-arg (car (split-string cmd-str "\0" t))))
+              (when (and first-arg
+                         (or (string= first-arg "agy")
+                             (string-suffix-p "/agy" first-arg)))
+                (push f pids)))))))
+    (nreverse pids)))
+
+(defun my/agent--bytes-to-uint64 (str &optional offset)
+  "Convert 8 bytes in STR at OFFSET to 64-bit integer."
+  (let ((off (or offset 0))
+        (val 0))
+    (dotimes (i 8)
+      (setq val (logior val (ash (aref str (+ off i)) (* 8 i)))))
+    val))
+
+(defun my/agent--uint64-to-bytes (n)
+  "Convert 64-bit integer N to 8-byte little-endian string."
+  (let ((bytes (make-string 8 0)))
+    (dotimes (i 8)
+      (aset bytes i (logand (ash n (* -8 i)) #xff)))
+    bytes))
+
+(defvar my/agent--agy-csrf-cache nil
+  "Cached cons (PID . CSRF-TOKEN) for running Antigravity process.")
+
+(defun my/agent--get-agy-csrf-token (&optional target-pid)
+  "Extract CSRF token from running Antigravity process memory in pure Elisp.
+If TARGET-PID is nil, the first running `agy` PID is used.
+Caches the token in `my/agent--agy-csrf-cache` while the process is alive."
+  (if (and my/agent--agy-csrf-cache
+           (or (null target-pid)
+               (equal (car my/agent--agy-csrf-cache) (format "%s" target-pid)))
+           (file-exists-p (format "/proc/%s" (car my/agent--agy-csrf-cache))))
+      (cdr my/agent--agy-csrf-cache)
+    (let* ((pid (or (and target-pid (format "%s" target-pid))
+                    (car (my/agent--find-agy-pids))))
+           (mem-file (and pid (format "/proc/%s/mem" pid)))
+           (maps-file (and pid (format "/proc/%s/maps" pid))))
+      (when (and pid (file-readable-p mem-file) (file-readable-p maps-file))
+        (let (base-addr rw-regions)
+          (with-temp-buffer
+            (insert-file-contents maps-file)
+            (goto-char (point-min))
+            (while (re-search-forward "^\\([0-9a-f]+\\)-\\([0-9a-f]+\\)[ \t]+\\([^ \t\n]+\\)[ \t]+[^ \t\n]+[ \t]+[^ \t\n]+[ \t]+[^ \t\n]+[ \t]*\\(.*\\)$" nil t)
+              (let ((start (string-to-number (match-string 1) 16))
+                    (end (string-to-number (match-string 2) 16))
+                    (perms (match-string 3))
+                    (path (match-string 4)))
+                (when (and (not base-addr)
+                           (string-match-p "r-xp" perms)
+                           (string-match-p "agy" path))
+                  (setq base-addr start))
+                (when (and (string-match-p "rw" perms)
+                           (not (string-match-p "shm" path))
+                           (not (string-match-p "\\.so" path)))
+                  (push (cons start end) rw-regions)))))
+          (when base-addr
+            (let* ((targets (list (+ base-addr #x78fd720)   ; WrapUnary.func1
+                                  (+ base-addr #x78fd300))) ; WrapStreamingHandler.func1
+                   (needles (mapcar #'my/agent--uint64-to-bytes targets))
+                   (chunk-size (* 8 1024 1024))
+                   token)
+              (with-temp-buffer
+                (set-buffer-multibyte nil)
+                (catch 'found
+                  (dolist (region (nreverse rw-regions))
+                    (let ((r-start (car region))
+                          (r-end (cdr region)))
+                      (while (< r-start r-end)
+                        (let ((cur-end (min (+ r-start chunk-size) r-end)))
+                          (erase-buffer)
+                          (condition-case nil
+                              (insert-file-contents mem-file nil r-start cur-end)
+                            (error nil))
+                          (dolist (needle needles)
+                            (goto-char (point-min))
+                            (while (search-forward needle nil t)
+                              (when (<= (+ (point) 8) (point-max))
+                                (let* ((x0-bytes (buffer-substring-no-properties (point) (+ (point) 8)))
+                                       (x0-addr (my/agent--bytes-to-uint64 x0-bytes)))
+                                  (when (> x0-addr 0)
+                                    (with-temp-buffer
+                                      (set-buffer-multibyte nil)
+                                      (condition-case nil
+                                          (progn
+                                            (insert-file-contents mem-file nil x0-addr (+ x0-addr 16))
+                                            (let* ((inter (buffer-string))
+                                                   (str-addr (my/agent--bytes-to-uint64 inter 0))
+                                                   (str-len (my/agent--bytes-to-uint64 inter 8)))
+                                              (when (and (= str-len 36) (> str-addr 0))
+                                                (erase-buffer)
+                                                (insert-file-contents mem-file nil str-addr (+ str-addr 36))
+                                                (let ((candidate (buffer-string)))
+                                                  (when (and (= (length candidate) 36)
+                                                             (= (cl-count ?- candidate) 4))
+                                                    (setq token candidate)
+                                                    (throw 'found token))))))
+                                        (error nil))))))))
+                          (setq r-start cur-end))))))
+                (when token
+                  (setq my/agent--agy-csrf-cache (cons pid token))
+                  token)))))))))
+
 (defun my/agent--find-agy-ports ()
   "Find candidate local TCP listening ports for running `agy` processes via /proc."
-  (let* ((pids (delq nil (mapcar (lambda (f)
-                                   (and (string-match-p "^[0-9]+$" f)
-                                        (let ((cmd (expand-file-name (format "/proc/%s/cmdline" f))))
-                                          (when (file-readable-p cmd)
-                                            (with-temp-buffer
-                                              (insert-file-contents cmd nil 0 64)
-                                              (and (string-match-p "agy" (buffer-string))
-                                                   f))))))
-                                 (directory-files "/proc" nil "^[0-9]+$"))))
+  (let* ((pids (my/agent--find-agy-pids))
          (inodes (make-hash-table :test 'equal)))
     (dolist (pid pids)
       (let ((fd-dir (format "/proc/%s/fd" pid)))
@@ -316,59 +421,62 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
 (defun my/agent-antigravity-update-usage-async ()
   "Fetch 5h and weekly usage for Antigravity (agy) agent asynchronously in pure Elisp."
   (when (my/agent--live-buffer-p 'antigravity)
-    (let ((ports (my/agent--find-agy-ports)))
-      (dolist (port ports)
-        (let ((proc-name (format "agent-agy-usage-fetch-%d" port)))
-          (unless (process-live-p (get-process proc-name))
-            (make-process
-             :name proc-name
-             :buffer (generate-new-buffer (format " *agent-agy-usage-temp-%d*" port))
-             :command (list "curl" "-s" "-m" "1"
-                            "-H" "Content-Type: application/json"
-                            "-H" "Connect-Protocol-Version: 1"
-                            "-d" "{}"
-                            (format "http://127.0.0.1:%d/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary" port))
-             :sentinel (lambda (proc _event)
-                         (when (eq (process-status proc) 'exit)
-                           (unwind-protect
-                               (when (= (process-exit-status proc) 0)
-                                 (with-current-buffer (process-buffer proc)
-                                   (goto-char (point-min))
-                                   (ignore-errors
-                                     (let* ((json (json-parse-buffer :object-type 'alist :array-type 'list))
-                                            gemini-5h gemini-5r gemini-7d gemini-7r
-                                            tp-5h tp-5r tp-7d tp-7r)
-                                       (dolist (g (alist-get 'groups (alist-get 'response json)))
-                                         (let* ((name (or (alist-get 'displayName g) ""))
-                                                (is-gemini (string-match-p "Gemini" name))
-                                                (is-3p (string-match-p "Claude\\|GPT\\|3p" name)))
-                                           (dolist (b (alist-get 'buckets g))
-                                             (let* ((win (alist-get 'window b))
-                                                    (rem (or (alist-get 'remainingFraction b) 1.0))
-                                                    (rst (alist-get 'resetTime b))
-                                                    (used (max 0 (min 100 (round (* (- 1.0 rem) 100))))))
-                                               (cond
-                                                ((and is-gemini (string= win "5h"))
-                                                 (setq gemini-5h used gemini-5r rst))
-                                                ((and is-gemini (string= win "weekly"))
-                                                 (setq gemini-7d used gemini-7r rst))
-                                                ((and is-3p (string= win "5h"))
-                                                 (setq tp-5h used tp-5r rst))
-                                                ((and is-3p (string= win "weekly"))
-                                                 (setq tp-7d used tp-7r rst)))))))
-                                       (when (and gemini-5h gemini-7d)
-                                         (setq my/agent-antigravity-quota-data
-                                               `((gemini-5h-util . ,gemini-5h)
-                                                 (gemini-5h-reset . ,gemini-5r)
-                                                 (gemini-7d-util . ,gemini-7d)
-                                                 (gemini-7d-reset . ,gemini-7r)
-                                                 (3p-5h-util . ,(or tp-5h 0))
-                                                 (3p-5h-reset . ,tp-5r)
-                                                 (3p-7d-util . ,(or tp-7d 0))
-                                                 (3p-7d-reset . ,tp-7r)))
-                                         (force-mode-line-update t))))))
-                             (when (buffer-live-p (process-buffer proc))
-                               (kill-buffer (process-buffer proc)))))))))))))
+    (let ((token (my/agent--get-agy-csrf-token)))
+      (when token
+        (let ((ports (my/agent--find-agy-ports)))
+          (dolist (port ports)
+            (let ((proc-name (format "agent-agy-usage-fetch-%d" port)))
+              (unless (process-live-p (get-process proc-name))
+                (make-process
+                 :name proc-name
+                 :buffer (generate-new-buffer (format " *agent-agy-usage-temp-%d*" port))
+                 :command (list "curl" "-s" "-m" "1"
+                                "-H" "Content-Type: application/json"
+                                "-H" "Connect-Protocol-Version: 1"
+                                "-H" (format "x-codeium-csrf-token: %s" token)
+                                "-d" "{}"
+                                (format "http://127.0.0.1:%d/exa.language_server_pb.LanguageServerService/RetrieveUserQuotaSummary" port))
+                 :sentinel (lambda (proc _event)
+                             (when (eq (process-status proc) 'exit)
+                               (unwind-protect
+                                   (when (= (process-exit-status proc) 0)
+                                     (with-current-buffer (process-buffer proc)
+                                       (goto-char (point-min))
+                                       (ignore-errors
+                                         (let* ((json (json-parse-buffer :object-type 'alist :array-type 'list))
+                                                gemini-5h gemini-5r gemini-7d gemini-7r
+                                                tp-5h tp-5r tp-7d tp-7r)
+                                           (dolist (g (alist-get 'groups (alist-get 'response json)))
+                                             (let* ((name (or (alist-get 'displayName g) ""))
+                                                    (is-gemini (string-match-p "Gemini" name))
+                                                    (is-3p (string-match-p "Claude\\|GPT\\|3p" name)))
+                                               (dolist (b (alist-get 'buckets g))
+                                                 (let* ((win (alist-get 'window b))
+                                                        (rem (or (alist-get 'remainingFraction b) 1.0))
+                                                        (rst (alist-get 'resetTime b))
+                                                        (used (max 0 (min 100 (round (* (- 1.0 rem) 100))))))
+                                                   (cond
+                                                    ((and is-gemini (string= win "5h"))
+                                                     (setq gemini-5h used gemini-5r rst))
+                                                    ((and is-gemini (string= win "weekly"))
+                                                     (setq gemini-7d used gemini-7r rst))
+                                                    ((and is-3p (string= win "5h"))
+                                                     (setq tp-5h used tp-5r rst))
+                                                    ((and is-3p (string= win "weekly"))
+                                                     (setq tp-7d used tp-7r rst)))))))
+                                           (when (and gemini-5h gemini-7d)
+                                             (setq my/agent-antigravity-quota-data
+                                                   `((gemini-5h-util . ,gemini-5h)
+                                                     (gemini-5h-reset . ,gemini-5r)
+                                                     (gemini-7d-util . ,gemini-7d)
+                                                     (gemini-7d-reset . ,gemini-7r)
+                                                     (3p-5h-util . ,(or tp-5h 0))
+                                                     (3p-5h-reset . ,tp-5r)
+                                                     (3p-7d-util . ,(or tp-7d 0))
+                                                     (3p-7d-reset . ,tp-7r)))
+                                             (force-mode-line-update t))))))
+                                 (when (buffer-live-p (process-buffer proc))
+                                   (kill-buffer (process-buffer proc)))))))))))))))
 
 (defun my/agent-update-usage-async ()
   "Dispatch usage update for all active agent types if any agent buffer is open."
