@@ -14,6 +14,7 @@
       "t"  '(:ignore t :which-key "Terminal / Themes")
       "tt" '(my/theme-toggle :which-key "Toggle Theme (Dark/Light)")
       "tp" '(ef-themes-select :which-key "Ef Themes Picker")
+      "tc" '(my/color-picker-at-point :which-key "Color Picker")
       "w"  '(:ignore t :which-key "Writings / Zen")
       "wz" '(my/zen-mode-toggle :which-key "Toggle Zen Mode"))))
 
