@@ -23,6 +23,25 @@
 (global-hl-line-mode 1)
 (setq-default display-line-numbers-width 3)
 
+(defun my/toggle-line-numbers-type ()
+  "Toggle between absolute and relative line numbers."
+  (interactive)
+  (if (eq display-line-numbers-type 'relative)
+      (progn
+        (setq display-line-numbers-type t)
+        (message "Line numbers: absolute"))
+    (setq display-line-numbers-type 'relative)
+    (message "Line numbers: relative"))
+  (global-display-line-numbers-mode -1)
+  (global-display-line-numbers-mode 1))
+
+(when (fboundp 'general-define-key)
+  (general-define-key
+   :states '(normal visual motion)
+   :prefix "SPC"
+   "r"   '(:ignore t :which-key "Toggle")
+   "rn"  '(my/toggle-line-numbers-type :which-key "Relative/Absolute Line Numbers")))
+
 ;; Disable line numbers in PDF, images, terminal and agent windows
 (defun my/disable-line-numbers ()
   "Disable line numbers in special and terminal buffers."
@@ -43,18 +62,29 @@
 ;; Themes & Theme Persistence
 (let ((au-themes-dir (expand-file-name "~/Dokumenty/GitHub/au-themes")))
   (when (file-directory-p au-themes-dir)
-    (add-to-list 'custom-theme-load-path au-themes-dir)))
+    (add-to-list 'load-path au-themes-dir)
+    (add-to-list 'custom-theme-load-path au-themes-dir)
+    (require 'au-themes nil t)))
 
 (defvar my/theme-cache-file
   (expand-file-name ".theme-cache" user-emacs-directory))
 
 (defun my/get-cached-theme ()
-  "Return saved theme symbol from `.theme-cache', or fallback to `ef-autumn'."
+  "Return saved theme symbol from `.theme-cache', or fallback to `au-whispergrove-night'."
   (if (file-exists-p my/theme-cache-file)
-      (intern (with-temp-buffer
-                (insert-file-contents my/theme-cache-file)
-                (string-trim (buffer-string))))
-    'ef-autumn))
+      (let ((theme-sym (intern (with-temp-buffer
+                                 (insert-file-contents my/theme-cache-file)
+                                 (string-trim (buffer-string))))))
+        (if (custom-theme-p theme-sym)
+            theme-sym
+          'au-whispergrove-night))
+    'au-whispergrove-night))
+
+(defun my/save-theme-to-cache (theme)
+  "Persist THEME symbol to `.theme-cache'."
+  (when (and theme (symbolp theme))
+    (with-temp-file my/theme-cache-file
+      (insert (symbol-name theme)))))
 
 (defun my/apply-custom-face-overrides (&rest _)
   "Apply custom italic and weight overrides to active font-lock faces."
@@ -73,42 +103,61 @@
               (mapc #'disable-theme custom-enabled-themes)
               (apply orig-fun theme args)
               (my/apply-custom-face-overrides)
-              (with-temp-file my/theme-cache-file
-                (insert (symbol-name theme)))))
+              (my/save-theme-to-cache theme)))
 
-(defcustom my/theme-toggle-pair '(ef-autumn ef-arcadia)
+(add-hook 'au-themes-post-load-hook
+          (lambda ()
+            (when-let* ((theme (car custom-enabled-themes)))
+              (my/save-theme-to-cache theme)
+              (my/apply-custom-face-overrides)
+              (when (fboundp 'bufferline-highlights-apply)
+                (bufferline-highlights-apply)))))
+
+(defcustom my/theme-toggle-pair '(au-whispergrove-night au-whispergrove-day)
   "Two themes to switch between via `my/theme-toggle'."
   :type '(list symbol symbol)
   :group 'ui)
 
 (defun my/theme-toggle ()
-  "Toggle cleanly between dark and light themes in `my/theme-toggle-pair'."
+  "Toggle cleanly between dark and light au-themes."
   (interactive)
-  (let* ((cur (or (car custom-enabled-themes) (my/get-cached-theme)))
-         (next (if (eq cur (car my/theme-toggle-pair))
-                   (cadr my/theme-toggle-pair)
-                 (car my/theme-toggle-pair))))
-    (load-theme next t)
-    (message "Theme switched to %s" next)))
+  (if (fboundp 'au-themes-toggle)
+      (au-themes-toggle)
+    (let* ((cur (or (car custom-enabled-themes) (my/get-cached-theme)))
+           (next (if (eq cur (car my/theme-toggle-pair))
+                     (cadr my/theme-toggle-pair)
+                   (car my/theme-toggle-pair))))
+      (load-theme next t)
+      (message "Theme switched to %s" next))))
 
 (use-package ef-themes
   :ensure t
   :config
   (setq ef-themes-to-toggle my/theme-toggle-pair))
 
-;; Daemon and initial frame theme application
-(defun my/setup-frame-theme (frame)
-  "Ensure theme is applied once to the initial graphical frame in daemon mode."
-  (when (and (display-graphic-p frame)
-             (not (frame-parent frame))
-             (null custom-enabled-themes))
-    (remove-hook 'after-make-frame-functions #'my/setup-frame-theme)
-    (with-selected-frame frame
-      (load-theme (my/get-cached-theme) t))))
+;; Daemon and per-frame theme application
+(defun my/setup-frame-theme (&optional frame)
+  "Ensure the cached theme is completely and cleanly applied to FRAME."
+  (let ((f (or frame (selected-frame))))
+    (when (display-graphic-p f)
+      (with-selected-frame f
+        (let ((theme (my/get-cached-theme)))
+          ;; Strip stale GTK default-frame-alist background residue
+          (setq default-frame-alist
+                (assq-delete-all 'background-color default-frame-alist))
+          (unless (memq theme custom-enabled-themes)
+            (mapc #'disable-theme custom-enabled-themes)
+            (load-theme theme t))
+          (enable-theme theme)
+          (my/apply-custom-face-overrides)
+          (when (fboundp 'bufferline-highlights-apply)
+            (bufferline-highlights-apply f)))))))
 
-(if (daemonp)
-    (add-hook 'after-make-frame-functions #'my/setup-frame-theme)
-  (load-theme (my/get-cached-theme) t))
+(add-hook 'after-make-frame-functions #'my/setup-frame-theme)
+(add-hook 'server-after-make-frame-hook #'my/setup-frame-theme)
+
+(unless (daemonp)
+  (my/setup-frame-theme))
 
 (use-package nerd-icons
   :ensure t

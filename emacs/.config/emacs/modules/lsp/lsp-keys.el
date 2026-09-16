@@ -154,7 +154,7 @@ If formatted output is identical to current buffer content, no modifications are
       ;; Code & Refactor
       "c"  '(:ignore t :which-key "Code")
       "ci" '(eglot-inlay-hints-mode :which-key "Toggle Inlay Hints")
-      "rn" '(eglot-rename :which-key "Rename Symbol")
+      "cr" '(eglot-rename :which-key "Rename Symbol")
 
       ;; Format shortcut
       "fm" '(my/format-buffer :which-key "Format Buffer")
