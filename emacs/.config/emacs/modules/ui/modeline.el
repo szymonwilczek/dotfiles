@@ -137,11 +137,11 @@
   (my/modeline-update-git-branch)
   my/modeline--cached-git-branch)
 
-(defun my/modeline-gh-radal ()
-  "Return formatted gh-radal segment when mode is active."
-  (if (and (bound-and-true-p gh-radal-mode)
-           (fboundp 'gh-radal-modeline-format))
-      (or (gh-radal-modeline-format) "")
+(defun my/modeline-gh-radar ()
+  "Return formatted gh-radar segment when mode is active."
+  (if (and (bound-and-true-p gh-radar-mode)
+           (fboundp 'gh-radar-modeline-format))
+      (or (gh-radar-modeline-format) "")
     ""))
 
 (defun my/render-modeline ()
@@ -159,7 +159,7 @@
                           (my/modeline-filetype)
                           (my/modeline-diagnostics)
                           (my/modeline-fileinfo)
-                          (my/modeline-gh-radal)
+                          (my/modeline-gh-radar)
                           (my/modeline-git-branch)))
              (rhs-w (string-width (format-mode-line rhs))))
         (concat lhs
