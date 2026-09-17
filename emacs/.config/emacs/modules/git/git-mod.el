@@ -380,16 +380,8 @@ Allowed during an active rebase at the current HEAD commit."
   :custom
   (gh-radar-interval 600)
   (gh-radar-show-prefix nil)
-  (gh-radar-track-notifications t)
   (gh-radar-notify-on-new t)
   (gh-radar-hide-zero-counts '(inbox))
-  (gh-radar-repos
-   '(("szymonwilczek/dotfiles" "issues" "pr")
-     ("szymonwilczek/gh-radar.el" "issues" "pr")
-     ("szymonwilczek/bufferline.el" "issues" "pr")
-     ("szymonwilczek/octo.el" "issues" "pr")
-     ("szymonwilczek/jot.el" "issues" "pr")
-     ("szymonwilczek/plan-polsl.el" "issues" "pr")))
   :config
   (gh-radar-mode 1))
 
