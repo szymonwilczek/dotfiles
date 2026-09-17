@@ -123,4 +123,20 @@
 (dolist (mgr-cmd '(vc-dir ibuffer list-buffers bookmark-bmenu-list bookmark-jump))
   (put mgr-cmd 'disabled "TURNED OFF."))
 
+;; drawing, gestures and ascii tables
+(dolist (draw-cmd '(strokes-mode artist-mode picture-mode table-insert table-mode))
+  (put draw-cmd 'disabled "TURNED OFF."))
+
+;; text toys
+(dolist (toy-cmd '(morse-region unmorse-region rot13-region rot13-other-window dissociated-press))
+  (put toy-cmd 'disabled "TURNED OFF."))
+
+;; background daemons and nags
+(dolist (daemon-cmd '(type-break-mode midnight-mode timeclock-in timeclock-out todo-show))
+  (put daemon-cmd 'disabled "TURNED OFF."))
+
+;; obsolete IDE, databases, and sound
+(dolist (obs-cmd '(semantic-mode desktop-save-mode forms-mode eudc-query-form play-sound play-sound-file))
+  (put obs-cmd 'disabled "TURNED OFF."))
+
 (setq disabled-command-function nil)
