@@ -15,7 +15,9 @@
            git-gutter-fringe helm icloud-calendar magit marginalia
            nerd-icons nerd-icons-completion nerd-icons-dired olivetti
            orderless persp-projectile perspective plan-polsl
-           projectile rainbow-mode vertico vundo wakatime-mode))
+           projectile rainbow-mode treemacs treemacs-evil
+           treemacs-nerd-icons treemacs-perspective
+           treemacs-projectile vertico vundo wakatime-mode))
  '(package-vc-selected-packages
    '((plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"
                  :branch "main")

@@ -42,7 +42,7 @@
    "r"   '(:ignore t :which-key "Toggle")
    "rn"  '(my/toggle-line-numbers-type :which-key "Relative/Absolute Line Numbers")))
 
-;; Disable line numbers in PDF, images, terminal and agent windows
+;; Disable line numbers in PDF, images, terminal, treemacs and agent windows
 (defun my/disable-line-numbers ()
   "Disable line numbers in special and terminal buffers."
   (setq-local display-line-numbers nil)
@@ -50,7 +50,8 @@
 
 (dolist (hook '(doc-view-mode-hook
                 image-mode-hook
-                ghostel-mode-hook))
+                ghostel-mode-hook
+                treemacs-mode-hook))
   (add-hook hook #'my/disable-line-numbers))
 
 (add-hook 'display-line-numbers-mode-hook
