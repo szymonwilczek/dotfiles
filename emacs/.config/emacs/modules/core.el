@@ -88,6 +88,16 @@
 
 (add-hook 'server-after-make-frame-hook #'my/switch-to-last-file-buffer)
 
+;; Jump directly without prompt
+(setq xref-prompt-for-identifier nil)
+
+;; Keep echo area stable
+(setq eldoc-echo-area-use-multiline-p nil
+      eldoc-echo-area-prefer-doc-buffer t)
+
+;; Disable OS-level window tooltips
+(tooltip-mode -1)
+
 ;; Indentation
 (setq-default indent-tabs-mode nil
               tab-width 4)

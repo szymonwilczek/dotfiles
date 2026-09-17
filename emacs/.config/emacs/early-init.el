@@ -95,4 +95,16 @@
 
 (put 'help-with-tutorial 'disabled "TURNED OFF.")
 
+;; I use Ghostty and eat
+(dolist (term-cmd '(eshell eshell-command term ansi-term shell))
+  (put term-cmd 'disabled "TURNED OFF."))
+
+;; Emacs is an editor, not exactly a media center for me
+(dolist (net-cmd '(erc erc-tls rcirc newsticker-show-news mpc dictionary-search))
+  (put net-cmd 'disabled "TURNED OFF."))
+
+;; superseded by jot, and Org
+(dolist (pim-cmd '(diary appt-activate remember remember-notes))
+  (put pim-cmd 'disabled "TURNED OFF."))
+
 (setq disabled-command-function nil)
