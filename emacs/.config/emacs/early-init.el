@@ -107,4 +107,20 @@
 (dolist (pim-cmd '(diary appt-activate remember remember-notes))
   (put pim-cmd 'disabled "TURNED OFF."))
 
+;; ancient network protocols
+(dolist (net-proto '(telnet rlogin ftp ange-ftp finger))
+  (put net-proto 'disabled "TURNED OFF."))
+
+;; doc viewers
+(dolist (doc-cmd '(woman man info))
+  (put doc-cmd 'disabled "TURNED OFF."))
+
+;; archive and image viewers
+(dolist (arc-cmd '(tar-mode archive-mode image-dired))
+  (put arc-cmd 'disabled "TURNED OFF."))
+
+;; legacy managers
+(dolist (mgr-cmd '(vc-dir ibuffer list-buffers bookmark-bmenu-list bookmark-jump))
+  (put mgr-cmd 'disabled "TURNED OFF."))
+
 (setq disabled-command-function nil)

@@ -98,6 +98,13 @@
 ;; Disable OS-level window tooltips
 (tooltip-mode -1)
 
+;; Disable GUI shift-selection
+(setq shift-select-mode nil)
+
+;; Disable automatic hard-wrapping
+(auto-fill-mode -1)
+(setq-default auto-fill-function nil)
+
 ;; Indentation
 (setq-default indent-tabs-mode nil
               tab-width 4)
