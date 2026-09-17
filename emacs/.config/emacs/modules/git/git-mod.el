@@ -382,6 +382,7 @@ Allowed during an active rebase at the current HEAD commit."
   (gh-radar-show-prefix nil)
   (gh-radar-track-notifications t)
   (gh-radar-notify-on-new t)
+  (gh-radar-hide-zero-counts '(inbox))
   (gh-radar-repos
    '(("szymonwilczek/dotfiles" "issues" "pr")
      ("szymonwilczek/gh-radar.el" "issues" "pr")
