@@ -49,3 +49,50 @@
       warning-suppress-types '((native-compiler) (with-editor) (files) (comp)))
 
 (setq frame-inhibit-implied-resize t)
+
+;; ----------------------------------------------------------------------------
+;; Emacs is a text editor, not an operating system (for me).
+;; Disable built-in subsystems I don't use to reduce cognitive overhead.
+;; This keeps M-x clean and prevents accidental activation of irrelevant modes.
+;; ----------------------------------------------------------------------------
+
+;; I use standalone email
+(setq disabled-features/mail t)
+(put 'gnus 'disabled t)
+(put 'rmail 'disabled t)
+(put 'mh-e 'disabled t)
+
+;; Prevent mail/news autoloads from polluting M-x
+(with-eval-after-load 'startup
+  (dolist (sym '(compose-mail mail browse-url-mail
+                              gnus gnus-other-frame
+                              rmail rmail-input
+                              mh-rmail mh-smail))
+    (when (fboundp sym)
+      (put sym 'disabled t))))
+
+;; not exactly why I open Emacs
+(setq command-line-default-directory (expand-file-name "~/"))
+(dolist (game '(tetris snake dunnet hanoi hanoi-unix
+                       life pong solitaire zone doctor
+                       butterfly animate-birthday-present
+                       mpuz 5x5 blackbox bubbles gomoku landmark))
+  (put game 'disabled "TURNED OFF."))
+
+;; I use Firefox
+(put 'eww 'disabled "TURNED OFF.")
+(put 'eww-browse-url 'disabled "TURNED OFF.")
+
+;; using Treemacs instead
+(put 'speedbar 'disabled "TURNED OFF.")
+
+;; I dont print from Emacs
+(setq lpr-command "")
+(setq printer-name "")
+(put 'lpr-buffer 'disabled "TURNED OFF.")
+(put 'print-buffer 'disabled "TURNED OFF.")
+(put 'ps-print-buffer 'disabled "TURNED OFF.")
+
+(put 'help-with-tutorial 'disabled "TURNED OFF.")
+
+(setq disabled-command-function nil)

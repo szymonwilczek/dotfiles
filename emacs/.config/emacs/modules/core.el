@@ -55,9 +55,38 @@
 ;; Disable visual/audio bells
 (setq ring-bell-function 'ignore)
 
-;; Scratch buffer settings
+;; Scratch buffer settings and clean buffer management
 (setq inhibit-startup-screen t
-      initial-scratch-message nil)
+      initial-scratch-message nil
+      initial-major-mode 'fundamental-mode)
+
+;; Short confirmations
+(setq use-short-answers t)
+
+;; Context-aware M-x
+(setq read-extended-command-predicate #'command-completion-default-include-p)
+
+;; Automatically kill *scratch* buffer as soon as a real file is opened
+(defun my/kill-scratch-on-find-file ()
+  "Kill *scratch* if unmodified once a file buffer is loaded."
+  (let ((scratch (get-buffer "*scratch*")))
+    (when (and scratch (buffer-file-name) (not (buffer-modified-p scratch)))
+      (kill-buffer scratch))))
+
+(add-hook 'find-file-hook #'my/kill-scratch-on-find-file)
+
+;; Avoid landing on *scratch* when opening a client frame
+(defun my/switch-to-last-file-buffer (&optional frame)
+  "Switch new frame to the most recent real file buffer if current is scratch."
+  (with-selected-frame (or frame (selected-frame))
+    (when (string-match-p "\\`\\*scratch" (buffer-name))
+      (when-let* ((file-buf (cl-find-if (lambda (b)
+                                          (and (buffer-file-name b)
+                                               (not (string-prefix-p " " (buffer-name b)))))
+                                        (buffer-list))))
+        (switch-to-buffer file-buf)))))
+
+(add-hook 'server-after-make-frame-hook #'my/switch-to-last-file-buffer)
 
 ;; Indentation
 (setq-default indent-tabs-mode nil

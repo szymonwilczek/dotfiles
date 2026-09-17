@@ -32,7 +32,12 @@
   :ensure t
   :config
   (setq consult-preview-key '(:debounce 0.2 any)
-        consult-async-min-input 2))
+        consult-async-min-input 2
+        consult-buffer-filter
+        '("\\` "
+          "\\`\\*.*"
+          "\\`magit-process:"
+          "\\`newsrc-dribble")))
 
 ;; In-Buffer Completion
 ;; (Company with overlay frontend)
