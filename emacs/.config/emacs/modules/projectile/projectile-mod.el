@@ -79,7 +79,45 @@ If killed or missing, seamlessly fall back to an active perspective."
   :ensure t
   :after (treemacs perspective)
   :config
-  (treemacs-set-scope-type 'Perspectives))
+  (treemacs-set-scope-type 'Perspectives)
+
+  (defun my/treemacs-perspective-project-root ()
+    "Derive project root for current perspective from Projectile known projects."
+    (when (and (bound-and-true-p persp-mode) (persp-curr))
+      (let ((name (persp-current-name)))
+        (when-let* ((proj (or (cl-find-if (lambda (p)
+                                            (string= (funcall projectile-project-name-function p) name))
+                                          (projectile-relevant-known-projects))
+                              (projectile-project-root))))
+          (treemacs-canonical-path (expand-file-name proj))))))
+
+  (add-to-list 'treemacs--find-user-project-functions #'my/treemacs-perspective-project-root)
+
+  (defun my/treemacs-ensure-perspective-project (&rest _)
+    "Ensure the active perspective workspace contains its Projectile project."
+    (when (and (featurep 'treemacs) (bound-and-true-p persp-mode) (persp-curr))
+      (when-let* ((name (persp-current-name))
+                  (proj (cl-find-if (lambda (p)
+                                      (string= (funcall projectile-project-name-function p) name))
+                                    (projectile-relevant-known-projects)))
+                  (canonical (treemacs-canonical-path (expand-file-name proj)))
+                  (ws-name (treemacs-perspective--format-workspace-name name))
+                  (ws (or (treemacs--find-workspace-by-name ws-name)
+                          (cadr (treemacs-do-create-workspace ws-name)))))
+        (let ((current-projects (mapcar #'treemacs-project->path (treemacs-workspace->projects ws))))
+          (unless (member canonical current-projects)
+            (setf (treemacs-workspace->projects ws)
+                  (list (treemacs-project->create!
+                         :name name
+                         :path canonical
+                         :path-status (treemacs--get-path-status canonical))))))
+        (setf (treemacs-current-workspace) ws)
+        (treemacs--invalidate-buffer-project-cache)
+        (when (treemacs-get-local-window)
+          (treemacs--change-buffer-on-scope-change)
+          (treemacs--rerender-after-workspace-change)))))
+
+  (add-hook 'persp-switch-hook #'my/treemacs-ensure-perspective-project 90))
 
 (use-package treemacs-projectile
   :ensure t
