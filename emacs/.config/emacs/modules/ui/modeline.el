@@ -137,6 +137,13 @@
   (my/modeline-update-git-branch)
   my/modeline--cached-git-branch)
 
+(defun my/modeline-gh-radal ()
+  "Return formatted gh-radal segment when mode is active."
+  (if (and (bound-and-true-p gh-radal-mode)
+           (fboundp 'gh-radal-modeline-format))
+      (or (gh-radal-modeline-format) "")
+    ""))
+
 (defun my/render-modeline ()
   "Assemble active or inactive statusline."
   (if (and (fboundp 'my/agents-modeline-buffer-p)
@@ -152,6 +159,7 @@
                           (my/modeline-filetype)
                           (my/modeline-diagnostics)
                           (my/modeline-fileinfo)
+                          (my/modeline-gh-radal)
                           (my/modeline-git-branch)))
              (rhs-w (string-width (format-mode-line rhs))))
         (concat lhs

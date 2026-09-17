@@ -374,6 +374,22 @@ Allowed during an active rebase at the current HEAD commit."
   :config
   (octo-sync-mode 1))
 
+(use-package gh-radal
+  :load-path "~/Dokumenty/GitHub/gh-radal.el"
+  :demand t
+  :custom
+  (gh-radal-interval 600)
+  (gh-radal-notify-on-new t)
+  (gh-radal-repos
+   '(("szymonwilczek/dotfiles" "issues" "pr")
+     ("szymonwilczek/gh-radal.el" "issues" "pr")
+     ("szymonwilczek/bufferline.el" "issues" "pr")
+     ("szymonwilczek/octo.el" "issues" "pr")
+     ("szymonwilczek/jot.el" "issues" "pr")
+     ("szymonwilczek/plan-polsl.el" "issues" "pr")))
+  :config
+  (gh-radal-mode 1))
+
 (require 'git-keys)
 
 (provide 'git-mod)
