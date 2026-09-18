@@ -74,7 +74,7 @@ eval "$(starship init zsh)"
 ##############
 ### EXPORT ###
 ##############
-export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"#
+export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
 export PATH=~/.npm-global/bin:$PATH
 export TMUX_TMPDIR=$XDG_RUNTIME_DIR
 export PATH="$PATH:$HOME/.config/emacs/bin"
