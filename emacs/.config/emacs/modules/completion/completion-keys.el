@@ -31,8 +31,8 @@
 
       ;; Files & Search
       "f"  '(:ignore t :which-key "Files/Search")
-      "ff" '(consult-fd :which-key "Find File (Project)")
-      "fw" '(consult-ripgrep :which-key "Live Grep (Project)")
+      "ff" '(my/project-find-file :which-key "Find File (Project)")
+      "fw" '(my/project-search-word :which-key "Live Grep (Project)")
 
       ;; Diagnostics
       "d"  '(:ignore t :which-key "Diagnostics")

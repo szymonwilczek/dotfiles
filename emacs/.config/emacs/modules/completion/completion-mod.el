@@ -28,6 +28,40 @@
   :config
   (nerd-icons-completion-mode 1))
 
+(require 'cl-lib)
+
+(defun my/project-root (&optional _may-prompt)
+  "Return the root directory of the current project or perspective."
+  (or
+   ;; Projectile if active and recognized
+   (when (and (bound-and-true-p projectile-mode)
+              (fboundp 'projectile-project-root))
+     (projectile-project-root))
+   ;; current Perspective's project root
+   (when (and (bound-and-true-p persp-mode)
+              (fboundp 'persp-current-name)
+              (fboundp 'projectile-relevant-known-projects))
+     (let ((name (persp-current-name)))
+       (when-let* ((proj (cl-find-if
+                          (lambda (p)
+                            (string= (funcall (or (bound-and-true-p projectile-project-name-function)
+                                                  #'file-name-nondirectory)
+                                              p)
+                                     name))
+                          (projectile-relevant-known-projects))))
+         (file-name-as-directory (expand-file-name proj)))))
+   ;; project.el
+   (when-let* ((project (and (fboundp 'project-current)
+                             (project-current nil))))
+     (if (fboundp 'project-root)
+         (project-root project)
+       (car (project-roots project))))
+   ;; dominating .git folder
+   (when-let* ((git-dir (locate-dominating-file default-directory ".git")))
+     (file-name-as-directory (expand-file-name git-dir)))
+   ;; fallback to default-directory
+   default-directory))
+
 (use-package consult
   :ensure t
   :config
@@ -37,7 +71,26 @@
         '("\\` "
           "\\`\\*.*"
           "\\`magit-process:"
-          "\\`newsrc-dribble")))
+          "\\`newsrc-dribble"))
+
+  (setq consult-fd-args
+        '((if (executable-find "fdfind" 'remote) "fdfind" "fd")
+          "--full-path --color=never --hidden --exclude .git"))
+
+  (setq consult-ripgrep-args
+        "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip --hidden --glob !.git/")
+
+  (setq consult-project-function #'my/project-root))
+
+(defun my/project-find-file ()
+  "Search for files in the project root with `fd', including hidden files."
+  (interactive)
+  (consult-fd (my/project-root)))
+
+(defun my/project-search-word ()
+  "Search for text in the project root with `ripgrep', including hidden files."
+  (interactive)
+  (consult-ripgrep (my/project-root)))
 
 ;; In-Buffer Completion
 ;; (Company with overlay frontend)
