@@ -1,0 +1,11 @@
+# List of apps that will be TILED.
+# Every other one, will be floating.
+# One app name per row.
+
+ghostty
+kitty
+firefox
+emacs
+spotify
+discord
+obs

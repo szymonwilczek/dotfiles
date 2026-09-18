@@ -88,7 +88,7 @@ bindsym $mod+period exec carmenta --vim --disable-gifs --close-on-select --scale
 
 floating_modifier $mod normal
 
-bindsym $mod+Shift+c exec pkill -9 -f emacs 2>/dev/null; reload
+bindsym $mod+Shift+c exec ~/.config/sway/scripts/generate-tiled-rules.sh; pkill -9 -f emacs 2>/dev/null; reload
 
 bindsym $mod+$left focus left
 bindsym $mod+$down focus down
@@ -192,12 +192,16 @@ bindsym $mod+Shift+s exec grim -g "$(slurp)" - | tee "$HOME/Obrazy/Zrzuty ekranu
 bindsym Scroll_Lock exec wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%-
 bindsym Pause exec wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
 
-# Floating Rules
-for_window [app_id="pavucontrol"] floating enable, resize set 700 500, move position center
-for_window [app_id="gwenview"] floating enable, resize set 900 600, move position center
-for_window [app_id="carmenta"] floating enable, move position center
-for_window [app_id="steam"] floating enable, resize set 900 600, move position center
-for_window [app_id="dolphin"] floating enable, resize set 1100 900, move position center
+# Tiling / Floating rules
+# Managed by tiled_apps.list
+include tiled.conf
+
+# Special sizes and positions
+for_window [app_id="pavucontrol"] resize set 700 500, move position center
+for_window [app_id="gwenview"] resize set 900 600, move position center
+for_window [app_id="carmenta"] move position center
+for_window [app_id="steam"] resize set 900 600, move position center
+for_window [app_id="dolphin"] resize set 1100 900, move position center
 for_window [app_id="ghostty" app_id="floating_nmtui"] floating enable, resize set 750 450, move position center
 for_window [title="Scratchpad Ghostty"] floating enable, mark "scratchpad_ghostty", move scratchpad
 for_window [title="Informacje"] floating enable, border pixel 0, move position center
