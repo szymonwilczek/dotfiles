@@ -4,9 +4,8 @@
   :demand t
   :custom
   (bufferline-separator-style 'vertical)
-  (bufferline-show-special-buffers nil)
   :config
-  (setq bufferline-show-special-buffers nil)
+  (setq bufferline-show-special-buffers t)
   (global-bufferline-mode 1))
 
 (require 'tabs-keys)
