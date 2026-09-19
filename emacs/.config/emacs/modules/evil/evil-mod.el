@@ -22,7 +22,32 @@
                            (delete-overlay overlay)))
                        ov)))
       res))
-  (advice-add 'evil-yank :around #'my/evil-highlight-yank))
+  (advice-add 'evil-yank :around #'my/evil-highlight-yank)
+
+  ;; strip redundant comment leader on line join
+  (defun my/evil-clean-comment-on-join (&rest _args)
+    "Strip redundant comment leader when joining comment lines."
+    (when (or (nth 4 (syntax-ppss (point)))
+              (and comment-start
+                   (save-excursion
+                     (forward-line 0)
+                     (looking-at (concat "[ \t]*" (regexp-quote (string-trim comment-start)))))))
+      (unless (and comment-end (> (length (string-trim comment-end)) 0)
+                   (looking-at (concat "[ \t]*" (regexp-quote (string-trim comment-end)))))
+        (let* ((comment-regex
+                (cond
+                 ((and (looking-at "[ \t]*\\*+[ \t]*")
+                       (not (looking-at "[ \t]*\\*+/")))
+                  "[ \t]*\\*+[ \t]*")
+                 ((and comment-start-skip (looking-at (concat "[ \t]*" comment-start-skip)))
+                  (concat "[ \t]*" comment-start-skip))
+                 ((and comment-start (looking-at (concat "[ \t]*" (regexp-quote (string-trim comment-start)) "+[ \t]*")))
+                  (concat "[ \t]*" (regexp-quote (string-trim comment-start)) "+[ \t]*")))))
+          (when comment-regex
+            (when (looking-at comment-regex)
+              (replace-match " ")
+              (fixup-whitespace)))))))
+  (advice-add 'delete-indentation :after #'my/evil-clean-comment-on-join))
 
 (use-package evil-collection
   :after evil
