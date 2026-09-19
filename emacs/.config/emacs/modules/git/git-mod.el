@@ -385,6 +385,10 @@ Allowed during an active rebase at the current HEAD commit."
   :config
   (gh-radar-mode 1))
 
+(use-package rere
+  :load-path "~/Dokumenty/GitHub/rere.el"
+  :commands (rere))
+
 (require 'git-keys)
 
 (provide 'git-mod)
