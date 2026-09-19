@@ -7,6 +7,7 @@ set $right l
 set $term ghostty
 set $menu fuzzel
 set $explorer QT_QPA_PLATFORMTHEME=kde dolphin
+set $taskmanager plasma-systemmonitor
 
 # Execs
 exec swaync
@@ -85,6 +86,7 @@ bindsym $mod+a kill
 bindsym $mod+s exec $menu
 bindsym $mod+e exec $explorer
 bindsym $mod+period exec carmenta --vim --disable-gifs --close-on-select --scale 1.15
+bindsym Ctrl+Shift+Escape exec $taskmanager
 
 floating_modifier $mod normal
 
@@ -202,6 +204,8 @@ for_window [app_id="gwenview"] resize set 900 600, move position center
 for_window [app_id="carmenta"] move position center
 for_window [app_id="steam"] resize set 900 600, move position center
 for_window [app_id="dolphin"] resize set 1100 900, move position center
+for_window [app_id="plasma-systemmonitor"] resize set 1050 700, move position center
+for_window [app_id="org.kde.plasma-systemmonitor"] resize set 1050 700, move position center
 for_window [app_id="ghostty" app_id="floating_nmtui"] floating enable, resize set 750 450, move position center
 for_window [title="Scratchpad Ghostty"] floating enable, mark "scratchpad_ghostty", move scratchpad
 for_window [title="Informacje"] floating enable, border pixel 0, move position center
