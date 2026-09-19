@@ -101,19 +101,10 @@
                    (my/agents-modeline--format-quota-item "7d:" u7 r7)
                    " "))))
       ('antigravity
-       (when (bound-and-true-p my/agent-antigravity-quota-data)
-         (let* ((g-logo (propertize "󰊭" 'face (if active
-                                                  '(:foreground "#4285f4" :weight bold)
-                                                'shadow)))
-                (g-5h (alist-get 'gemini-5h-util my/agent-antigravity-quota-data))
-                (g-5r (alist-get 'gemini-5h-reset my/agent-antigravity-quota-data))
-                (g-7d (alist-get 'gemini-7d-util my/agent-antigravity-quota-data))
-                (g-7r (alist-get 'gemini-7d-reset my/agent-antigravity-quota-data)))
-           (concat " " g-logo sep
-                   (my/agents-modeline--format-quota-item "5h:" g-5h g-5r)
-                   sep
-                   (my/agents-modeline--format-quota-item "7d:" g-7d g-7r)
-                   " "))))
+       (let ((g-logo (propertize "󰊭" 'face (if active
+                                               '(:foreground "#4285f4" :weight bold)
+                                             'shadow))))
+         (concat " " g-logo " ")))
       (_ ""))))
 
 (defun my/agents-modeline-render ()
