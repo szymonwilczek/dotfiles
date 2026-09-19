@@ -11,7 +11,7 @@
  '(helm-minibuffer-history-key "M-p")
  '(package-selected-packages
    '(citar citar-org colorful-mode company consult ef-themes evil
-           evil-collection evil-commentary evil-matchit
+           evil-collection evil-commentary evil-matchit evil-numbers
            evil-surround general ghostel git-gutter git-gutter-fringe
            helm icloud-calendar magit marginalia nerd-icons
            nerd-icons-completion nerd-icons-dired olivetti orderless

@@ -48,6 +48,22 @@
   (define-key evil-normal-state-map (kbd "C-w k") 'evil-window-up)
   (define-key evil-normal-state-map (kbd "C-w l") 'evil-window-right)
 
+  ;; Number increment / decrement
+  (define-key evil-normal-state-map (kbd "C-c +") #'evil-numbers/inc-at-pt)
+  (define-key evil-normal-state-map (kbd "C-c -") #'evil-numbers/dec-at-pt)
+  (define-key evil-normal-state-map (kbd "C-c =") #'evil-numbers/inc-at-pt)
+  (define-key evil-normal-state-map (kbd "C-a")   #'evil-numbers/inc-at-pt)
+  (define-key evil-normal-state-map (kbd "g C-a") #'evil-numbers/inc-at-pt)
+  (define-key evil-normal-state-map (kbd "g C-x") #'evil-numbers/dec-at-pt)
+  (define-key evil-visual-state-map (kbd "C-c +") #'evil-numbers/inc-at-pt)
+  (define-key evil-visual-state-map (kbd "C-c -") #'evil-numbers/dec-at-pt)
+  (define-key evil-visual-state-map (kbd "C-c =") #'evil-numbers/inc-at-pt)
+  (define-key evil-visual-state-map (kbd "C-a")   #'evil-numbers/inc-at-pt)
+  (define-key evil-visual-state-map (kbd "g C-a") #'evil-numbers/inc-at-pt)
+  (define-key evil-visual-state-map (kbd "g C-x") #'evil-numbers/dec-at-pt)
+  (define-key evil-visual-state-map (kbd "g g C-a") #'evil-numbers/inc-at-pt-incremental)
+  (define-key evil-visual-state-map (kbd "g g C-x") #'evil-numbers/dec-at-pt-incremental)
+
   ;; Ctrl+Backspace to delete whole word backward
   (global-set-key (kbd "C-<backspace>") #'backward-kill-word)
   (global-set-key [C-backspace]         #'backward-kill-word)

@@ -48,6 +48,9 @@
   :config
   (global-evil-matchit-mode 1))
 
+(use-package evil-numbers
+  :after evil)
+
 (use-package evil-mc
   :after evil
   :ensure t
