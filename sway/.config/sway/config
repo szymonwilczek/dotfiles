@@ -54,9 +54,9 @@ workspace "DP-1:9" output DP-1
 workspace "DP-1:10" output DP-1
 
 # Seat & Cursor configuration
-seat * xcursor_theme Adwaita 16
+seat * xcursor_theme Adwaita 24
 exec_always gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'
-exec_always gsettings set org.gnome.desktop.interface cursor-size 16
+exec_always gsettings set org.gnome.desktop.interface cursor-size 24
 
 # Gaps & Borders configuration
 smart_gaps on
