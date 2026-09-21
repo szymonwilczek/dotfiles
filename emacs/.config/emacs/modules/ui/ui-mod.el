@@ -35,13 +35,6 @@
   (global-display-line-numbers-mode -1)
   (global-display-line-numbers-mode 1))
 
-(when (fboundp 'general-define-key)
-  (general-define-key
-   :states '(normal visual motion)
-   :prefix "SPC"
-   "r"   '(:ignore t :which-key "Toggle")
-   "rn"  '(my/toggle-line-numbers-type :which-key "Relative/Absolute Line Numbers")))
-
 ;; Disable line numbers in PDF, images, terminal, treemacs and agent windows
 (defun my/disable-line-numbers ()
   "Disable line numbers in special and terminal buffers."

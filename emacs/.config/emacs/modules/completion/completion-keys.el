@@ -32,10 +32,6 @@
       ;; Files & Search
       "f"  '(:ignore t :which-key "Files/Search")
       "ff" '(my/project-find-file :which-key "Find File (Project)")
-      "fw" '(my/project-search-word :which-key "Live Grep (Project)")
-
-      ;; Diagnostics
-      "d"  '(:ignore t :which-key "Diagnostics")
-      "dq" '(flymake-show-buffer-diagnostics :which-key "Diagnostic List"))))
+      "fw" '(my/project-search-word :which-key "Live Grep (Project)"))))
 
 (provide 'completion-keys)

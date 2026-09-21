@@ -17,7 +17,7 @@
            nerd-icons-completion nerd-icons-dired olivetti orderless
            persp-projectile perspective plan-polsl projectile
            rainbow-mode treemacs treemacs-evil treemacs-nerd-icons
-           treemacs-perspective treemacs-projectile vertico vundo
+           treemacs-perspective treemacs-projectile vertico
            wakatime-mode))
  '(package-vc-selected-packages
    '((plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"

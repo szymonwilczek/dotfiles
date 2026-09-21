@@ -61,30 +61,10 @@
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)
     (my-leader-def
-
-      ;; Yeah.. I have muscle memory over Lazygit
-      ;; Magit is still kinda new thing for me
-      "l"  '(:ignore t :which-key "Lazygit")
-      "lg" '(my/open-lazygit :which-key "Lazygit")
-
       ;; Git prefix
       "g"   '(:ignore t :which-key "Git")
       "gg"  '(magit-status :which-key "Magit Status")
       "gb"  '(magit-blame :which-key "Git Blame")
-      "gl"  '(magit-log-current :which-key "Git Log")
-      "gd"  '(magit-diff-dwim :which-key "Git Diff")
-
-      ;; GitHub octo.el integration
-      "go"  '(:ignore t :which-key "Octo")
-      "goi" '(octo-issues :which-key "Issues")
-      "gop" '(octo-pulls :which-key "Pull Requests")
-      "goI" '(octo-issue :which-key "Open Issue")
-      "goP" '(octo-pr :which-key "Open PR")
-
-      ;; Conflict resolution
-      "gc"  '(:ignore t :which-key "Conflicts")
-      "gcu" '(my/git-conflict-keep-upper :which-key "Keep Ours (Upper)")
-      "gcl" '(my/git-conflict-keep-lower :which-key "Keep Theirs (Lower)")
-      "gca" '(my/git-conflict-keep-all :which-key "Keep Both (All)"))))
+      "gl"  '(magit-log-current :which-key "Git Log"))))
 
 (provide 'git-keys)

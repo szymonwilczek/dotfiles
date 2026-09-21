@@ -84,12 +84,6 @@
   :config
   (add-hook 'evil-mc-after-cursors-deleted-hook #'evil-ex-nohighlight))
 
-(use-package vundo
-  :ensure t
-  :custom
-  (vundo-glyph-alist vundo-unicode-symbols)
-  (vundo-compact-display t))
-
 (require 'evil-keys)
 
 (provide 'evil-mod)

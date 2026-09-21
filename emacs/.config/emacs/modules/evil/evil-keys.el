@@ -50,19 +50,11 @@
 
   ;; Number increment / decrement
   (define-key evil-normal-state-map (kbd "C-c +") #'evil-numbers/inc-at-pt)
-  (define-key evil-normal-state-map (kbd "C-c -") #'evil-numbers/dec-at-pt)
   (define-key evil-normal-state-map (kbd "C-c =") #'evil-numbers/inc-at-pt)
-  (define-key evil-normal-state-map (kbd "C-a")   #'evil-numbers/inc-at-pt)
-  (define-key evil-normal-state-map (kbd "g C-a") #'evil-numbers/inc-at-pt)
-  (define-key evil-normal-state-map (kbd "g C-x") #'evil-numbers/dec-at-pt)
+  (define-key evil-normal-state-map (kbd "C-c -") #'evil-numbers/dec-at-pt)
   (define-key evil-visual-state-map (kbd "C-c +") #'evil-numbers/inc-at-pt)
-  (define-key evil-visual-state-map (kbd "C-c -") #'evil-numbers/dec-at-pt)
   (define-key evil-visual-state-map (kbd "C-c =") #'evil-numbers/inc-at-pt)
-  (define-key evil-visual-state-map (kbd "C-a")   #'evil-numbers/inc-at-pt)
-  (define-key evil-visual-state-map (kbd "g C-a") #'evil-numbers/inc-at-pt)
-  (define-key evil-visual-state-map (kbd "g C-x") #'evil-numbers/dec-at-pt)
-  (define-key evil-visual-state-map (kbd "g g C-a") #'evil-numbers/inc-at-pt-incremental)
-  (define-key evil-visual-state-map (kbd "g g C-x") #'evil-numbers/dec-at-pt-incremental)
+  (define-key evil-visual-state-map (kbd "C-c -") #'evil-numbers/dec-at-pt)
 
   ;; Ctrl+Backspace to delete whole word backward
   (global-set-key (kbd "C-<backspace>") #'backward-kill-word)
@@ -79,12 +71,6 @@
 
   ;; Base Leader Bindings
   (my-leader-def
-    "u" '(vundo :which-key "Undo Tree")
-
-    ;; Multicursor Leader bindings
-    "m"  '(:ignore t :which-key "Multicursor")
-    "ma" '(evil-mc-make-all-cursors :which-key "Match All in Buffer")
-
     ;; Window splits
     "s" '(evil-window-vsplit :which-key "Split Vertical")
     "v" '(evil-window-split :which-key "Split Horizontal")
