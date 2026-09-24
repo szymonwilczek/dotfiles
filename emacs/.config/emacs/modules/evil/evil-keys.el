@@ -94,9 +94,12 @@
           (pt (point)))
       (call-interactively #'indent-for-tab-command)
       (when (and (= tick (buffer-chars-modified-tick)) (= pt (point)))
-        (if indent-tabs-mode
+        (if (and indent-tabs-mode
+                 (save-excursion (skip-chars-backward " \t") (bolp)))
             (insert "\t")
-          (let ((width (if (boundp 'evil-shift-width) evil-shift-width tab-width)))
+          (let ((width (if (or indent-tabs-mode (not (boundp 'evil-shift-width)))
+                           tab-width
+                         evil-shift-width)))
             (insert (make-string (- width (% (current-column) width)) ?\s))))))))
 
 (global-set-key [remap indent-for-tab-command] #'my/indent-or-insert-tab)
