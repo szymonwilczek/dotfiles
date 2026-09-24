@@ -85,4 +85,20 @@
     "er" '(eval-region :which-key "Eval Region")
     "ed" '(eval-defun :which-key "Eval Defun/Function")))
 
+(defun my/indent-or-insert-tab ()
+  "Indent the current line, or insert a tab when it is already indented."
+  (interactive)
+  (if (use-region-p)
+      (call-interactively #'indent-for-tab-command)
+    (let ((tick (buffer-chars-modified-tick))
+          (pt (point)))
+      (call-interactively #'indent-for-tab-command)
+      (when (and (= tick (buffer-chars-modified-tick)) (= pt (point)))
+        (if indent-tabs-mode
+            (insert "\t")
+          (let ((width (if (boundp 'evil-shift-width) evil-shift-width tab-width)))
+            (insert (make-string (- width (% (current-column) width)) ?\s))))))))
+
+(global-set-key [remap indent-for-tab-command] #'my/indent-or-insert-tab)
+
 (provide 'evil-keys)
