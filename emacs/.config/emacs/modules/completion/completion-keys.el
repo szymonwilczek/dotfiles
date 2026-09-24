@@ -16,7 +16,8 @@
   (define-key company-active-map (kbd "RET") #'company-complete-selection)
   (define-key company-active-map (kbd "<return>") #'company-complete-selection)
   (define-key company-active-map (kbd "<escape>") #'company-abort)
-  (define-key company-active-map (kbd "C-g") #'company-abort))
+  (define-key company-active-map (kbd "C-g") #'company-abort)
+  (define-key company-mode-map [remap indent-for-tab-command] #'my/indent-or-insert-tab))
 
 ;; Global manual completion trigger
 (global-set-key (kbd "C-SPC") #'company-complete)
