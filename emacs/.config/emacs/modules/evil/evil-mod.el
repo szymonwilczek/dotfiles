@@ -82,7 +82,7 @@
   :init
   (global-evil-mc-mode 1)
   :config
-  (add-hook 'evil-mc-after-cursors-deleted-hook #'evil-ex-nohighlight))
+  (add-hook 'evil-mc-after-cursors-deleted #'evil-ex-nohighlight))
 
 (require 'evil-keys)
 

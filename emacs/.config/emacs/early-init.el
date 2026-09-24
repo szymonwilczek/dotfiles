@@ -57,7 +57,6 @@
 ;; ----------------------------------------------------------------------------
 
 ;; I use standalone email
-(setq disabled-features/mail t)
 (put 'gnus 'disabled t)
 (put 'rmail 'disabled t)
 (put 'mh-e 'disabled t)

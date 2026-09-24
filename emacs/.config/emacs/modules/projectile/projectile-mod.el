@@ -5,8 +5,6 @@
   :custom
   (persp-mode-prefix-key (kbd "C-c M-p"))
   (persp-state-default-file nil)
-  (persp-auto-save-persps-to-file-p nil)
-  (persp-auto-resume-time -1)
   (persp-suppress-no-prefix-key-warning t)
   (persp-initial-frame-name "main")
   :init
@@ -52,7 +50,7 @@ If killed or missing, seamlessly fall back to an active perspective."
         (when (and last (persp-killed-p last))
           (set-frame-parameter frame 'persp--last nil))
         (when (and curr (persp-killed-p curr))
-          (let* ((names (persp-names frame))
+          (let* ((names (with-selected-frame frame (persp-names)))
                  (fallback (or (car names) "main")))
             (set-frame-parameter frame 'persp--curr (gethash fallback (perspectives-hash frame))))))))
 
@@ -68,7 +66,7 @@ If killed or missing, seamlessly fall back to an active perspective."
   (setq projectile-switch-project-action #'projectile-find-file
         projectile-indexing-method 'alien
         projectile-enable-caching t
-        projectile-auto-discover t)
+        projectile-auto-discover-projects t)
   (run-with-idle-timer 4.0 nil #'projectile-discover-projects-in-search-path))
 
 (use-package persp-projectile

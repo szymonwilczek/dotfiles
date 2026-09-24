@@ -51,11 +51,8 @@
                           (projectile-relevant-known-projects))))
          (file-name-as-directory (expand-file-name proj)))))
    ;; project.el
-   (when-let* ((project (and (fboundp 'project-current)
-                             (project-current nil))))
-     (if (fboundp 'project-root)
-         (project-root project)
-       (car (project-roots project))))
+   (when-let* ((project (project-current nil)))
+     (project-root project))
    ;; dominating .git folder
    (when-let* ((git-dir (locate-dominating-file default-directory ".git")))
      (file-name-as-directory (expand-file-name git-dir)))

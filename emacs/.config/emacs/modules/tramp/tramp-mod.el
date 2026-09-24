@@ -14,7 +14,6 @@
 
   ;; Caching and persistency
   (remote-file-name-inhibit-cache nil)
-  (tramp-completion-reread-directory-timeout 120)
   (password-cache t)
   (password-cache-expiry 3600)
   (tramp-persistency-file-name (expand-file-name "tramp-persistency.eld" user-emacs-directory))

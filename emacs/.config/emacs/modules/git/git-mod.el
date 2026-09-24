@@ -118,7 +118,6 @@
   (magit-save-repository-buffers 'dontask)
   :config
   (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-  (setq epa-file-default-user-key "B8E944071CB7EB8A")
 
   ;; Turn off line numbers
   ;; This caused flashbangs...
@@ -187,8 +186,7 @@
                         (get-fg 'magit-diff-added)))
             (mod-fg (or (get-fg 'warning)
                         (get-fg 'font-lock-warning-face)
-                        (get-fg 'diff-changed)
-                        (get-fg 'magit-diff-modified-highlight)))
+                        (get-fg 'diff-changed)))
             (del-fg (or (get-fg 'error)
                         (get-fg 'diff-removed)
                         (get-fg 'magit-diff-removed-highlight)

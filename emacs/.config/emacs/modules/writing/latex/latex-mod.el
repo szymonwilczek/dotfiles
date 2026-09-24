@@ -4,7 +4,6 @@
   :ensure nil
   :defer t
   :config
-  (setq doc-view-pdfengine 'mupdf)
   (setq doc-view-resolution 180)
   (setq doc-view-continuous t))
 

@@ -156,7 +156,7 @@
 
   ;; Performance & JSON-RPC optimization
   (fset #'jsonrpc--log-event #'ignore)
-  (setq eglot-events-buffer-size 0
+  (setq eglot-events-buffer-config '(:size 0 :format full)
         eglot-autoshutdown t
         eglot-sync-connect nil
         eglot-send-changes-idle-time 0.2)

@@ -32,14 +32,15 @@
     (if (not path)
         (user-error "Current buffer is not visiting a file or directory")
       (let ((sudo-path (if (file-remote-p path)
-                           (let ((vec (tramp-dissect-file-name path)))
+                           (let* ((tramp-show-ad-hoc-proxies t)
+                                  (vec (tramp-dissect-file-name path)))
                              (tramp-make-tramp-file-name
-                              "sudo"
-                              "root"
-                              nil
-                              (tramp-file-name-host vec)
-                              nil
-                              (tramp-file-name-localname vec)))
+                              (make-tramp-file-name
+                               :method "sudo"
+                               :user "root"
+                               :host (tramp-file-name-host vec)
+                               :localname (tramp-file-name-localname vec)
+                               :hop (tramp-make-tramp-hop-name vec))))
                          (concat "/sudo:root@localhost:" path))))
         (find-file sudo-path)))))
 

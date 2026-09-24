@@ -61,7 +61,6 @@ Working directory is automatically set to the project root of the current buffer
         (with-current-buffer buf
           (setq default-directory target-dir)
           (setq-local ghostel-buffer-name-function nil)
-          (setq-local ghostel-set-title-function nil)
           (setq-local my/agent-buffer-p t)
           (setq-local my/agent-type (downcase name))
           (setq-local display-line-numbers nil)
@@ -73,7 +72,6 @@ Working directory is automatically set to the project root of the current buffer
           (ghostel-exec buf cmd args))
         (with-current-buffer buf
           (setq-local ghostel-buffer-name-function nil)
-          (setq-local ghostel-set-title-function nil)
           (setq-local my/agent-buffer-p t)
           (setq-local my/agent-type (downcase name))
           (setq-local display-line-numbers nil)

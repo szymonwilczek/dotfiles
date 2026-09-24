@@ -81,7 +81,6 @@
         (setq ghostel-keymap-exceptions (append (list key) ghostel-keymap-exceptions)))))
   :config
   (setq ghostel-color-palette nil)
-  (setq ghostel-scrollback-size 10000)
 
   ;; Rebuild semi-char map with exceptions
   (ghostel--rebuild-semi-char-keymap)

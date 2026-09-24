@@ -179,9 +179,6 @@
       mouse-wheel-scroll-amount '(1 ((shift) . 1))
       mouse-wheel-progressive-speed t)
 
-;; Window layout tiling compatibility
-(setq transpose-dedicated-windows t)
-
 ;; Smarter paren pairing
 (setq show-paren-not-in-comments-or-strings t)
 
@@ -208,14 +205,13 @@
       which-key-add-column-padding 1)
 
 ;; PDF viewer settings
-(setq doc-view-pdfengine 'mupdf
-      doc-view-resolution 180
+(setq doc-view-resolution 180
       doc-view-continuous t)
 
 ;; Universal Project Root detection
 (defun my/project-root-dwim (&optional dir)
   "Find the project root for DIR or current buffer.
-Checks Projectile, project.el, Treemacs workspace, VC root, and fallbacks."
+Checks Projectile, project.el, VC root, and fallbacks."
   (let ((dir (or dir default-directory)))
     (file-name-as-directory
      (expand-file-name
@@ -225,10 +221,6 @@ Checks Projectile, project.el, Treemacs workspace, VC root, and fallbacks."
           (when (fboundp 'project-current)
             (when-let* ((pr (project-current nil dir)))
               (project-root pr)))
-          (when (and (fboundp 'treemacs-project-of-path)
-                     (fboundp 'treemacs-project->path))
-            (when-let* ((p (treemacs-project-of-path dir)))
-              (treemacs-project->path p)))
           (when (fboundp 'vc-root-dir)
             (let ((default-directory dir))
               (vc-root-dir)))
@@ -238,8 +230,7 @@ Checks Projectile, project.el, Treemacs workspace, VC root, and fallbacks."
 (when (featurep 'pgtk)
   (setq select-enable-primary nil
         select-enable-clipboard t
-        mouse-drag-copy-region nil
-        pgtk-use-im-context nil)
+        mouse-drag-copy-region nil)
 
   (defun my/pgtk-normalize-display (orig-fn display &rest args)
     "Ensure PGTK frames never attempt to open an X11 display like :0."

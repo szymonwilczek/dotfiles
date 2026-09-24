@@ -15,7 +15,7 @@
         org-fontify-quote-and-verse-blocks t
         org-fontify-done-headline t
         org-src-tab-acts-natively t
-        org-edit-src-content-indentation 2
+        org-src-content-indentation 2
         org-return-follows-link t
         org-startup-folded 'overview
         org-log-done 'time)
