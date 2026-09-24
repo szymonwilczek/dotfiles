@@ -22,23 +22,6 @@
         (user-error "Cannot rebase without an active branch")))
     (magit-refresh)))
 
-(defun my/magit-extract-commit-files ()
-  "Extract files from commit (Mixed reset + Empty commit with message).
-Allowed during an active rebase at the current HEAD commit."
-  (interactive)
-  (unless (magit-rebase-in-progress-p)
-    (user-error "Error: Rebase is not in progress"))
-  (let* ((head (magit-rev-parse "HEAD"))
-         (commit-at-point (magit-commit-at-point)))
-    (when (and commit-at-point
-               (not (magit-rev-equal commit-at-point head)))
-      (user-error "Error: Cursor must be on the HEAD commit (%s)" (magit-rev-format "%h" head)))
-    (magit-call-git "reset" "--mixed" "HEAD~1")
-    (magit-call-git "commit" "--allow-empty" "-C" head)
-    (ignore-errors (magit-call-git "add" "-N" "."))
-    (magit-refresh)
-    (message "Files extracted from commit %s (ready in Unstaged changes)." (magit-rev-format "%h" head))))
-
 (defun my/magit-stage-intent ()
   "Track untracked file or all files with intent-to-add so they appear in Unstaged changes."
   (interactive)
@@ -165,12 +148,8 @@ Allowed during an active rebase at the current HEAD commit."
 
   ;; My Lazygit keys in Magit log & status
   (define-key magit-status-mode-map (kbd "W") #'my/magit-add-co-author)
-  (define-key magit-status-mode-map (kbd "F") #'my/magit-signoff-commit)
-  (define-key magit-status-mode-map (kbd "E") #'my/magit-extract-commit-files)
   (define-key magit-status-mode-map (kbd "I") #'my/magit-stage-intent)
   (define-key magit-log-mode-map (kbd "W") #'my/magit-add-co-author)
-  (define-key magit-log-mode-map (kbd "F") #'my/magit-signoff-commit)
-  (define-key magit-log-mode-map (kbd "E") #'my/magit-extract-commit-files)
   (define-key magit-log-mode-map (kbd "I") #'my/magit-stage-intent))
 
 (with-eval-after-load 'evil-collection-magit
