@@ -107,7 +107,7 @@
 
 ;; Indentation
 (setq-default indent-tabs-mode nil
-              tab-width 4)
+              tab-width 8)
 (setq sentence-end-double-space nil)
 
 ;; Auto pair parentheses, brackets and quotes

@@ -54,6 +54,44 @@
                       (setq-local comment-start ";")
                       (setq-local comment-end ""))))
 
+;; Go indents with tabs
+(add-hook 'go-ts-mode-hook (lambda () (setq-local tab-width 4)))
+(add-hook 'go-mode-hook (lambda () (setq-local tab-width 4)))
+
+(defun my/c-comment-break-line ()
+  "Break the line; inside a comment, continue it with its prefix.
+The leading whitespace is copied as is, so tab-indented comments stay
+tab-indented (c-ts-common's own version only matches spaces)."
+  (interactive)
+  (if (not (nth 4 (syntax-ppss)))
+      (call-interactively #'newline)
+    (let ((prefix
+           (save-excursion
+             (beginning-of-line)
+             (cond
+              ((looking-at "[ \t]*//+ ?") (match-string 0))
+              ((looking-at "\\([ \t]*\\)/\\*") (concat (match-string 1) " * "))
+              ((looking-at "[ \t]*\\* ?") (match-string 0))
+              ((looking-at "[ \t]*") (match-string 0))))))
+      (delete-horizontal-space)
+      (insert "\n" prefix))))
+
+;; Kernel style: tab indentation 8 wide, comments continue on RET and M-j.
+;; Project's .editorconfig still overrides the tab settings.
+(use-package c-ts-mode
+  :ensure nil
+  :custom
+  (c-ts-mode-indent-style 'linux)
+  (c-ts-mode-indent-offset 8)
+  :bind (:map c-ts-base-mode-map
+              ("RET" . my/c-comment-break-line))
+  :hook (c-ts-base-mode . (lambda ()
+                            (setq-local indent-tabs-mode t)
+                            (setq-local tab-width 8)
+                            (setq-local comment-line-break-function
+                                        (lambda (&optional _soft)
+                                          (my/c-comment-break-line))))))
+
 (use-package astro-ts-mode
   :ensure nil
   :mode "\\.astro\\'"
