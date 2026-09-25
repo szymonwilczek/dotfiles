@@ -1,0 +1,5 @@
+# Global Git settings shared across my machines.
+# Git reads this file together with ~/.gitconfig.
+
+[alias]
+	keepdate = !GIT_COMMITTER_DATE=\"$(git log -1 --format=%aI)\" git commit --amend --no-edit
