@@ -58,39 +58,60 @@
 (add-hook 'go-ts-mode-hook (lambda () (setq-local tab-width 4)))
 (add-hook 'go-mode-hook (lambda () (setq-local tab-width 4)))
 
-(defun my/c-comment-break-line ()
+(defun my/comment-break-line ()
   "Break the line; inside a comment, continue it with its prefix.
-The leading whitespace is copied as is, so tab-indented comments stay
-tab-indented (c-ts-common's own version only matches spaces)."
+Works in any mode that sets `comment-start-skip': line comments repeat
+their leader (`//', `#', `;;', `--'...), C-style block comments get
+\" * \".  Leading whitespace is copied as is, so tab-indented comments
+stay tab-indented."
   (interactive)
-  (if (not (nth 4 (syntax-ppss)))
-      (call-interactively #'newline)
-    (let ((prefix
-           (save-excursion
-             (beginning-of-line)
-             (cond
-              ((looking-at "[ \t]*//+ ?") (match-string 0))
-              ((looking-at "\\([ \t]*\\)/\\*") (concat (match-string 1) " * "))
-              ((looking-at "[ \t]*\\* ?") (match-string 0))
-              ((looking-at "[ \t]*") (match-string 0))))))
-      (delete-horizontal-space)
-      (insert "\n" prefix))))
+  (comment-normalize-vars t)
+  (let* ((ppss (syntax-ppss))
+         (start (nth 8 ppss)))
+    (if (not (and (nth 4 ppss) comment-start-skip))
+        (call-interactively #'newline)
+      (let* ((indent (buffer-substring (line-beginning-position)
+                                       (save-excursion (back-to-indentation) (point))))
+             ;; line comments end at a newline (or run to EOB unclosed)
+             (line-comment
+              (save-excursion
+                (goto-char start)
+                (forward-comment 1)
+                (if (eobp)
+                    (nth 4 (syntax-ppss))
+                  (eq (char-before) ?\n))))
+             (leader
+              (save-excursion
+                (if (>= start (line-beginning-position))
+                    (goto-char start)
+                  (back-to-indentation))
+                (cond
+                 ((looking-at "/\\*") " * ")
+                 ((looking-at "\\*+ ?") (match-string 0))
+                 ((and line-comment
+                       (progn (goto-char (max (line-beginning-position) (1- start)))
+                              (re-search-forward comment-start-skip
+                                                 (line-end-position) t)))
+                  (buffer-substring start (point)))
+                 (t "")))))
+        (delete-horizontal-space)
+        (insert "\n" indent leader)))))
 
-;; Kernel style: tab indentation 8 wide, comments continue on RET and M-j.
+;; RET and M-j continue comments in every mode;
+;; outside comments RET is plain `newline'.
+(global-set-key [remap newline] #'my/comment-break-line)
+(setq-default comment-line-break-function
+              (lambda (&optional _soft) (my/comment-break-line)))
+
 ;; Project's .editorconfig still overrides the tab settings.
 (use-package c-ts-mode
   :ensure nil
   :custom
   (c-ts-mode-indent-style 'linux)
   (c-ts-mode-indent-offset 8)
-  :bind (:map c-ts-base-mode-map
-              ("RET" . my/c-comment-break-line))
   :hook (c-ts-base-mode . (lambda ()
                             (setq-local indent-tabs-mode t)
-                            (setq-local tab-width 8)
-                            (setq-local comment-line-break-function
-                                        (lambda (&optional _soft)
-                                          (my/c-comment-break-line))))))
+                            (setq-local tab-width 8))))
 
 (use-package astro-ts-mode
   :ensure nil
