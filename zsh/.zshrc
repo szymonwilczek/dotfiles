@@ -5,14 +5,14 @@ export ZSH="$HOME/.oh-my-zsh"
 ###########
 ZSH_THEME="minimal"
 plugins=(
-  git
-  zsh-autosuggestions
-  zsh-syntax-highlighting
-  dirhistory
-  z
-  sudo
-  extract
-  ssh-agent
+    git
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    dirhistory
+    z
+    sudo
+    extract
+    ssh-agent
 )
 
 zstyle :omz:plugins:ssh-agent lifetime 4h
@@ -49,13 +49,25 @@ convert-video() {
     ffmpeg -i "$1" -vf "scale=2560:1440:flags=lanczos" -c:v libx264 -crf 18 -preset slow -c:a copy "$output"
 }
 
+# restart the Emacs daemon;
+# waits for the old one to exit so the new one can take over its socket
+ereload() {
+    local pid
+    pid=$(emacsclient -e '(emacs-pid)' 2>/dev/null)
+    if [[ -n "$pid" ]]; then
+        emacsclient -e '(kill-emacs)' >/dev/null 2>&1
+        while kill -0 "$pid" 2>/dev/null; do sleep 0.1; done
+    fi
+    command emacs --daemon
+}
+
 # hide tmux-jot internal sessions from tmux ls
 tmux() {
-  if [[ "$1" == "ls" || "$1" == "list-sessions" ]]; then
-    command tmux "$@" 2>/dev/null | grep -v '^__tmux__jot_'
-  else
-    command tmux "$@"
-  fi
+    if [[ "$1" == "ls" || "$1" == "list-sessions" ]]; then
+        command tmux "$@" 2>/dev/null | grep -v '^__tmux__jot_'
+    else
+        command tmux "$@"
+    fi
 }
 
 ################
