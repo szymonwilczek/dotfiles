@@ -15,17 +15,6 @@
 (setq use-package-always-ensure t
       use-package-compute-statistics t)
 
-;; Disable line numbers for large files
-(defun my/disable-line-numbers-if-large-file ()
-  "Disable line numbers if the buffer has more than 3000 lines."
-  (when (save-excursion
-          (goto-char (point-min))
-          (= (forward-line 3000) 0))
-    (setq-local display-line-numbers nil)
-    (display-line-numbers-mode -1)))
-
-(add-hook 'find-file-hook #'my/disable-line-numbers-if-large-file)
-
 ;; Encoding
 (set-charset-priority 'unicode)
 (setq locale-coding-system 'utf-8)
