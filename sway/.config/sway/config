@@ -90,7 +90,7 @@ bindsym Ctrl+Shift+Escape exec $taskmanager
 
 floating_modifier $mod normal
 
-bindsym $mod+Shift+c exec ~/.config/sway/scripts/generate-tiled-rules.sh; pkill -9 -f emacs 2>/dev/null; reload
+bindsym $mod+Shift+c exec sh -c '~/.config/sway/scripts/generate-tiled-rules.sh; pkill -9 -x emacs; swaymsg reload'
 
 bindsym $mod+$left focus left
 bindsym $mod+$down focus down
@@ -231,7 +231,6 @@ bindsym XF86AudioRaiseVolume exec swayosd-client --output-volume raise
 bindsym XF86AudioLowerVolume exec swayosd-client --output-volume lower
 bindsym XF86AudioMute exec swayosd-client --output-volume mute-toggle
 bindsym XF86AudioMicMute exec swayosd-client --input-volume mute-toggle
-bindsym --release Caps_Lock exec swayosd-client --caps-lock
 
 # Idle management
 exec swayidle -w timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"'
