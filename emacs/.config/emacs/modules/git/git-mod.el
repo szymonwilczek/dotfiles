@@ -210,22 +210,22 @@
 ;; via font-lock so they follow edits and theme switches on their own.
 
 (defface my/git-conflict-ours
-  '((t :inherit (font-lock-function-name-face header-line) :weight bold :extend t))
+  '((t :inherit (font-lock-function-name-face pulse-highlight-start-face) :weight bold :extend t))
   "Face for the <<<<<<< (ours, HEAD) conflict marker."
   :group 'vc)
 
 (defface my/git-conflict-base
-  '((t :inherit (font-lock-constant-face header-line) :weight bold :extend t))
+  '((t :inherit (font-lock-constant-face show-paren-match) :weight bold :extend t))
   "Face for the ||||||| (base, diff3 style) conflict marker."
   :group 'vc)
 
 (defface my/git-conflict-separator
-  '((t :inherit (shadow header-line) :weight bold :extend t))
+  '((t :inherit diff-refine-changed :weight bold :extend t))
   "Face for the ======= conflict marker."
   :group 'vc)
 
 (defface my/git-conflict-theirs
-  '((t :inherit (font-lock-type-face header-line) :weight bold :extend t))
+  '((t :inherit (font-lock-type-face diff-added) :weight bold :extend t))
   "Face for the >>>>>>> (theirs) conflict marker."
   :group 'vc)
 
@@ -298,6 +298,9 @@ content and there is no telling which is Git's separator."
 
 (defun my/git-conflict--face ()
   "Face for the conflict marker matched last."
+  ;; the marker faces inherit their backgrounds from these
+  (require 'diff-mode)
+  (require 'pulse)
   (pcase (char-after (match-beginning 0))
     (?< 'my/git-conflict-ours)
     (?| 'my/git-conflict-base)
@@ -338,7 +341,35 @@ outside the changed text."
 
 (with-eval-after-load 'smerge-mode
   (setq smerge-font-lock-keywords nil))
-(add-hook 'smerge-mode-hook (lambda () (setq-local diff-refine nil)))
+
+(defvar smerge-mode)
+(defvar treesit-font-lock-feature-list)
+(defvar treesit-font-lock-level)
+
+(defvar-local my/git-conflict--hid-treesit-errors nil
+  "Non-nil while the tree-sitter `error' font-lock feature is off here.")
+
+(defun my/git-conflict--smerge-setup ()
+  "Keep conflict contents in their normal colors while `smerge-mode' is on.
+The markers are syntax errors to tree-sitter, which paints everything
+after \"=======\" with its `error' feature; turn that off until the last
+conflict is resolved and smerge-mode leaves."
+  (setq-local diff-refine nil)
+  (when (and (fboundp 'treesit-parser-list) (treesit-parser-list))
+    (cond
+     ((and smerge-mode (not my/git-conflict--hid-treesit-errors)
+           (seq-some (lambda (features) (memq 'error features))
+                     (seq-take treesit-font-lock-feature-list
+                               treesit-font-lock-level)))
+      (treesit-font-lock-recompute-features nil '(error))
+      (setq my/git-conflict--hid-treesit-errors t)
+      (font-lock-flush))
+     ((and (not smerge-mode) my/git-conflict--hid-treesit-errors)
+      (treesit-font-lock-recompute-features '(error))
+      (setq my/git-conflict--hid-treesit-errors nil)
+      (font-lock-flush)))))
+
+(add-hook 'smerge-mode-hook #'my/git-conflict--smerge-setup)
 
 (use-package octo
   :load-path "~/Dokumenty/GitHub/octo.el"
