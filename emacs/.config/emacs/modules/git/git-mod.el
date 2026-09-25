@@ -205,145 +205,140 @@
   (my/git-gutter-sync-theme-faces)
   (advice-add 'load-theme :after #'my/git-gutter-sync-theme-faces))
 
-;;;; Merge conflict resolution
-(defvar my/git-conflict-highlight-enabled t
-  "When non-nil, Git merge conflict blocks are automatically highlighted with overlays.")
+;;;; Merge conflict markers
+;; Color only the marker lines, with faces inherited from the theme,
+;; via font-lock so they follow edits and theme switches on their own.
 
-(defvar-local my/git-conflict-overlays nil
-  "List of active conflict marker overlays in current buffer.")
+(defface my/git-conflict-ours
+  '((t :inherit (font-lock-function-name-face header-line) :weight bold :extend t))
+  "Face for the <<<<<<< (ours, HEAD) conflict marker."
+  :group 'vc)
 
-(defun my/git-conflict-clear-overlays ()
-  "Remove all conflict marker overlays and restore clean buffer state."
-  (interactive)
-  (when (bound-and-true-p smerge-mode)
-    (smerge-mode -1))
-  (when my/git-conflict-overlays
-    (mapc #'delete-overlay my/git-conflict-overlays)
-    (setq my/git-conflict-overlays nil))
-  (when (fboundp 'font-lock-flush)
-    (font-lock-flush)))
+(defface my/git-conflict-base
+  '((t :inherit (font-lock-constant-face header-line) :weight bold :extend t))
+  "Face for the ||||||| (base, diff3 style) conflict marker."
+  :group 'vc)
 
-(defun my/git-conflict-toggle ()
-  "Toggle automatic Git merge conflict highlighting on or off across all buffers."
-  (interactive)
-  (setq my/git-conflict-highlight-enabled (not my/git-conflict-highlight-enabled))
-  (if my/git-conflict-highlight-enabled
-      (progn
-        (dolist (buf (buffer-list))
-          (with-current-buffer buf
-            (my/git-conflict--setup-buffer)))
-        (message "Git conflict highlighting: ENABLED"))
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf
-        (remove-hook 'after-change-functions #'my/git-conflict--on-change t)
-        (my/git-conflict-clear-overlays)))
-    (message "Git conflict highlighting: DISABLED")))
+(defface my/git-conflict-separator
+  '((t :inherit (shadow header-line) :weight bold :extend t))
+  "Face for the ======= conflict marker."
+  :group 'vc)
 
-(defun my/git-conflict-highlight-buffer (&rest _)
-  "Scan buffer for valid Git merge conflict blocks and apply full-line overlays."
-  (interactive)
-  (when (and my/git-conflict-highlight-enabled
-             (not (minibufferp))
-             (not (derived-mode-p 'dired-mode 'magit-mode 'ghostel-mode))
-             (not (string-match-p "\\*agent-" (buffer-name)))
-             (not (string-match-p "\\*ghostel" (buffer-name))))
-    (my/git-conflict-clear-overlays)
-    (save-excursion
-      (save-match-data
-        (goto-char (point-min))
-        (while (re-search-forward "^<<<<<<<[ \t\n]" nil t)
-          (let* ((ours-match (match-beginning 0))
-                 (ours-beg (save-excursion (goto-char ours-match) (line-beginning-position)))
-                 (ours-end (save-excursion (goto-char ours-match) (min (point-max) (1+ (line-end-position)))))
-                 (end-match (save-excursion
-                              (goto-char ours-end)
-                              (re-search-forward "^>>>>>>>[ \t\n]" nil t))))
-            (when end-match
-              (let* ((theirs-match (match-beginning 0))
-                     (theirs-beg (save-excursion (goto-char theirs-match) (line-beginning-position)))
-                     (theirs-end (save-excursion (goto-char theirs-match) (min (point-max) (1+ (line-end-position)))))
-                     (sep-match (save-excursion
-                                  (goto-char ours-end)
-                                  (re-search-forward "^=======[ \t]*$" theirs-beg t))))
-                (when sep-match
-                  (let* ((sep-match-pos (match-beginning 0))
-                         (sep-beg (save-excursion (goto-char sep-match-pos) (line-beginning-position)))
-                         (sep-end (save-excursion (goto-char sep-match-pos) (min (point-max) (1+ (line-end-position)))))
-                         (bg-ours   (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-err))
-                                        "#4a151b"))
-                         (fg-ours   (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'err))
-                                        "#ff7b72"))
-                         (bg-sep    (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-warning))
-                                        "#3e2e04"))
-                         (fg-sep    (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'warning))
-                                        "#f2cc60"))
-                         (bg-theirs (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'bg-info))
-                                        "#0c2d6b"))
-                         (fg-theirs (or (and (fboundp 'ef-themes-get-color-value) (ef-themes-get-color-value 'info))
-                                        "#58a6ff"))
-                         (ov-ours (make-overlay ours-beg ours-end))
-                         (ov-sep (make-overlay sep-beg sep-end))
-                         (ov-theirs (make-overlay theirs-beg theirs-end)))
-                    (overlay-put ov-ours 'face `(:background ,bg-ours :foreground ,fg-ours :weight bold :extend t))
-                    (overlay-put ov-ours 'priority 200)
-                    (overlay-put ov-sep 'face `(:background ,bg-sep :foreground ,fg-sep :weight bold :extend t))
-                    (overlay-put ov-sep 'priority 200)
-                    (overlay-put ov-theirs 'face `(:background ,bg-theirs :foreground ,fg-theirs :weight bold :extend t))
-                    (push ov-ours my/git-conflict-overlays)
-                    (push ov-sep my/git-conflict-overlays)
-                    (push ov-theirs my/git-conflict-overlays)))))))))))
+(defface my/git-conflict-theirs
+  '((t :inherit (font-lock-type-face header-line) :weight bold :extend t))
+  "Face for the >>>>>>> (theirs) conflict marker."
+  :group 'vc)
+
+(defconst my/git-conflict--begin-re "^<<<<<<< .+$")
+(defconst my/git-conflict--base-re "^||||||| .+$")
+(defconst my/git-conflict--sep-re "^=======$")
+(defconst my/git-conflict--end-re "^>>>>>>> .+$")
+(defconst my/git-conflict--marker-re
+  (mapconcat (lambda (re) (concat "\\(?:" re "\\)"))
+             (list my/git-conflict--begin-re my/git-conflict--base-re
+                   my/git-conflict--sep-re my/git-conflict--end-re)
+             "\\|"))
+
+(defun my/git-conflict--block ()
+  "Return (BEG END SEP-OK) for the conflict block around the marker at point.
+The block runs from <<<<<<< to the next >>>>>>> with nothing nested and
+at most one ||||||| in between; otherwise, as for a lone RST or Markdown
+\"=======\", the result is nil.  SEP-OK is non-nil when the block holds
+exactly one \"=======\" after any |||||||; with more, one of them is
+content and there is no telling which is Git's separator."
+  (save-excursion
+    (save-match-data
+      (let* ((here (line-beginning-position))
+             (beg (if (looking-at my/git-conflict--begin-re)
+                      here
+                    (re-search-backward my/git-conflict--begin-re nil t))))
+        (when beg
+          (goto-char beg)
+          (forward-line 1)
+          (when (re-search-forward my/git-conflict--end-re nil t)
+            (let ((end (line-end-position))
+                  (inner (my/git-conflict--inner-markers beg)))
+              (when (and (>= end here)
+                         (not (memq ?< inner))
+                         (<= (seq-count (lambda (c) (eq c ?|)) inner) 1))
+                (list beg end
+                      (and (= (seq-count (lambda (c) (eq c ?=)) inner) 1)
+                           (not (memq ?| (memq ?= inner)))))))))))))
+
+(defun my/git-conflict--inner-markers (beg)
+  "Marker chars of the lines after BEG up to the end marker at point."
+  (let ((bound (line-beginning-position))
+        (markers nil))
+    (goto-char beg)
+    (forward-line 1)
+    (while (re-search-forward my/git-conflict--marker-re bound t)
+      (push (char-after (line-beginning-position)) markers))
+    (nreverse markers)))
+
+(defun my/git-conflict--match (limit)
+  "Font-lock matcher for conflict marker lines up to LIMIT."
+  (let (found)
+    (while (and (not found)
+                (re-search-forward my/git-conflict--marker-re limit t))
+      (let* ((mbeg (match-beginning 0))
+             (mend (match-end 0))
+             (block (save-excursion
+                      (goto-char mbeg)
+                      (my/git-conflict--block))))
+        (when block
+          ;; refontify the whole block when any part of it changes,
+          ;; so deleting one marker updates the others
+          (put-text-property (nth 0 block) (nth 1 block) 'font-lock-multiline t)
+          (when (or (/= (char-after mbeg) ?=) (nth 2 block))
+            ;; include the newline so :extend paints the whole line
+            (set-match-data (list mbeg (min (1+ mend) (point-max))))
+            (goto-char (min (1+ mend) (point-max)))
+            (setq found t)))))
+    found))
+
+(defun my/git-conflict--face ()
+  "Face for the conflict marker matched last."
+  (pcase (char-after (match-beginning 0))
+    (?< 'my/git-conflict-ours)
+    (?| 'my/git-conflict-base)
+    (?= 'my/git-conflict-separator)
+    (?> 'my/git-conflict-theirs)))
+
+(defvar font-lock-beg)
+(defvar font-lock-end)
+
+(defun my/git-conflict--extend-region ()
+  "Extend the font-lock region over the conflict around a marker in it.
+A typed or restored marker completes a block that starts or ends
+outside the changed text."
+  (save-excursion
+    (goto-char font-lock-beg)
+    (when (re-search-forward my/git-conflict--marker-re font-lock-end t)
+      (let ((beg (progn (goto-char font-lock-beg)
+                        (re-search-backward my/git-conflict--begin-re nil t)))
+            (end (progn (goto-char font-lock-end)
+                        (and (re-search-forward my/git-conflict--end-re nil t)
+                             (min (1+ (point)) (point-max))))))
+        (when (or (and beg (< beg font-lock-beg))
+                  (and end (> end font-lock-end)))
+          (setq font-lock-beg (min font-lock-beg (or beg font-lock-beg))
+                font-lock-end (max font-lock-end (or end font-lock-end)))
+          t)))))
+
+(defun my/git-conflict-markers-setup ()
+  "Highlight Git conflict markers in the current buffer."
+  (font-lock-add-keywords
+   nil '((my/git-conflict--match (0 (my/git-conflict--face) t)))
+   'append)
+  (add-hook 'font-lock-extend-region-functions
+            #'my/git-conflict--extend-region 'append t))
+
+(dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
+  (add-hook hook #'my/git-conflict-markers-setup))
 
 (with-eval-after-load 'smerge-mode
-  (setq smerge-font-lock-keywords nil)
-  (dolist (face '(smerge-markers smerge-upper smerge-lower smerge-base
-                                 smerge-refined-added smerge-refined-removed))
-    (when (facep face)
-      (set-face-attribute face nil :background 'unspecified :foreground 'unspecified :weight 'unspecified))))
-
-(defvar-local my/git-conflict--idle-timer nil
-  "Buffer-local debounce timer for Git merge conflict re-scanning.")
-
-(defun my/git-conflict--on-change (beg end _len)
-  "Debounced live update when buffer content changes (pasted conflict, edited text)."
-  (when (and (bound-and-true-p my/git-conflict-highlight-enabled)
-             (not (minibufferp))
-             (not (derived-mode-p 'dired-mode 'magit-mode 'ghostel-mode))
-             (not (string-match-p "\\*agent-" (buffer-name)))
-             (not (string-match-p "\\*ghostel" (buffer-name))))
-
-    ;; only trigger scan if buffer already has conflicts or changed region has conflict marker chars
-    (when (or my/git-conflict-overlays
-              (save-excursion
-                (save-match-data
-                  (goto-char (max (point-min) (- beg 2)))
-                  (re-search-forward "^\\(<<<<<<<\\|=======\\|>>>>>>>\\)"
-                                     (min (point-max) (+ end 8)) t))))
-      (when (timerp my/git-conflict--idle-timer)
-        (cancel-timer my/git-conflict--idle-timer))
-      (setq my/git-conflict--idle-timer
-            (run-with-idle-timer 0.4 nil
-                                 (lambda (buf)
-                                   (when (buffer-live-p buf)
-                                     (with-current-buffer buf
-                                       (my/git-conflict-highlight-buffer))))
-                                 (current-buffer))))))
-
-(defun my/git-conflict--setup-buffer ()
-  "Enable conflict detection and highlight conflicts for current editing buffer."
-  (when (and (not (minibufferp))
-             (not (derived-mode-p 'dired-mode 'magit-mode 'ghostel-mode))
-             (not (string-match-p "\\*agent-" (buffer-name)))
-             (not (string-match-p "\\*ghostel" (buffer-name))))
-    (add-hook 'after-change-functions #'my/git-conflict--on-change nil t)
-    (my/git-conflict-highlight-buffer)))
-
-(add-hook 'find-file-hook #'my/git-conflict--setup-buffer)
-(add-hook 'prog-mode-hook #'my/git-conflict--setup-buffer)
-(add-hook 'text-mode-hook #'my/git-conflict--setup-buffer)
-(add-hook 'after-change-major-mode-hook #'my/git-conflict--setup-buffer)
-(add-hook 'after-save-hook #'my/git-conflict-highlight-buffer)
-(add-hook 'after-revert-hook #'my/git-conflict-highlight-buffer)
-(advice-add 'load-theme :after #'my/git-conflict-highlight-buffer)
+  (setq smerge-font-lock-keywords nil))
+(add-hook 'smerge-mode-hook (lambda () (setq-local diff-refine nil)))
 
 (use-package octo
   :load-path "~/Dokumenty/GitHub/octo.el"

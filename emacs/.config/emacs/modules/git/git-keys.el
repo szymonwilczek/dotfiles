@@ -28,28 +28,22 @@
       (message "No previous conflict marker"))))
 
 (defun my/git-conflict-keep-upper ()
-  "Keep our / upper version and refresh overlays."
+  "Keep our / upper version."
   (interactive)
   (require 'smerge-mode)
-  (smerge-keep-upper)
-  (when (fboundp 'my/git-conflict-highlight-buffer)
-    (my/git-conflict-highlight-buffer)))
+  (smerge-keep-upper))
 
 (defun my/git-conflict-keep-lower ()
-  "Keep their / lower version and refresh overlays."
+  "Keep their / lower version."
   (interactive)
   (require 'smerge-mode)
-  (smerge-keep-lower)
-  (when (fboundp 'my/git-conflict-highlight-buffer)
-    (my/git-conflict-highlight-buffer)))
+  (smerge-keep-lower))
 
 (defun my/git-conflict-keep-all ()
-  "Keep both versions and refresh overlays."
+  "Keep both versions."
   (interactive)
   (require 'smerge-mode)
-  (smerge-keep-all)
-  (when (fboundp 'my/git-conflict-highlight-buffer)
-    (my/git-conflict-highlight-buffer)))
+  (smerge-keep-all))
 
 ;; Smerge conflict navigation jumps
 (with-eval-after-load 'evil
