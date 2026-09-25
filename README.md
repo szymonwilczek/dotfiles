@@ -20,7 +20,7 @@ Sick tool, I recommend using it very much.
 To install or refresh the symbolic links in your home directory, run the following command from the root of the repository:
 
 ```bash
-stow -v -R -t ~ nvim emacs ghostty zathura tmux
+stow -v -R -t ~ nvim emacs ghostty zathura tmux zsh
 ```
 
 ### Removing Configurations
@@ -28,7 +28,7 @@ stow -v -R -t ~ nvim emacs ghostty zathura tmux
 To safely remove the symbolic links, run:
 
 ```bash
-stow -v -D -t ~ nvim emacs ghostty zathura tmux
+stow -v -D -t ~ nvim emacs ghostty zathura tmux zsh
 ```
 
 ## Declarative System Provisioning (Ansible)
