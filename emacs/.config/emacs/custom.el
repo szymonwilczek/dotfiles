@@ -8,17 +8,15 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(global-wakatime-mode t)
- '(helm-minibuffer-history-key "M-p")
  '(package-selected-packages
    '(citar citar-org colorful-mode company consult ef-themes evil
            evil-collection evil-commentary evil-matchit evil-numbers
            evil-surround general ghostel git-gutter git-gutter-fringe
-           helm magit marginalia nerd-icons
-           nerd-icons-completion nerd-icons-dired olivetti orderless
-           persp-projectile perspective plan-polsl projectile
-           rainbow-mode treemacs treemacs-evil treemacs-nerd-icons
-           treemacs-perspective treemacs-projectile vertico
-           wakatime-mode))
+           magit marginalia nerd-icons nerd-icons-completion
+           nerd-icons-dired olivetti orderless persp-projectile
+           perspective plan-polsl projectile rainbow-mode treemacs
+           treemacs-evil treemacs-nerd-icons treemacs-perspective
+           treemacs-projectile vertico wakatime-mode))
  '(package-vc-selected-packages
    '((plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"
                  :branch "main")
