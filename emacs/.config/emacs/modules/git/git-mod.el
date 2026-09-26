@@ -143,18 +143,23 @@
 
   (with-eval-after-load 'evil
     (dolist (map (list magit-mode-map magit-status-mode-map magit-log-mode-map magit-revision-mode-map))
-      (evil-define-key* '(normal visual motion emacs) map "o" #'my/magit-browse-at-point)))
+      (evil-define-key* '(normal visual motion emacs) map
+        "o" #'my/magit-browse-at-point
+        "R" #'rere)))
 
   ;; My Lazygit keys in Magit log & status
   (define-key magit-status-mode-map (kbd "W") #'my/magit-add-co-author)
   (define-key magit-status-mode-map (kbd "I") #'my/magit-stage-intent)
   (define-key magit-log-mode-map (kbd "W") #'my/magit-add-co-author)
-  (define-key magit-log-mode-map (kbd "I") #'my/magit-stage-intent))
+  (define-key magit-log-mode-map (kbd "I") #'my/magit-stage-intent)
+  (define-key magit-mode-map (kbd "R") #'rere))
 
 (with-eval-after-load 'evil-collection-magit
   (with-eval-after-load 'magit
     (dolist (map (list magit-mode-map magit-status-mode-map magit-log-mode-map magit-revision-mode-map))
-      (evil-define-key* '(normal visual motion emacs) map "o" #'my/magit-browse-at-point))))
+      (evil-define-key* '(normal visual motion emacs) map
+        "o" #'my/magit-browse-at-point
+        "R" #'rere))))
 
 ;; Git gutter indicators
 (use-package git-gutter
