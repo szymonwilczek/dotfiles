@@ -165,6 +165,9 @@ bindsym Alt+F9 exec gromit-mpx --quit
 for_window [app_id="Gromit-mpx"] floating enable, border none, sticky enable
 for_window [class="Gromit-mpx"] floating enable, border none, sticky enable
 
+# Window marks
+include marks.conf
+
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
 
