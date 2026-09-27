@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# git merge-pr [-n] <number>
+# Created for managing my LOTA project
+#
+#   Merge branch '<head>' into <base> (#<number>)
+#
+#   <first paragraph of the Solution section>
+#
+#   * branch '<head>':
+#     <commit titles, oldest first>
+#
+#   Signed-off-by: <user.name> <user.email>
+#
+# The message opens in the Git editor first; an empty message or
+# a cancelled edit aborts.
+# The merge itself goes through GitHub, so rulesets and required checks
+# apply as for the merge button.
+# It is refused if the pull request head moved after the message was built.
+#
+# A pull request opened by someone else is attributed;
+#
+#   Pull <area> updates from <author>:
+#    "<first paragraph of the Solution section>"
+#
+# <area> is the "area:" prefix of the pull request title, up to its first '/'
+#
+# -n prints the message and merges nothing.
+
+set -euo pipefail
+
+usage() {
+    echo "usage: git merge-pr [-n] <pr-number>" >&2
+    exit 2
+}
+
+dry_run=0
+if [[ ${1-} == -n ]]; then
+    dry_run=1
+    shift
+fi
+[[ $# -eq 1 && $1 =~ ^[0-9]+$ ]] || usage
+pr=$1
+
+json=$(gh pr view "$pr" --json state,title,author,headRefName,baseRefName,headRefOid,body)
+field() { jq -r "$1" <<<"$json"; }
+
+state=$(field .state)
+if [[ $state != OPEN && $dry_run -eq 0 ]]; then
+    echo "git merge-pr: pull request #$pr is $state" >&2
+    exit 1
+fi
+
+head=$(field .headRefName)
+base=$(field .baseRefName)
+oid=$(field .headRefOid)
+title=$(field .title)
+area=
+[[ $title =~ ^([^:[:space:]]+): ]] && area="${BASH_REMATCH[1]%%/*} "
+login=$(field .author.login)
+author=$(field '(.author.name | select(. != null and . != "")) // .author.login')
+
+# First paragraph under a "Solution" heading,
+# else the first paragraph that is not a heading.
+summary=$(field .body | tr -d '\r' | awk '
+	/^#+[ \t]*[Ss]olution[ \t]*$/ { insol = 1; next }
+	insol && /^#/ { exit }
+	insol && NF { found = 1; print; next }
+	insol && found { exit }
+')
+if [[ -z $summary ]]; then
+    summary=$(field .body | tr -d '\r' | awk '
+		/^#/ { if (found) exit; next }
+		NF { found = 1; print; next }
+		found { exit }
+	')
+fi
+
+intro=
+if [[ $login != "$(gh api user --jq .login)" ]]; then
+    intro="Pull ${area}updates from $author:"
+    [[ -n $summary ]] &&
+        intro+=$'\n'$(fmt -w 70 <<<"$summary" | sed -e '1s/^/ "/' -e '2,$s/^/  /' -e '$s/$/"/')
+elif [[ -n $summary ]]; then
+    intro=$(fmt -w 72 <<<"$summary")
+fi
+
+# Named MERGE_MSG so Magit's with-editor opens it as a commit message
+dir=$(mktemp -d "${TMPDIR:-/tmp}/merge-pr.XXXXXX")
+trap 'rm -rf "$dir"' EXIT
+msg=$dir/MERGE_MSG
+
+{
+    echo "Merge branch '$head' into $base (#$pr)"
+    echo
+    [[ -n $intro ]] && printf '%s\n\n' "$intro"
+    echo "* branch '$head':"
+    gh api --paginate "repos/{owner}/{repo}/pulls/$pr/commits" \
+        --jq '.[].commit.message | split("\n")[0]' | sed 's/^/  /'
+    echo
+    echo "Signed-off-by: $(git config user.name) <$(git config user.email)>"
+} >"$msg"
+
+if ((dry_run)); then
+    cat "$msg"
+    exit 0
+fi
+
+cat >>"$msg" <<-EOF
+
+	# Merging pull request #$pr at ${oid:0:12} through GitHub.
+	# Lines starting with '#' are dropped; an empty message aborts.
+EOF
+
+editor=$(git var GIT_EDITOR)
+if ! sh -c "$editor \"\$@\"" "$editor" "$msg"; then
+    echo "git merge-pr: editor cancelled, not merging" >&2
+    exit 1
+fi
+
+git stripspace --strip-comments <"$msg" >"$msg.clean"
+mv "$msg.clean" "$msg"
+if [[ ! -s $msg ]]; then
+    echo "git merge-pr: empty message, not merging" >&2
+    exit 1
+fi
+
+subject=$(head -n 1 "$msg")
+body=$(tail -n +3 "$msg")
+
+gh pr merge "$pr" --merge --match-head-commit "$oid" \
+    --subject "$subject" --body "$body"
