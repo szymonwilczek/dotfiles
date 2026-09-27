@@ -50,7 +50,9 @@ convert-video() {
 }
 
 # restart the Emacs daemon;
-# waits for the old one to exit so the new one can take over its socket
+# waits for the old one to exit so the new one can take over its socket.
+# Without COLORTERM from the terminal it runs in, tty frames use 256 colors,
+# which terminals over ssh or mosh (Termius) show correctly
 ereload() {
     local pid
     pid=$(emacsclient -e '(emacs-pid)' 2>/dev/null)
@@ -58,7 +60,7 @@ ereload() {
         emacsclient -e '(kill-emacs)' >/dev/null 2>&1
         while kill -0 "$pid" 2>/dev/null; do sleep 0.1; done
     fi
-    command emacs --daemon
+    env -u COLORTERM emacs --daemon
 }
 
 # hide tmux-jot internal sessions from tmux ls
@@ -73,10 +75,9 @@ tmux() {
 ################
 ### KEYBINDS ###
 ################
-bindkey '\ek' up-line-or-history      # Alt + K
-bindkey '\ej' down-line-or-history    # Alt + J
-bindkey '\el' autosuggest-accept      # Alt + L
-
+bindkey '\ek' up-line-or-history   # Alt + K
+bindkey '\ej' down-line-or-history # Alt + J
+bindkey '\el' autosuggest-accept   # Alt + L
 
 ############
 ### EVAL ###
