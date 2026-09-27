@@ -151,6 +151,7 @@ bindsym Mod1+Shift+Tab exec ~/.config/sway/scripts/alt-tab.sh prev
 bindsym $mod+p exec ~/.config/sway/scripts/audio-switcher.sh
 bindsym $mod+Mod5+p exec ~/.config/sway/scripts/toggle-pipewire-mixer.sh
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
+bindsym $mod+n exec ~/.config/sway/scripts/toggle-night-light.sh
 bindsym $mod+grave exec ~/.config/sway/scripts/scratchpad-ghostty.sh
 
 # Screen recording & Drawing

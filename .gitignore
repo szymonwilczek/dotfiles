@@ -34,6 +34,7 @@ nvim/.config/nvim/spell
 nvim/.config/nvim/lazy-lock.json
 tmux/.tmux/plugins
 sway/.config/sway/scripts/sys-info
+sway/.config/sway/scripts/night-light
 emacs/.config/emacs/tramp
 emacs/.config/emacs/auto-save
 emacs/.config/emacs/scripts/mutt_oauth2.py
