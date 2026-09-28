@@ -28,6 +28,12 @@
 
 set -euo pipefail
 
+# gh colors its output and animates a spinner on any terminal, dumb ones too,
+# so Magit's process buffer shows the escape codes
+if [[ ${TERM-} == dumb ]]; then
+    export NO_COLOR=1 GH_SPINNER_DISABLED=1
+fi
+
 usage() {
     echo "usage: git merge-pr [-n] <pr-number>" >&2
     exit 2
