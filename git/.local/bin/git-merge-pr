@@ -68,7 +68,7 @@ author=$(field '(.author.name | select(. != null and . != "")) // .author.login'
 # First paragraph under a "Solution" heading,
 # else the first paragraph that is not a heading.
 summary=$(field .body | tr -d '\r' | awk '
-	/^#+[ \t]*[Ss]olution[ \t]*$/ { insol = 1; next }
+	/^#+[ \t]*[Ss]olution:?[ \t]*$/ { insol = 1; next }
 	insol && /^#/ { exit }
 	insol && NF { found = 1; print; next }
 	insol && found { exit }
