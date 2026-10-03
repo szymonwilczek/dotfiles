@@ -152,7 +152,7 @@ bindsym $mod+p exec ~/.config/sway/scripts/audio-switcher.sh
 bindsym $mod+Mod5+p exec ~/.config/sway/scripts/toggle-pipewire-mixer.sh
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
 bindsym $mod+n exec ~/.config/sway/scripts/toggle-night-light.sh
-bindsym $mod+grave exec ~/.config/sway/scripts/scratchpad-ghostty.sh
+bindsym $mod+grave exec ~/.config/sway/scripts/jot-scratch.sh
 
 # Screen recording & Drawing
 bindsym $mod+Shift+r exec ~/.config/sway/scripts/record-screen.sh
@@ -212,7 +212,7 @@ for_window [app_id="dolphin"] resize set 1100 900, move position center
 for_window [app_id="plasma-systemmonitor"] resize set 1050 700, move position center
 for_window [app_id="org.kde.plasma-systemmonitor"] resize set 1050 700, move position center
 for_window [app_id="ghostty" app_id="floating_nmtui"] floating enable, resize set 750 450, move position center
-for_window [title="Scratchpad Ghostty"] floating enable, mark "scratchpad_ghostty", move scratchpad
+for_window [app_id="emacs" title="^jot-scratch$"] mark "jot_scratch", move scratchpad, scratchpad show, resize set 1000 700, move position center
 for_window [title="Informacje"] floating enable, border pixel 0, move position center
 for_window [title="AudioMixer"] floating enable, border pixel 0, move position center
 

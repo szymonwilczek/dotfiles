@@ -16,5 +16,6 @@
   (jot-mode 1))
 
 (require 'jot-keys)
+(require 'jot-scratch)
 
 (provide 'jot-mod)
