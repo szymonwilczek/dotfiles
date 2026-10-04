@@ -195,6 +195,38 @@ stay tab-indented."
   (python-indent-guess-indent-offset-verbose nil)
   (python-indent-offset 4))
 
+;; Python embedded in shell heredocs
+(use-package sh-script
+  :ensure nil
+  :init
+  (defconst my/bash-python-heredoc-re "\\`['\"]?PY\\(?:THON\\)?['\"]?\\'"
+    "Heredoc delimiters whose body is highlighted as Python.")
+
+  (defun my/bash-ts-embed-python ()
+    "Highlight heredocs delimited by PY or PYTHON with the Python grammar."
+    (when (treesit-ready-p 'python t)
+      (require 'python)
+      (setq-local treesit-range-settings
+                  (append treesit-range-settings
+                          (treesit-range-rules
+                           :embed 'python
+                           :host 'bash
+                           :local t
+                           `((heredoc_redirect
+                              (heredoc_start) @_start
+                              (heredoc_body) @cap
+                              (:match ,my/bash-python-heredoc-re @_start))))))
+      (setq-local treesit-font-lock-settings
+                  (append python--treesit-settings treesit-font-lock-settings))
+      (let* ((levels (copy-tree treesit-font-lock-feature-list))
+             (last (last levels)))
+        (dolist (setting python--treesit-settings)
+          (unless (seq-some (lambda (level) (memq (nth 2 setting) level)) levels)
+            (setcar last (append (car last) (list (nth 2 setting))))))
+        (setq-local treesit-font-lock-feature-list levels))
+      (treesit-font-lock-recompute-features)))
+  :hook (bash-ts-mode . my/bash-ts-embed-python))
+
 ;; Eglot LSP Client
 (use-package eglot
   :ensure nil
