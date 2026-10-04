@@ -82,6 +82,8 @@
   (plan-polsl-id "343266256")
   (plan-polsl-type 0)
   (plan-polsl-auto-add-to-agenda t)
+  (plan-polsl-notes-directory "~/Dokumenty/GitHub/polibuda-notatki")
+  (plan-polsl-events-file (expand-file-name "polsl-wydarzenia.org" user-emacs-directory))
   :config
   (setq plan-polsl-target-file (expand-file-name "~/Dokumenty/writings/plan-polsl.org")))
 
