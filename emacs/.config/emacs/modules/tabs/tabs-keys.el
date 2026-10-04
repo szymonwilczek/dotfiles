@@ -1,8 +1,8 @@
 ;;; -*- lexical-binding: t; -*-
 (with-eval-after-load 'evil
-  (define-key evil-normal-state-map (kbd "C-i") #'bufferline-prev-tab)
-  (define-key evil-normal-state-map (kbd "<C-i>") #'bufferline-prev-tab)
-  (define-key evil-normal-state-map (kbd "C-o") #'bufferline-next-tab))
+  (evil-define-key 'normal 'global
+    "[b" #'bufferline-prev-tab
+    "]b" #'bufferline-next-tab))
 
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)
