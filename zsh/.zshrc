@@ -98,6 +98,9 @@ export PATH=$PATH:$HOME/.cargo/bin
 export GPG_TTY=$(tty)
 export QT_QPA_PLATFORMTHEME=kde
 
+# Machine-local overrides
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
 ################
 ### START UP ###
 ################
