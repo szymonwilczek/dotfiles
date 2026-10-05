@@ -5,6 +5,7 @@
     (normal-top-level-add-subdirs-to-load-path)))
 
 (require 'core)
+(require 'packages-mod)
 (require 'evil-mod)
 (require 'ui-mod)
 (require 'completion-mod)
