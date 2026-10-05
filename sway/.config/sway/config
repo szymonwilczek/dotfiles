@@ -57,6 +57,8 @@ workspace "DP-1:10" output DP-1
 seat * xcursor_theme Adwaita 24
 exec_always gsettings set org.gnome.desktop.interface cursor-theme 'Adwaita'
 exec_always gsettings set org.gnome.desktop.interface cursor-size 24
+exec_always kwriteconfig6 --notify --file kcminputrc --group Mouse --key cursorTheme Adwaita
+exec_always kwriteconfig6 --notify --file kcminputrc --group Mouse --key cursorSize 24
 
 # Gaps & Borders configuration
 smart_gaps on
