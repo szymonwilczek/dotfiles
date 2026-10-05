@@ -105,7 +105,7 @@
               (when (fboundp 'bufferline-highlights-apply)
                 (bufferline-highlights-apply)))))
 
-(defcustom my/theme-toggle-pair '(au-whispergrove-night au-whispergrove-day)
+(defcustom my/theme-toggle-pair '(au-salina-night au-salina-day)
   "Two themes to switch between via `my/theme-toggle'."
   :type '(list symbol symbol)
   :group 'ui)
