@@ -15,6 +15,7 @@
     enable_libs: true
     enable_flatpak: true
     enable_kde: false
+    enable_laptop: false
 
   vars_files:
     - vars/repos.yml
@@ -199,3 +200,34 @@
       become: true
       tags:
         - flatpak
+
+    - name: Enable Wi-Fi power saving on laptops
+      ansible.builtin.copy:
+        dest: /etc/NetworkManager/conf.d/90-wifi-powersave.conf
+        content: |
+          # Managed by dotfiles/ansible (enable_laptop)
+          [connection]
+          wifi.powersave = 3
+        owner: root
+        group: root
+        mode: "0644"
+      when: enable_laptop | bool
+      become: true
+      notify: Reload NetworkManager configuration
+      tags:
+        - laptop
+
+    - name: Remove the old override disabling Wi-Fi power saving
+      ansible.builtin.file:
+        path: /etc/NetworkManager/conf.d/disable-wifi-powersave.conf
+        state: absent
+      when: enable_laptop | bool
+      become: true
+      notify: Reload NetworkManager configuration
+      tags:
+        - laptop
+
+  handlers:
+    - name: Reload NetworkManager configuration
+      ansible.builtin.command: nmcli general reload conf
+      become: true

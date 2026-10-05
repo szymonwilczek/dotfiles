@@ -73,4 +73,14 @@ ansible-playbook playbook.yml --tags "flatpak"
 ansible-playbook playbook.yml --skip-tags "apps"
 ```
 
-Available tags: `repos`, `copr`, `common`, `dev`, `apps`, `sway`, `mail`, `docker`, `latex`, `system_hw`, `libs`, `kde`, `inbox`, `exclude`, `flatpak`.
+Available tags: `repos`, `copr`, `common`, `dev`, `apps`, `sway`, `mail`, `docker`, `latex`, `system_hw`, `libs`, `kde`, `inbox`, `exclude`, `flatpak`, `laptop`.
+
+### Laptop
+
+Settings that only make sense on a laptop are off by default, so the workstation never gets them:
+
+```bash
+./run.sh --laptop
+```
+
+For now this enables Wi-Fi power saving in NetworkManager.

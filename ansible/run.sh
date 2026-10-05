@@ -18,6 +18,9 @@ for arg in "$@"; do
     --sway)
         EXTRA_ARGS+=("-e" "enable_sway=true")
         ;;
+    --laptop)
+        EXTRA_ARGS+=("-e" "enable_laptop=true")
+        ;;
     --dry-run | --check)
         EXTRA_ARGS+=("--check" "--diff")
         ;;
