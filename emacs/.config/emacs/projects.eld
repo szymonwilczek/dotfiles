@@ -1,0 +1,10 @@
+;;; -*- lisp-data -*-
+(("/home/wolfie/.config/emacs/elpa/astro-ts-mode/")
+ ("/home/wolfie/.config/emacs/elpa/ghostel/")
+ ("/home/wolfie/Dokumenty/GitHub/dotfiles/")
+ ("/home/wolfie/Dokumenty/GitHub/dotfiles/emacs/.config/emacs/elpa/jot/")
+ ("/home/wolfie/Dokumenty/GitHub/dotfiles/emacs/.config/emacs/elpa/plan-polsl/")
+ ("/home/wolfie/Dokumenty/GitHub/dotfiles/emacs/.config/emacs/elpa/bufferline/")
+ ("/home/wolfie/Dokumenty/GitHub/dotfiles/emacs/.config/emacs/elpa/rere/")
+ ("/home/wolfie/Dokumenty/GitHub/dotfiles/emacs/.config/emacs/elpa/gh-radar/")
+ ("/home/wolfie/.config/emacs/elpa/au-themes/"))

@@ -376,12 +376,6 @@ conflict is resolved and smerge-mode leaves."
 
 (add-hook 'smerge-mode-hook #'my/git-conflict--smerge-setup)
 
-(use-package octo
-  :load-path "~/Dokumenty/GitHub/octo.el"
-  :demand t
-  :config
-  (octo-sync-mode 1))
-
 (use-package gh-radar
   :load-path "~/Dokumenty/GitHub/gh-radar.el"
   :demand t
