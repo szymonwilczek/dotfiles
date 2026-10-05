@@ -114,7 +114,7 @@ stay tab-indented."
                             (setq-local tab-width 8))))
 
 (use-package astro-ts-mode
-  :ensure nil
+  :vc (:url "https://github.com/Sorixelle/astro-ts-mode" :branch "main")
   :mode "\\.astro\\'"
   :init
   (defun my/astro-ts-setup ()

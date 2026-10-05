@@ -1,12 +1,5 @@
 ;;; Ghostel terminal configuration with libghostty -*- lexical-binding: t; -*-
 
-(let ((ghostel-lisp (expand-file-name "elpa/ghostel/lisp" user-emacs-directory))
-      (evil-ghostel-dir (expand-file-name "elpa/ghostel/extensions/evil-ghostel" user-emacs-directory)))
-  (when (file-directory-p ghostel-lisp)
-    (add-to-list 'load-path ghostel-lisp))
-  (when (file-directory-p evil-ghostel-dir)
-    (add-to-list 'load-path evil-ghostel-dir)))
-
 (defun my/get-clipboard-string ()
   "Safely retrieve string from kill ring, Emacs GUI selection, or Wayland clipboard."
   (let ((text (or (current-kill 0 t)
@@ -71,7 +64,7 @@
       (evil-force-normal-state))))
 
 (use-package ghostel
-  :ensure nil
+  :vc (:url "https://github.com/dakra/ghostel" :lisp-dir "lisp")
   :commands (ghostel ghostel-project ghostel-exec)
   :init
   ;; so window switching, toggle, and jot prefix work in all states
@@ -177,8 +170,12 @@
       (evil-ghostel--reset-cursor-point)))
   (evil-insert-state 1))
 
+;; Shipped inside the ghostel checkout
 (use-package evil-ghostel
   :ensure nil
+  :load-path (lambda ()
+               (expand-file-name "elpa/ghostel/extensions/evil-ghostel"
+                                 user-emacs-directory))
   :after (ghostel evil)
   :hook (ghostel-mode . evil-ghostel-mode)
   :config
