@@ -7,6 +7,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(c-ts-indent-offset 8 nil nil "Customized with use-package c-ts-mode")
  '(global-wakatime-mode t)
  '(package-selected-packages
    '(au-themes bufferline citar citar-org colorful-mode company consult
@@ -20,7 +21,16 @@
                treemacs-perspective treemacs-projectile vertico
                wakatime-mode))
  '(package-vc-selected-packages
-   '((plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"
+   '((jot :url "https://github.com/szymonwilczek/jot.el" :branch "main")
+     (bufferline :url "https://github.com/szymonwilczek/bufferline.el"
+                 :branch "main")
+     (rere :url "https://github.com/szymonwilczek/rere.el" :branch
+           "main")
+     (gh-radar :url "https://github.com/szymonwilczek/gh-radar.el"
+               :branch "main")
+     (au-themes :url "https://github.com/szymonwilczek/au-themes"
+                :branch "main")
+     (plan-polsl :url "https://github.com/szymonwilczek/plan-polsl.el"
                  :branch "main")
      (astro-ts-mode :url "https://github.com/Sorixelle/astro-ts-mode"
                     :branch "master")))
