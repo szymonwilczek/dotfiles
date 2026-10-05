@@ -111,10 +111,46 @@
                     name))
           (t (message "repack: %s reloaded (%d files)" name loaded)))))
 
+(defconst my/repack--update-script "
+set -e
+if [ -n \"$1\" ]; then git checkout --quiet \"$1\"; fi
+upstream=$(git rev-parse --symbolic-full-name @{u})
+# fresh clone has no reflog for the remote branch yet
+before=$(git rev-parse \"$upstream\")
+git fetch --quiet
+# HEAD is, or is behind, an earlier tip of the remote branch;
+# the reflog holds both the old and the new tip of each update
+was_upstream() {
+    log=$(git rev-parse --git-path \"logs/$upstream\")
+    for c in $before $([ -f \"$log\" ] && cut -d' ' -f1,2 \"$log\"); do
+        git merge-base --is-ancestor HEAD \"$c\" && return 0
+    done
+    return 1
+}
+if git merge-base --is-ancestor HEAD @{u}; then
+    git merge --quiet --ff-only @{u}
+elif was_upstream; then
+    if [ -n \"$(git status --porcelain --untracked-files=no)\" ]; then
+        echo 'Uncommitted changes, not resetting:'
+        git status --short --untracked-files=no
+        exit 1
+    fi
+    echo \"Remote history was rewritten, moving to $(git rev-parse --short @{u})\"
+    git reset --quiet --hard @{u}
+else
+    echo 'Local commits that were never on the remote:'
+    git log --oneline @{u}..HEAD
+    exit 1
+fi"
+  "Shell script bringing a package checkout up to its remote branch.
+Its first argument names a branch to check out first, or is empty.")
+
 (defun my/repack--update-vc (desc then)
-  "Pull the checkout of DESC, rebuild it if it changed, then call THEN.
+  "Update the checkout of DESC, rebuild it if it changed, then call THEN.
 A checkout on a detached HEAD, as left by installing a release,
-first switches to the default branch of its remote."
+first switches to the default branch of its remote.
+Remote history rewritten by a force push replaces the checkout's
+history, unless the checkout has commits or changes of its own."
   (let* ((name (package-desc-name desc))
          (dir (package-desc-dir desc))
          (before (my/repack--git dir "rev-parse" "HEAD"))
@@ -127,21 +163,18 @@ first switches to the default branch of its remote."
          (buffer (get-buffer-create (format " *repack: %s*" name)))
          (default-directory (file-name-as-directory dir)))
     (with-current-buffer buffer (erase-buffer))
-    (message "repack: pulling %s..." name)
+    (message "repack: updating %s..." name)
     (make-process
      :name (format "repack-%s" name)
      :buffer buffer
-     :command (if branch
-                  (list "sh" "-c" "git checkout \"$1\" && git pull --ff-only"
-                        "sh" branch)
-                '("git" "pull" "--ff-only"))
+     :command (list "sh" "-c" my/repack--update-script "sh" (or branch ""))
      :sentinel
      (lambda (proc _event)
        (when (memq (process-status proc) '(exit signal))
          (if (/= (process-exit-status proc) 0)
              (progn
                (display-buffer buffer)
-               (message "repack: git pull failed for %s" name))
+               (message "repack: updating %s failed" name))
            (if (equal before (my/repack--git dir "rev-parse" "HEAD"))
                (message "repack: %s is already up to date" name)
              (package-vc-rebuild desc))
