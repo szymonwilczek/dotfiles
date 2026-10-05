@@ -129,6 +129,8 @@
   ;; depending on my machine: bare --gpg-sign takes the default key
   ;; from the keyring, which is not always the one I want
   (with-eval-after-load 'magit-commit
+    (dolist (arg '(magit:--gpg-sign magit:--signoff))
+      (setf (alist-get arg (alist-get 'magit-commit transient-levels)) 4))
     (when-let* ((proto (get 'magit-commit 'transient--prefix)))
       (let ((key (let ((default-directory "~/"))
                    (magit-git-string "config" "--get" "user.signingkey"))))
