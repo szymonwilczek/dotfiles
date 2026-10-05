@@ -20,14 +20,24 @@
         org-startup-folded 'overview
         org-log-done 'time)
 
-  (custom-set-faces
-   '(org-document-title ((t (:inherit default :weight bold :height 1.4 :underline nil))))
-   '(org-level-1 ((t (:inherit default :weight bold :height 1.25))))
-   '(org-level-2 ((t (:inherit default :weight bold :height 1.15))))
-   '(org-level-3 ((t (:inherit default :weight bold :height 1.08))))
-   '(org-level-4 ((t (:inherit default :weight semi-bold :height 1.02))))
-   '(org-block-begin-line ((t (:inherit font-lock-comment-face :slant italic))))
-   '(org-block-end-line ((t (:inherit font-lock-comment-face :slant italic)))))
+  ;; Set directly, not through Custom, which copies them into custom.el
+  ;; and drops them again whenever a theme is enabled after them.
+  ;; Enabling a theme recomputes faces, so reapply after each one.
+  (defun my/org-apply-face-overrides (&rest _)
+    "Apply heading and block delimiter faces over the current theme."
+    (set-face-attribute 'org-document-title nil
+                        :inherit 'default :weight 'bold :height 1.4 :underline nil)
+    (set-face-attribute 'org-level-1 nil :inherit 'default :weight 'bold :height 1.25)
+    (set-face-attribute 'org-level-2 nil :inherit 'default :weight 'bold :height 1.15)
+    (set-face-attribute 'org-level-3 nil :inherit 'default :weight 'bold :height 1.08)
+    (set-face-attribute 'org-level-4 nil :inherit 'default :weight 'semi-bold :height 1.02)
+    (set-face-attribute 'org-block-begin-line nil
+                        :inherit 'font-lock-comment-face :slant 'italic)
+    (set-face-attribute 'org-block-end-line nil
+                        :inherit 'font-lock-comment-face :slant 'italic))
+
+  (my/org-apply-face-overrides)
+  (add-hook 'enable-theme-functions #'my/org-apply-face-overrides)
 
   (setq org-todo-keywords
         '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAIT(w)" "|" "DONE(d)" "CANCELLED(c)")))
