@@ -83,4 +83,4 @@ Settings that only make sense on a laptop are off by default, so the workstation
 ./run.sh --laptop
 ```
 
-For now this enables Wi-Fi power saving in NetworkManager.
+It enables Wi-Fi power saving in NetworkManager and caps the journal at 500 MB.

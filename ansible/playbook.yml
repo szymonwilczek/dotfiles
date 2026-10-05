@@ -227,7 +227,41 @@
       tags:
         - laptop
 
+    - name: Create the journald drop-in directory on laptops
+      ansible.builtin.file:
+        path: /etc/systemd/journald.conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      when: enable_laptop | bool
+      become: true
+      tags:
+        - laptop
+
+    - name: Cap the journal size on laptops
+      ansible.builtin.copy:
+        dest: /etc/systemd/journald.conf.d/90-size-limit.conf
+        content: |
+          # Managed by dotfiles/ansible (enable_laptop)
+          [Journal]
+          SystemMaxUse=500M
+        owner: root
+        group: root
+        mode: "0644"
+      when: enable_laptop | bool
+      become: true
+      notify: Restart journald
+      tags:
+        - laptop
+
   handlers:
     - name: Reload NetworkManager configuration
       ansible.builtin.command: nmcli general reload conf
+      become: true
+
+    - name: Restart journald
+      ansible.builtin.systemd_service:
+        name: systemd-journald
+        state: restarted
       become: true
