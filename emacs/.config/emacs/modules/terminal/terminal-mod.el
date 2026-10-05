@@ -64,7 +64,7 @@
       (evil-force-normal-state))))
 
 (use-package ghostel
-  :vc (:url "https://github.com/dakra/ghostel" :lisp-dir "lisp")
+  :vc (:url "https://github.com/dakra/ghostel" :lisp-dir "lisp" :rev :newest)
   :commands (ghostel ghostel-project ghostel-exec)
   :init
   ;; so window switching, toggle, and jot prefix work in all states

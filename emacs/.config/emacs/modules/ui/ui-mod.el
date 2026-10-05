@@ -55,7 +55,7 @@
 
 ;; Themes & Theme Persistence
 (use-package au-themes
-  :vc (:url "https://github.com/szymonwilczek/au-themes" :branch "main")
+  :vc (:url "https://github.com/szymonwilczek/au-themes" :branch "main" :rev :newest)
   :demand t)
 
 (defvar my/theme-cache-file

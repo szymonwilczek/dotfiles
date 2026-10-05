@@ -1,7 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
 
 (use-package jot
-  :vc (:url "https://github.com/szymonwilczek/jot.el" :branch "main")
+  :vc (:url "https://github.com/szymonwilczek/jot.el" :branch "main" :rev :newest)
   :demand t
   :custom
   (jot-extension "md")

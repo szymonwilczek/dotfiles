@@ -377,7 +377,7 @@ conflict is resolved and smerge-mode leaves."
 (add-hook 'smerge-mode-hook #'my/git-conflict--smerge-setup)
 
 (use-package gh-radar
-  :vc (:url "https://github.com/szymonwilczek/gh-radar.el" :branch "main")
+  :vc (:url "https://github.com/szymonwilczek/gh-radar.el" :branch "main" :rev :newest)
   :demand t
   :custom
   (gh-radar-interval 600)
@@ -388,7 +388,7 @@ conflict is resolved and smerge-mode leaves."
   (gh-radar-mode 1))
 
 (use-package rere
-  :vc (:url "https://github.com/szymonwilczek/rere.el" :branch "main")
+  :vc (:url "https://github.com/szymonwilczek/rere.el" :branch "main" :rev :newest)
   :commands (rere))
 
 (require 'git-keys)
