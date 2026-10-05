@@ -248,11 +248,35 @@ stay tab-indented."
   ;; Performance & JSON-RPC optimization
   (fset #'jsonrpc--log-event #'ignore)
   (setq eglot-events-buffer-config '(:size 0 :format full)
-        eglot-autoshutdown t
+        eglot-autoshutdown nil
         eglot-sync-connect nil
         eglot-send-changes-idle-time 0.2)
   (add-to-list 'warning-suppress-types '(jsonrpc))
   (add-to-list 'warning-suppress-types '(eglot))
+
+  ;; Delayed autoshutdown
+  (defvar my/eglot-autoshutdown-delay 300
+    "Idle seconds before shutting down servers with no managed buffers.")
+  (defvar my/eglot--reap-timer nil)
+
+  (defun my/eglot-reap-orphans ()
+    "Shut down every Eglot server that no longer manages any buffer."
+    (setq my/eglot--reap-timer nil)
+    (dolist (servers (hash-table-values eglot--servers-by-project))
+      (dolist (server servers)
+        (unless (eglot--managed-buffers server)
+          (with-demoted-errors "[eglot] reap: %S"
+            (eglot-shutdown server))))))
+
+  (defun my/eglot-schedule-reap ()
+    "Restart the idle reap timer when a buffer leaves Eglot management."
+    (unless eglot--managed-mode
+      (when my/eglot--reap-timer (cancel-timer my/eglot--reap-timer))
+      (setq my/eglot--reap-timer
+            (run-with-idle-timer my/eglot-autoshutdown-delay nil
+                                 #'my/eglot-reap-orphans))))
+
+  (add-hook 'eglot-managed-mode-hook #'my/eglot-schedule-reap)
 
   ;; Inlay Hints typography
   (set-face-attribute 'eglot-inlay-hint-face nil
