@@ -54,11 +54,9 @@
               (setq display-line-numbers nil))))
 
 ;; Themes & Theme Persistence
-(let ((au-themes-dir (expand-file-name "~/Dokumenty/GitHub/au-themes")))
-  (when (file-directory-p au-themes-dir)
-    (add-to-list 'load-path au-themes-dir)
-    (add-to-list 'custom-theme-load-path au-themes-dir)
-    (require 'au-themes nil t)))
+(use-package au-themes
+  :vc (:url "https://github.com/szymonwilczek/au-themes" :branch "main")
+  :demand t)
 
 (defvar my/theme-cache-file
   (expand-file-name ".theme-cache" user-emacs-directory))

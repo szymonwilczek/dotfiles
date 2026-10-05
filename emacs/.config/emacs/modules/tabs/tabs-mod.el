@@ -1,6 +1,6 @@
 ;;; -*- lexical-binding: t; -*-
 (use-package bufferline
-  :load-path "~/Dokumenty/GitHub/bufferline.el"
+  :vc (:url "https://github.com/szymonwilczek/bufferline.el" :branch "main")
   :demand t
   :custom
   (bufferline-separator-style 'vertical)
