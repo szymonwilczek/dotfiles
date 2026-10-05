@@ -125,9 +125,15 @@
 
   ;; -s (--signoff) and -S (--gpg-sign) in Magit commit
   ;; This is the only way
+  ;; Name the key from user.signingkey, a GPG key id or an SSH key file
+  ;; depending on my machine: bare --gpg-sign takes the default key
+  ;; from the keyring, which is not always the one I want
   (with-eval-after-load 'magit-commit
     (when-let* ((proto (get 'magit-commit 'transient--prefix)))
-      (oset proto value '("--gpg-sign=B8E944071CB7EB8A" "--signoff" "--verbose"))))
+      (let ((key (let ((default-directory "~/"))
+                   (magit-git-string "config" "--get" "user.signingkey"))))
+        (oset proto value (list (if key (concat "--gpg-sign=" key) "--gpg-sign")
+                                "--signoff" "--verbose")))))
 
   ;; Evil scrolling
   (define-key magit-mode-map (kbd "z") nil)
