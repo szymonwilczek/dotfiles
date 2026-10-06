@@ -9,8 +9,8 @@
   (jot-session-backend 'auto)
   (jot-popup-x 'right)
   (jot-popup-y 0)
-  (jot-popup-width 0.40)
-  (jot-popup-height 0.50)
+  (jot-popup-width 0.55)
+  (jot-popup-height 0.60)
   :config
   (setq jot-dir (expand-file-name "~/.local/share/tmux-jot"))
   (jot-mode 1))
