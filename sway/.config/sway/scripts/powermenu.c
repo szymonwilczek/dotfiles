@@ -6,14 +6,13 @@
 
 typedef struct {
   const char *name;
-  const char *note;
   const char *command;
 } Action;
 
 static const Action ACTIONS[] = {
-    {"Wyloguj", "zamyka sway", "swaymsg exit"},
-    {"Uruchom ponownie", "restart systemu", "systemctl reboot"},
-    {"Wyłącz", "wyłącza komputer", "systemctl poweroff"},
+    {"Wyloguj", "swaymsg exit"},
+    {"Uruchom ponownie", "systemctl reboot"},
+    {"Wyłącz", "systemctl poweroff"},
 };
 #define COUNT ((int)G_N_ELEMENTS(ACTIONS))
 
@@ -72,13 +71,7 @@ static void render(Menu *m) {
 
     GtkWidget *name = label(ACTIONS[i].name, "key");
     gtk_label_set_xalign(GTK_LABEL(name), 0);
-    gtk_label_set_width_chars(GTK_LABEL(name), 20);
-    gtk_box_pack_start(GTK_BOX(row), name, FALSE, FALSE, 0);
-
-    GtkWidget *note = label(ACTIONS[i].note, "note");
-    gtk_label_set_xalign(GTK_LABEL(note), 0);
-    gtk_label_set_width_chars(GTK_LABEL(note), 18);
-    gtk_box_pack_start(GTK_BOX(row), note, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(row), name, TRUE, TRUE, 0);
 
     GtkWidget *click = gtk_event_box_new();
     g_object_set_data(G_OBJECT(click), "index", GINT_TO_POINTER(i));
