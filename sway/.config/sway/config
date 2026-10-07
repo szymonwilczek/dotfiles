@@ -228,7 +228,7 @@ font pango:Typus Mono 95, JetBrainsMono Nerd Font 11
 include colors.conf
 
 # SwayOSD Integration
-exec_always pkill -x swayosd-server 2>/dev/null; swayosd-server &
+exec swayosd-server
 
 bindsym --locked XF86AudioRaiseVolume exec swayosd-client --output-volume raise
 bindsym --locked XF86AudioLowerVolume exec swayosd-client --output-volume lower
