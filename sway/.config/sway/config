@@ -14,6 +14,7 @@ exec swaync
 exec ~/.config/sway/scripts/waybar.sh
 exec ~/.config/sway/scripts/modal.sh pipewire-mixer --hidden
 exec ~/.config/sway/scripts/modal.sh audio-switcher --hidden
+exec ~/.config/sway/scripts/modal.sh powermenu --hidden
 exec wl-paste --watch cliphist store
 
 # Output configuration
@@ -198,7 +199,7 @@ mode "resize" {
 }
 
 # Utilities
-bindsym $mod+x exec ~/.config/sway/scripts/powermenu.sh
+bindsym $mod+x exec ~/.config/sway/scripts/modal.sh powermenu
 bindsym Print exec grim -g "$(slurp)" - | wl-copy
 bindsym $mod+Shift+s exec grim -g "$(slurp)" - | tee "$HOME/Obrazy/Zrzuty ekranu/Zrzut ekranu_$(date +'%Y%m%d_%H%M%S').png" | wl-copy -t image/png
 
@@ -233,6 +234,7 @@ for_window [app_id="firefox"] title_format "Mozilla Firefox"
 for_window [app_id="sway-sys-info"] floating enable, border pixel 2, move position center
 for_window [app_id="sway-mixer"] floating enable, border pixel 2, move position center
 for_window [app_id="sway-audio-switcher"] floating enable, border pixel 2, move position center
+for_window [app_id="sway-powermenu"] floating enable, border pixel 2, move position center
 
 font pango:Typus Mono 95, JetBrainsMono Nerd Font 11
 

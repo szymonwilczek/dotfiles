@@ -15,8 +15,8 @@ RESTART ?= 1
 GTK = gtk+-3.0
 PROTOCOL = wlr-gamma-control-unstable-v1
 
-PROGRAMS = sys-info calendar pipewire-mixer audio-switcher autotiling \
-	night-light spotify-island waybar-clock.so
+PROGRAMS = sys-info calendar pipewire-mixer audio-switcher powermenu \
+	autotiling night-light spotify-island waybar-clock.so
 
 all: $(PROGRAMS)
 
@@ -44,6 +44,10 @@ calendar: calendar.c
 
 pipewire-mixer audio-switcher: %: %.c modal.h pactl.h
 	$(call build,$<,$(GTK) json-c)
+	@$(call restart,$@,pkill -x $@; $(call sway,modal.sh $@ --hidden))
+
+powermenu: powermenu.c modal.h
+	$(call build,$<,$(GTK))
 	@$(call restart,$@,pkill -x $@; $(call sway,modal.sh $@ --hidden))
 
 autotiling: autotiling.c

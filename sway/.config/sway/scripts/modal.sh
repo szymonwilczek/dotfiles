@@ -1,7 +1,7 @@
 #!/bin/bash
-# Toggles a modal of modal.h, pipewire-mixer or audio-switcher, which keeps
-# running hidden in between; built by make and started anew when its source
-# changed.
+# Toggles a modal of modal.h, pipewire-mixer, audio-switcher or powermenu,
+# which keeps running hidden in between; built by make and started anew when
+# its source changed.
 # With --hidden, as sway gives at its start, only starts it. Builtins alone
 # when it runs, as pkill would take longer than showing it
 name=$1
@@ -10,7 +10,7 @@ bin=$dir/$name
 pidfile=${XDG_RUNTIME_DIR:-/tmp}/$name.pid
 
 case $name in
-pipewire-mixer | audio-switcher) ;;
+pipewire-mixer | audio-switcher | powermenu) ;;
 *) exit 1 ;;
 esac
 

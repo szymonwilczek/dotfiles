@@ -38,6 +38,7 @@ sway/.config/sway/scripts/sys-info
 sway/.config/sway/scripts/calendar
 sway/.config/sway/scripts/pipewire-mixer
 sway/.config/sway/scripts/audio-switcher
+sway/.config/sway/scripts/powermenu
 sway/.config/sway/scripts/waybar-clock.so
 sway/.config/sway/scripts/spotify-island
 sway/.config/sway/scripts/build
