@@ -175,8 +175,8 @@ int main(int argc, char *argv[]) {
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 14);
   gtk_style_context_add_class(gtk_widget_get_style_context(box), "modal");
 
-  GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
-  gtk_widget_set_margin_start(header, 6);
+  GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+  gtk_style_context_add_class(gtk_widget_get_style_context(header), "heading");
   cal.month = label("", "title");
   cal.year = label("", "subtitle");
   gtk_box_pack_start(GTK_BOX(header), cal.month, FALSE, FALSE, 0);

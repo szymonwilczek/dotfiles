@@ -110,6 +110,18 @@ static GtkWidget *label(const char *text, const char *class) {
   return l;
 }
 
+// A title and a muted subtitle over a rule
+static GtkWidget *heading(const char *title, const char *subtitle) {
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+  add_class(box, "heading");
+  GtkWidget *t = label(title, "title");
+  gtk_label_set_ellipsize(GTK_LABEL(t), PANGO_ELLIPSIZE_END);
+  gtk_box_pack_start(GTK_BOX(box), t, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), label(subtitle, "subtitle"), FALSE, FALSE,
+                     0);
+  return box;
+}
+
 static gboolean on_click(GtkWidget *w, GdkEventButton *ev, gpointer data) {
   Switcher *sw = data;
   if (ev->button != GDK_BUTTON_PRIMARY)
@@ -229,17 +241,11 @@ int main(int argc, char *argv[]) {
 
   GtkWidget *section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   add_class(section, "section");
-  GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-  gtk_widget_set_halign(header, GTK_ALIGN_START);
-  gtk_box_pack_start(GTK_BOX(header), label("wyjście", "segment-dark"), FALSE,
-                     FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(header), label("", "segment-arrow"), FALSE,
-                     FALSE, 0);
+  Sink *cur = sw.count ? &sw.sinks[sw.current] : NULL;
   gtk_box_pack_start(
-      GTK_BOX(header),
-      label(sw.count ? sw.sinks[sw.current].nick : "brak", "segment-light"),
-      FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(section), header, FALSE, FALSE, 0);
+      GTK_BOX(section),
+      heading(cur ? cur->device : "brak wyjścia", cur ? cur->nick : ""), FALSE,
+      FALSE, 0);
 
   add_class(sw.list, "rows");
   gtk_box_pack_start(GTK_BOX(section), sw.list, FALSE, FALSE, 0);

@@ -47,6 +47,23 @@ window {
   border-radius: 0 999px 999px 0;
 }
 
+/* Heading */
+
+.heading {
+  padding: 0 4px 12px 4px;
+  border-bottom: 1px solid @border_inactive;
+}
+
+.heading .title {
+  color: @text_focused;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.heading .subtitle {
+  color: @text_muted;
+}
+
 .section + .section {
   margin-top: 18px;
 }
@@ -101,15 +118,6 @@ levelbar.critical trough block.filled {
 }
 
 /* Calendar */
-
-.title {
-  color: @text_focused;
-  font-weight: 600;
-}
-
-.subtitle {
-  color: @text_muted;
-}
 
 .weekday {
   color: @text_muted;

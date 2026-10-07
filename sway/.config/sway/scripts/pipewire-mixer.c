@@ -112,6 +112,18 @@ static GtkWidget *label(const char *text, const char *class) {
   return l;
 }
 
+// A title and a muted subtitle over a rule
+static GtkWidget *heading(const char *title, const char *subtitle) {
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+  add_class(box, "heading");
+  GtkWidget *t = label(title, "title");
+  gtk_label_set_ellipsize(GTK_LABEL(t), PANGO_ELLIPSIZE_END);
+  gtk_box_pack_start(GTK_BOX(box), t, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), label(subtitle, "subtitle"), FALSE, FALSE,
+                     0);
+  return box;
+}
+
 static void render(Mixer *m) {
   GList *rows = gtk_container_get_children(GTK_CONTAINER(m->list));
   for (GList *r = rows; r; r = r->next)
@@ -230,8 +242,8 @@ static gboolean on_focus_out(GtkWidget *w, GdkEventFocus *ev, gpointer data) {
   return FALSE;
 }
 
-// Description of the default sink, for the header
-static void default_sink(char *buf, size_t len) {
+// Device and short name of the default sink, for the heading
+static void default_sink(char *device, char *nick, size_t len) {
   char *name = pactl("get-default-sink", NULL, NULL, NULL);
   char *out = name ? pactl("-f", "json", "list", "sinks") : NULL;
   json_object *root = out ? json_tokener_parse(out) : NULL;
@@ -240,13 +252,16 @@ static void default_sink(char *buf, size_t len) {
 
   size_t n = root ? json_object_array_length(root) : 0;
   for (size_t i = 0; i < n; i++) {
-    json_object *sink = json_object_array_get_idx(root, i), *v;
-    if (json_object_object_get_ex(sink, "name", &v) &&
-        !strcmp(json_object_get_string(v), name) &&
-        json_object_object_get_ex(sink, "description", &v)) {
-      snprintf(buf, len, "%s", json_object_get_string(v));
-      break;
-    }
+    json_object *sink = json_object_array_get_idx(root, i), *v, *props;
+    if (!json_object_object_get_ex(sink, "name", &v) ||
+        strcmp(json_object_get_string(v), name) ||
+        !json_object_object_get_ex(sink, "properties", &props))
+      continue;
+    const char *d = prop(props, "device.description");
+    const char *k = prop(props, "node.nick");
+    snprintf(device, len, "%s", d ? d : name);
+    snprintf(nick, len, "%s", k ? k : "");
+    break;
   }
   if (root)
     json_object_put(root);
@@ -277,19 +292,9 @@ int main(int argc, char *argv[]) {
 
   GtkWidget *section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   add_class(section, "section");
-  GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-  gtk_widget_set_halign(header, GTK_ALIGN_START);
-  char sink[96] = "wyjście";
-  default_sink(sink, sizeof(sink));
-  GtkWidget *detail = label(sink, "segment-light");
-  gtk_label_set_max_width_chars(GTK_LABEL(detail), 36);
-  gtk_label_set_ellipsize(GTK_LABEL(detail), PANGO_ELLIPSIZE_END);
-  gtk_box_pack_start(GTK_BOX(header), label("dźwięk", "segment-dark"), FALSE,
-                     FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(header), label("", "segment-arrow"), FALSE,
-                     FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(header), detail, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(section), header, FALSE, FALSE, 0);
+  char device[96] = "brak wyjścia", nick[96] = "";
+  default_sink(device, nick, sizeof(device));
+  gtk_box_pack_start(GTK_BOX(section), heading(device, nick), FALSE, FALSE, 0);
 
   Mixer m = {.list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6)};
   add_class(m.list, "rows");
