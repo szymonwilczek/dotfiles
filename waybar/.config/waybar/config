@@ -44,6 +44,7 @@
       "locale": "pl_PL.UTF-8",
       "interval": 60,
       "format": "{:L%A, %d %B %H:%M}",
+      "on-click": "~/.config/sway/scripts/toggle-calendar.sh",
       "tooltip-format": "<tt><small>{calendar}</small></tt>",
       "calendar": {
         "mode": "month",

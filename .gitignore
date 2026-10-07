@@ -35,6 +35,7 @@ nvim/.config/nvim/spell
 nvim/.config/nvim/lazy-lock.json
 tmux/.tmux/plugins
 sway/.config/sway/scripts/sys-info
+sway/.config/sway/scripts/calendar
 sway/.config/sway/scripts/night-light
 sway/.config/sway/scripts/autotiling
 emacs/.config/emacs/tramp

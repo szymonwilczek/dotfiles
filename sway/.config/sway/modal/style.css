@@ -99,3 +99,39 @@ levelbar trough block.empty {
 levelbar.critical trough block.filled {
   background: @accent_urgent;
 }
+
+/* Calendar */
+
+.title {
+  color: @text_focused;
+  font-weight: 600;
+}
+
+.subtitle {
+  color: @text_muted;
+}
+
+.weekday {
+  color: @text_muted;
+  font-size: 13px;
+}
+
+.day {
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: 999px;
+}
+
+.day.weekend {
+  color: @text_muted;
+}
+
+.day.outside {
+  color: @border_inactive;
+}
+
+.day.today {
+  background-color: @border_focused;
+  color: @bg_dark;
+  font-weight: 600;
+}
