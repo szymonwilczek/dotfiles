@@ -167,17 +167,3 @@ window.calendar {
 levelbar.muted trough block.filled {
   background: @border_inactive;
 }
-
-.hint {
-  margin-top: 18px;
-  font-size: 13px;
-}
-
-.hint .hint-key {
-  color: @border_focused;
-  font-weight: 600;
-}
-
-.hint .hint-text {
-  color: @text_muted;
-}

@@ -278,9 +278,6 @@ int main(int argc, char *argv[]) {
   gtk_box_pack_start(GTK_BOX(section), m.list, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), section, FALSE, FALSE, 0);
 
-  const char *keys[] = {"j/k", "Wybór", "h/l", "Głośność", "m", "Wycisz", NULL};
-  gtk_box_pack_start(GTK_BOX(box), modal_hint(keys), FALSE, FALSE, 0);
-
   gtk_container_add(GTK_CONTAINER(window), box);
   g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), &m);
 
