@@ -84,6 +84,23 @@ static GtkWidget *modal_window(Modal *m, const char *title) {
   return m->window;
 }
 
+static GtkWidget *modal_hint(const char *const *keys) {
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 22);
+  gtk_style_context_add_class(gtk_widget_get_style_context(box), "hint");
+  for (; keys[0] && keys[1]; keys += 2) {
+    GtkWidget *pair = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+    GtkWidget *key = gtk_label_new(keys[0]);
+    GtkWidget *text = gtk_label_new(keys[1]);
+    gtk_style_context_add_class(gtk_widget_get_style_context(key), "hint-key");
+    gtk_style_context_add_class(gtk_widget_get_style_context(text),
+                                "hint-text");
+    gtk_box_pack_start(GTK_BOX(pair), key, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(pair), text, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), pair, FALSE, FALSE, 0);
+  }
+  return box;
+}
+
 // Shown at once unless started with --hidden, as sway does at its start
 static void modal_run(Modal *m, const char *name, int argc, char *argv[]) {
   char *pid = g_strdup_printf("%d\n", getpid());

@@ -170,6 +170,14 @@ levelbar.muted trough block.filled {
 
 .hint {
   margin-top: 18px;
-  color: @border_inactive;
   font-size: 13px;
+}
+
+.hint .hint-key {
+  color: @border_focused;
+  font-weight: 600;
+}
+
+.hint .hint-text {
+  color: @text_muted;
 }
