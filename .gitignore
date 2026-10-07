@@ -37,6 +37,7 @@ tmux/.tmux/plugins
 sway/.config/sway/scripts/sys-info
 sway/.config/sway/scripts/calendar
 sway/.config/sway/scripts/pipewire-mixer
+sway/.config/sway/scripts/audio-switcher
 sway/.config/sway/scripts/night-light
 sway/.config/sway/scripts/autotiling
 emacs/.config/emacs/tramp

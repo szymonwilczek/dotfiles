@@ -1,33 +1,17 @@
 #!/bin/bash
-raw_sinks=$(wpctl status | sed -n '/Sinks:/,/Sources:/p' | grep -E '[0-9]+\.')
+# Toggles the picker of the default audio output, built anew when its
+# source changed
+dir=~/.config/sway/scripts
+bin=$dir/audio-switcher
 
-sinks_data=""
-clean_names=""
-
-while IFS= read -r line; do
-    is_active=0
-    if echo "$line" | grep -q '\*'; then
-        is_active=1
-    fi
-    id=$(echo "$line" | grep -oE '[0-9]+\.' | head -1 | tr -d '.')
-    name=$(echo "$line" | sed -E 's/^[│ *]*[0-9]+\.\s*//; s/\[vol:.*\]//; s/\s+$//')
-
-    if [ -n "$id" ] && [ -n "$name" ]; then
-        if [ $is_active -eq 1 ]; then
-            display_name="● ${name}"
-        else
-            display_name="  ${name}"
-        fi
-        sinks_data="${sinks_data}${display_name}	${id}\n"
-        clean_names="${clean_names}${display_name}\n"
-    fi
-done <<<"$raw_sinks"
-
-selected_line=$(printf "%b" "$clean_names" | grep -v '^$' | fuzzel -d -p "󰓃  : " -w 55)
-
-if [ -n "$selected_line" ]; then
-    selected_id=$(printf "%b" "$sinks_data" | grep "^${selected_line}	" | cut -f2)
-    if [ -n "$selected_id" ]; then
-        wpctl set-default "$selected_id"
-    fi
+if pkill -x audio-switcher; then
+    exit 0
 fi
+
+if [ ! -x "$bin" ] || [ "$dir/audio-switcher.c" -nt "$bin" ]; then
+    cc -O2 -Wall -Wextra -Wno-unused-parameter -o "$bin" \
+        "$dir/audio-switcher.c" $(pkg-config --cflags --libs gtk+-3.0 json-c) ||
+        exit 1
+fi
+
+exec "$bin"

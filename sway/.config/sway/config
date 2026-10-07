@@ -224,6 +224,7 @@ for_window [app_id="firefox"] title_format "Mozilla Firefox"
 # Modals of sway/scripts
 for_window [app_id="sway-sys-info"] floating enable, border pixel 2, move position center
 for_window [app_id="sway-mixer"] floating enable, border pixel 2, move position center
+for_window [app_id="sway-audio-switcher"] floating enable, border pixel 2, move position center
 for_window [app_id="sway-calendar"] floating enable, border pixel 2, opacity 0
 
 font pango:Typus Mono 95, JetBrainsMono Nerd Font 11
