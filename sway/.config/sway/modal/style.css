@@ -119,6 +119,10 @@ levelbar.critical trough block.filled {
 
 /* Calendar */
 
+window.calendar {
+  border: 2px solid @border_focused;
+}
+
 .weekday {
   color: @text_muted;
   font-size: 13px;

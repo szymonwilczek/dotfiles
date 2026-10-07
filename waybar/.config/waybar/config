@@ -12,7 +12,7 @@
     "margin-bottom": 0,
 
     "modules-left": ["sway/workspaces"],
-    "modules-center": ["custom/spotify", "clock"],
+    "modules-center": ["custom/spotify", "cffi/clock"],
     "modules-right": ["custom/recording", "tray", "cpu", "temperature", "memory", "network", "pulseaudio", "custom/notification"],
 
     "custom/recording": {
@@ -40,21 +40,8 @@
       }
     },
 
-    "clock": {
-      "locale": "pl_PL.UTF-8",
-      "interval": 60,
-      "format": "{:L%A, %d %B %H:%M}",
-      "on-click": "~/.config/sway/scripts/toggle-calendar.sh",
-      "tooltip-format": "<tt><small>{calendar}</small></tt>",
-      "calendar": {
-        "mode": "month",
-        "format": {
-          "months": "<span color='#ffffff'><b>{}</b></span>",
-          "days": "<span color='#cccccc'>{}</span>",
-          "weekdays": "<span color='#d4d4d4'><b>{}</b></span>",
-          "today": "<span color='#e06c75'><b><u>{}</u></b></span>"
-        }
-      }
+    "cffi/clock": {
+      "module_path": ".config/sway/scripts/waybar-clock.so"
     },
 
     "custom/spotify": {
