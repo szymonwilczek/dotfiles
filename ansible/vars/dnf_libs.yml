@@ -44,9 +44,11 @@ dnf_libs_packages:
   - gnutls-devel
   - gpm-devel
   - gpm-libs
+  - gtk-layer-shell-devel
   - gtk3-devel
   - gtk4-devel
   - java-25-openjdk-devel
+  - json-c-devel
   - libX11-devel
   - libXcursor-devel
   - libXdmcp-devel
@@ -85,4 +87,5 @@ dnf_libs_packages:
   - sqlite-devel
   - systemd-devel
   - tpm2-tss-devel
+  - wayland-devel
   - webkit2gtk4.1-devel
