@@ -1,8 +1,10 @@
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
-#include <json-c/json.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "modal.h"
+#include "pactl.h"
 
 #define MAX_STREAMS 32
 #define STEP 5
@@ -19,30 +21,10 @@ typedef struct {
   int count;
   int selected;
   GtkWidget *list;
+  GtkWidget *device, *nick;
+  Modal modal;
+  Watch watch;
 } Mixer;
-
-// Output of a pactl command, NULL when it failed; argv is not run by a shell
-static char *pactl(const char *a, const char *b, const char *c, const char *d) {
-  const char *argv[] = {"pactl", a, b, c, d, NULL};
-  char *out = NULL;
-  int status;
-  if (!g_spawn_sync(NULL, (char **)argv, NULL,
-                    G_SPAWN_SEARCH_PATH | G_SPAWN_STDERR_TO_DEV_NULL, NULL,
-                    NULL, &out, NULL, &status, NULL) ||
-      !g_spawn_check_wait_status(status, NULL)) {
-    g_free(out);
-    return NULL;
-  }
-  return out;
-}
-
-static const char *prop(json_object *props, const char *key) {
-  json_object *v;
-  if (!json_object_object_get_ex(props, key, &v))
-    return NULL;
-  const char *s = json_object_get_string(v);
-  return s && *s ? s : NULL;
-}
 
 // Mean of the channels
 static int volume(json_object *channels) {
@@ -58,14 +40,11 @@ static int volume(json_object *channels) {
   return n ? sum / n : 0;
 }
 
-// pactl -f json, as its text output is translated
 static void read_streams(Mixer *m) {
   int selected_id = m->count ? m->streams[m->selected].id : -1;
   m->count = 0;
 
-  char *out = pactl("-f", "json", "list", "sink-inputs");
-  json_object *root = out ? json_tokener_parse(out) : NULL;
-  g_free(out);
+  json_object *root = pactl_json("sink-inputs");
   if (!root)
     return;
 
@@ -73,9 +52,9 @@ static void read_streams(Mixer *m) {
   for (size_t i = 0; i < len && m->count < MAX_STREAMS; i++) {
     json_object *in = json_object_array_get_idx(root, i), *v, *props = NULL;
     json_object_object_get_ex(in, "properties", &props);
-    const char *name = prop(props, "application.name");
+    const char *name = str(props, "application.name");
     if (!name)
-      name = prop(props, "media.name");
+      name = str(props, "media.name");
     if (!name || g_str_has_prefix(name, "speech-dispatcher"))
       continue;
 
@@ -83,7 +62,7 @@ static void read_streams(Mixer *m) {
     json_object_object_get_ex(in, "index", &v);
     s->id = json_object_get_int(v);
     snprintf(s->name, sizeof(s->name), "%s", name);
-    const char *bin = prop(props, "application.process.binary");
+    const char *bin = str(props, "application.process.binary");
     if (!strcmp(name, "Chromium") && bin && !g_str_has_prefix(bin, "chrom")) {
       snprintf(s->name, sizeof(s->name), "%s", bin);
       char *ext = strstr(s->name, ".bin");
@@ -113,14 +92,14 @@ static GtkWidget *label(const char *text, const char *class) {
 }
 
 // A title and a muted subtitle over a rule
-static GtkWidget *heading(const char *title, const char *subtitle) {
+static GtkWidget *heading(GtkWidget **title, GtkWidget **subtitle) {
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
   add_class(box, "heading");
-  GtkWidget *t = label(title, "title");
-  gtk_label_set_ellipsize(GTK_LABEL(t), PANGO_ELLIPSIZE_END);
-  gtk_box_pack_start(GTK_BOX(box), t, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), label(subtitle, "subtitle"), FALSE, FALSE,
-                     0);
+  *title = label("", "title");
+  gtk_label_set_ellipsize(GTK_LABEL(*title), PANGO_ELLIPSIZE_END);
+  gtk_box_pack_start(GTK_BOX(box), *title, FALSE, FALSE, 0);
+  *subtitle = label("", "subtitle");
+  gtk_box_pack_start(GTK_BOX(box), *subtitle, FALSE, FALSE, 0);
   return box;
 }
 
@@ -177,10 +156,9 @@ static void render(Mixer *m) {
   gtk_widget_show_all(m->list);
 }
 
-static gboolean refresh(gpointer data) {
-  read_streams(data);
-  render(data);
-  return G_SOURCE_CONTINUE;
+static void refresh(Mixer *m) {
+  read_streams(m);
+  render(m);
 }
 
 static void change_volume(Mixer *m, int delta) {
@@ -202,7 +180,7 @@ static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data) {
   switch (ev->keyval) {
   case GDK_KEY_Escape:
   case GDK_KEY_q:
-    gtk_main_quit();
+    modal_hide(&m->modal);
     return TRUE;
   }
   if (m->count == 0)
@@ -237,16 +215,10 @@ static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data) {
   return TRUE;
 }
 
-static gboolean on_focus_out(GtkWidget *w, GdkEventFocus *ev, gpointer data) {
-  gtk_main_quit();
-  return FALSE;
-}
-
 // Device and short name of the default sink, for the heading
 static void default_sink(char *device, char *nick, size_t len) {
   char *name = pactl("get-default-sink", NULL, NULL, NULL);
-  char *out = name ? pactl("-f", "json", "list", "sinks") : NULL;
-  json_object *root = out ? json_tokener_parse(out) : NULL;
+  json_object *root = name ? pactl_json("sinks") : NULL;
   if (name)
     g_strstrip(name);
 
@@ -257,46 +229,51 @@ static void default_sink(char *device, char *nick, size_t len) {
         strcmp(json_object_get_string(v), name) ||
         !json_object_object_get_ex(sink, "properties", &props))
       continue;
-    const char *d = prop(props, "device.description");
-    const char *k = prop(props, "node.nick");
+    const char *d = str(props, "device.description");
+    const char *k = str(props, "node.nick");
     snprintf(device, len, "%s", d ? d : name);
     snprintf(nick, len, "%s", k ? k : "");
     break;
   }
   if (root)
     json_object_put(root);
-  g_free(out);
   g_free(name);
 }
 
+// On the events of pactl, so that it is read before it is shown,
+// the default sink too as the output picker may have changed it
+static void on_change(gpointer data) {
+  Mixer *m = data;
+  char device[96] = "brak wyjścia", nick[96] = "";
+  default_sink(device, nick, sizeof(device));
+  gtk_label_set_text(GTK_LABEL(m->device), device);
+  gtk_label_set_text(GTK_LABEL(m->nick), nick);
+  refresh(m);
+}
+
+// From the first stream on each show
+static void on_show(gpointer data) {
+  Mixer *m = data;
+  m->selected = 0;
+  render(m);
+}
+
 int main(int argc, char *argv[]) {
-  g_set_prgname("sway-mixer");
-  gtk_init(&argc, &argv);
+  modal_init(&argc, &argv, "sway-mixer");
 
-  GtkCssProvider *css = gtk_css_provider_new();
-  char *path =
-      g_build_filename(g_get_user_config_dir(), "sway/modal/style.css", NULL);
-  gtk_css_provider_load_from_path(css, path, NULL);
-  g_free(path);
-  gtk_style_context_add_provider_for_screen(
-      gdk_screen_get_default(), GTK_STYLE_PROVIDER(css),
-      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-  GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(window), "Mikser dźwięku");
-  gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
-  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+  static Mixer m;
+  m.modal = (Modal){.on_show = on_show, .data = &m};
+  GtkWidget *window = modal_window(&m.modal, "Mikser dźwięku");
 
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   add_class(box, "modal");
 
   GtkWidget *section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   add_class(section, "section");
-  char device[96] = "brak wyjścia", nick[96] = "";
-  default_sink(device, nick, sizeof(device));
-  gtk_box_pack_start(GTK_BOX(section), heading(device, nick), FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(section), heading(&m.device, &m.nick), FALSE,
+                     FALSE, 0);
 
-  Mixer m = {.list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6)};
+  m.list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
   add_class(m.list, "rows");
   gtk_box_pack_start(GTK_BOX(section), m.list, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), section, FALSE, FALSE, 0);
@@ -306,14 +283,10 @@ int main(int argc, char *argv[]) {
   gtk_box_pack_start(GTK_BOX(box), hint, FALSE, FALSE, 0);
 
   gtk_container_add(GTK_CONTAINER(window), box);
-  refresh(&m);
-  g_timeout_add(1000, refresh, &m);
-
-  g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), &m);
-  g_signal_connect(window, "focus-out-event", G_CALLBACK(on_focus_out), NULL);
 
-  gtk_widget_show_all(window);
-  gtk_main();
+  m.watch = (Watch){.on_change = on_change, .data = &m};
+  pactl_watch(&m.watch);
+  modal_run(&m.modal, "pipewire-mixer", argc, argv);
   return 0;
 }

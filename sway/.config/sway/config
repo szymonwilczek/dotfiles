@@ -12,6 +12,8 @@ set $taskmanager plasma-systemmonitor
 # Execs
 exec swaync
 exec ~/.config/sway/scripts/waybar.sh
+exec ~/.config/sway/scripts/modal.sh pipewire-mixer --hidden
+exec ~/.config/sway/scripts/modal.sh audio-switcher --hidden
 
 # Output configuration
 output * bg ~/Pulpit/Personalne/Tapety/fall-house-norm.jpg fill
@@ -150,8 +152,8 @@ bindsym $mod+space focus mode_toggle
 # Alt-Tab
 bindsym Mod1+Tab exec ~/.config/sway/scripts/alt-tab.sh next
 bindsym Mod1+Shift+Tab exec ~/.config/sway/scripts/alt-tab.sh prev
-bindsym $mod+p exec ~/.config/sway/scripts/audio-switcher.sh
-bindsym $mod+Shift+p exec ~/.config/sway/scripts/toggle-pipewire-mixer.sh
+bindsym $mod+p exec ~/.config/sway/scripts/modal.sh audio-switcher
+bindsym $mod+Shift+p exec ~/.config/sway/scripts/modal.sh pipewire-mixer
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
 bindsym $mod+n exec ~/.config/sway/scripts/toggle-night-light.sh
 bindsym $mod+grave exec ~/.config/sway/scripts/jot-scratch.sh

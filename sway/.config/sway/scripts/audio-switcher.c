@@ -1,7 +1,9 @@
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
-#include <json-c/json.h>
 #include <string.h>
+
+#include "modal.h"
+#include "pactl.h"
 
 #define MAX_SINKS 16
 
@@ -17,41 +19,18 @@ typedef struct {
   int selected;
   int current;
   GtkWidget *list;
+  GtkWidget *device, *nick;
+  Modal modal;
+  Watch watch;
 } Switcher;
 
-// Output of a pactl command, NULL when it failed; argv is not run by a shell
-static char *pactl(const char *a, const char *b, const char *c, const char *d) {
-  const char *argv[] = {"pactl", a, b, c, d, NULL};
-  char *out = NULL;
-  int status;
-  if (!g_spawn_sync(NULL, (char **)argv, NULL,
-                    G_SPAWN_SEARCH_PATH | G_SPAWN_STDERR_TO_DEV_NULL, NULL,
-                    NULL, &out, NULL, &status, NULL) ||
-      !g_spawn_check_wait_status(status, NULL)) {
-    g_free(out);
-    return NULL;
-  }
-  return out;
-}
-
-static const char *str(json_object *obj, const char *key) {
-  json_object *v;
-  if (!obj || !json_object_object_get_ex(obj, key, &v))
-    return NULL;
-  const char *s = json_object_get_string(v);
-  return s && *s ? s : NULL;
-}
-
-// pactl -f json, as the text of pactl and wpctl is translated and decorated
 static void read_sinks(Switcher *sw) {
+  sw->count = sw->selected = sw->current = 0;
   char *def = pactl("get-default-sink", NULL, NULL, NULL);
   if (def)
     g_strstrip(def);
 
-  char *out = pactl("-f", "json", "list", "sinks");
-  json_object *root = out ? json_tokener_parse(out) : NULL;
-  g_free(out);
-
+  json_object *root = pactl_json("sinks");
   size_t len = root ? json_object_array_length(root) : 0;
   for (size_t i = 0; i < len && sw->count < MAX_SINKS; i++) {
     json_object *in = json_object_array_get_idx(root, i), *props = NULL;
@@ -82,9 +61,7 @@ static void apply(Switcher *sw) {
   const char *name = sw->sinks[sw->selected].name;
   g_free(pactl("set-default-sink", name, NULL, NULL));
 
-  char *out = pactl("-f", "json", "list", "sink-inputs");
-  json_object *root = out ? json_tokener_parse(out) : NULL;
-  g_free(out);
+  json_object *root = pactl_json("sink-inputs");
   size_t len = root ? json_object_array_length(root) : 0;
   for (size_t i = 0; i < len; i++) {
     json_object *v;
@@ -97,7 +74,7 @@ static void apply(Switcher *sw) {
   }
   if (root)
     json_object_put(root);
-  gtk_main_quit();
+  modal_hide(&sw->modal);
 }
 
 static void add_class(GtkWidget *w, const char *class) {
@@ -111,14 +88,14 @@ static GtkWidget *label(const char *text, const char *class) {
 }
 
 // A title and a muted subtitle over a rule
-static GtkWidget *heading(const char *title, const char *subtitle) {
+static GtkWidget *heading(GtkWidget **title, GtkWidget **subtitle) {
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
   add_class(box, "heading");
-  GtkWidget *t = label(title, "title");
-  gtk_label_set_ellipsize(GTK_LABEL(t), PANGO_ELLIPSIZE_END);
-  gtk_box_pack_start(GTK_BOX(box), t, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), label(subtitle, "subtitle"), FALSE, FALSE,
-                     0);
+  *title = label("", "title");
+  gtk_label_set_ellipsize(GTK_LABEL(*title), PANGO_ELLIPSIZE_END);
+  gtk_box_pack_start(GTK_BOX(box), *title, FALSE, FALSE, 0);
+  *subtitle = label("", "subtitle");
+  gtk_box_pack_start(GTK_BOX(box), *subtitle, FALSE, FALSE, 0);
   return box;
 }
 
@@ -181,7 +158,7 @@ static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data) {
   switch (ev->keyval) {
   case GDK_KEY_Escape:
   case GDK_KEY_q:
-    gtk_main_quit();
+    modal_hide(&sw->modal);
     return TRUE;
   }
   if (sw->count == 0)
@@ -210,43 +187,47 @@ static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data) {
   return TRUE;
 }
 
-static gboolean on_focus_out(GtkWidget *w, GdkEventFocus *ev, gpointer data) {
-  gtk_main_quit();
-  return FALSE;
+// On the events of pactl, so that it is read before it is shown,
+// as sinks come and go; a sink picked meanwhile stays picked
+static void on_change(gpointer data) {
+  Switcher *sw = data;
+  char picked[256] = "";
+  if (gtk_widget_get_visible(sw->modal.window) && sw->count)
+    snprintf(picked, sizeof(picked), "%s", sw->sinks[sw->selected].name);
+  read_sinks(sw);
+  for (int i = 0; i < sw->count; i++)
+    if (!strcmp(sw->sinks[i].name, picked))
+      sw->selected = i;
+
+  Sink *cur = sw->count ? &sw->sinks[sw->current] : NULL;
+  gtk_label_set_text(GTK_LABEL(sw->device), cur ? cur->device : "brak wyjścia");
+  gtk_label_set_text(GTK_LABEL(sw->nick), cur ? cur->nick : "");
+  render(sw);
+}
+
+// From the default sink on each show
+static void on_show(gpointer data) {
+  Switcher *sw = data;
+  sw->selected = sw->current;
+  render(sw);
 }
 
 int main(int argc, char *argv[]) {
-  g_set_prgname("sway-audio-switcher");
-  gtk_init(&argc, &argv);
+  modal_init(&argc, &argv, "sway-audio-switcher");
 
-  GtkCssProvider *css = gtk_css_provider_new();
-  char *path =
-      g_build_filename(g_get_user_config_dir(), "sway/modal/style.css", NULL);
-  gtk_css_provider_load_from_path(css, path, NULL);
-  g_free(path);
-  gtk_style_context_add_provider_for_screen(
-      gdk_screen_get_default(), GTK_STYLE_PROVIDER(css),
-      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-  GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(window), "Wyjście dźwięku");
-  gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
-  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+  static Switcher sw;
+  sw.modal = (Modal){.on_show = on_show, .data = &sw};
+  GtkWidget *window = modal_window(&sw.modal, "Wyjście dźwięku");
 
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   add_class(box, "modal");
 
-  Switcher sw = {.list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6)};
-  read_sinks(&sw);
-
   GtkWidget *section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   add_class(section, "section");
-  Sink *cur = sw.count ? &sw.sinks[sw.current] : NULL;
-  gtk_box_pack_start(
-      GTK_BOX(section),
-      heading(cur ? cur->device : "brak wyjścia", cur ? cur->nick : ""), FALSE,
-      FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(section), heading(&sw.device, &sw.nick), FALSE,
+                     FALSE, 0);
 
+  sw.list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
   add_class(sw.list, "rows");
   gtk_box_pack_start(GTK_BOX(section), sw.list, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), section, FALSE, FALSE, 0);
@@ -256,13 +237,10 @@ int main(int argc, char *argv[]) {
   gtk_box_pack_start(GTK_BOX(box), hint, FALSE, FALSE, 0);
 
   gtk_container_add(GTK_CONTAINER(window), box);
-  render(&sw);
-
-  g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
   g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), &sw);
-  g_signal_connect(window, "focus-out-event", G_CALLBACK(on_focus_out), NULL);
 
-  gtk_widget_show_all(window);
-  gtk_main();
+  sw.watch = (Watch){.on_change = on_change, .data = &sw};
+  pactl_watch(&sw.watch);
+  modal_run(&sw.modal, "audio-switcher", argc, argv);
   return 0;
 }
