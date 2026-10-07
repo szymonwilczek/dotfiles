@@ -83,6 +83,8 @@ input type:pointer {
     accel_profile flat
 }
 
+seat * hide_cursor when-typing enable
+
 ### Key bindings
 bindsym $mod+Return exec $term
 bindsym $mod+Shift+Return exec env GDK_BACKEND=wayland emacsclient -c -a ''
