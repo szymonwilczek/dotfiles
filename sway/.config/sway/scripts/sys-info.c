@@ -1,344 +1,357 @@
 #include <dirent.h>
-#include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
+#include <stdarg.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/statvfs.h>
-#include <unistd.h>
+
+// A bar turns red from this fraction of its limit on
+#define CRITICAL 0.85
+#define GIB (1024.0 * 1024.0 * 1024.0)
 
 typedef struct {
-  char cpu_hwmon[256];
-  char gpu_hwmon[256];
-  char ssd_hwmon[256];
-  char cpu_name[128];
-  char gpu_name[128];
-  unsigned long long prev_idle;
-  unsigned long long prev_total;
-  GtkWidget *label;
-} AppData;
+  GtkWidget *bar;
+  GtkWidget *value;
+} Row;
 
-static void detect_hardware(AppData *app) {
-  app->cpu_hwmon[0] = '\0';
-  app->gpu_hwmon[0] = '\0';
-  app->ssd_hwmon[0] = '\0';
-  strcpy(app->cpu_name, "Procesor");
-  strcpy(app->gpu_name, "Karta Graficzna");
+typedef struct {
+  char cpu_hwmon[300];
+  char gpu_hwmon[300];
+  char nvme_hwmon[300];
+  unsigned long long prev_idle, prev_total;
+  Row load, cpu_temp;
+  Row gpu_edge, gpu_junction, gpu_mem, gpu_fan, gpu_power;
+  Row ram, disk, nvme_temp;
+} App;
 
-  // CPU
-  FILE *fc = fopen("/proc/cpuinfo", "r");
-  if (fc) {
-    char line[256];
-    while (fgets(line, sizeof(line), fc)) {
-      if (strncmp(line, "model name", 10) == 0) {
-        char *colon = strchr(line, ':');
-        if (colon) {
-          colon++;
-          while (*colon == ' ' || *colon == '\t')
-            colon++;
-          colon[strcspn(colon, "\r\n")] = 0;
-          char *sub = strstr(colon, " 8-Core");
-          if (sub)
-            *sub = '\0';
-          sub = strstr(colon, " with");
-          if (sub)
-            *sub = '\0';
-          snprintf(app->cpu_name, sizeof(app->cpu_name), "%s", colon);
-        }
-        break;
-      }
-    }
-    fclose(fc);
-  }
-
-  // GPU
-  FILE *fg = popen("lspci 2>/dev/null | grep -iE 'vga|3d' | sed -n "
-                   "'s/.*\\[\\(Radeon[^]]*\\)\\].*/\\1/p'",
-                   "r");
-  if (fg) {
-    char gbuf[128] = "";
-    if (fgets(gbuf, sizeof(gbuf), fg)) {
-      gbuf[strcspn(gbuf, "\r\n")] = 0;
-      if (strlen(gbuf) > 0) {
-        snprintf(app->gpu_name, sizeof(app->gpu_name), "AMD %s", gbuf);
-      }
-    }
-    pclose(fg);
-  }
-
-  if (strcmp(app->gpu_name, "Karta Graficzna") == 0) {
-    FILE *fg2 =
-        popen("lspci 2>/dev/null | grep -iE 'vga|3d' | cut -d: -f3", "r");
-    if (fg2) {
-      char gbuf2[128] = "";
-      if (fgets(gbuf2, sizeof(gbuf2), fg2)) {
-        gbuf2[strcspn(gbuf2, "\r\n")] = 0;
-        char *clean = gbuf2;
-        while (*clean == ' ' || *clean == '\t')
-          clean++;
-        if (strlen(clean) > 0) {
-          snprintf(app->gpu_name, sizeof(app->gpu_name), "%s", clean);
-        }
-      }
-      pclose(fg2);
-    }
-  }
-
-  // HWMon
-  DIR *d = opendir("/sys/class/hwmon");
-  if (d) {
-    struct dirent *dir;
-    while ((dir = readdir(d)) != NULL) {
-      if (strncmp(dir->d_name, "hwmon", 5) == 0) {
-        char name_path[512];
-        snprintf(name_path, sizeof(name_path), "/sys/class/hwmon/%s/name",
-                 dir->d_name);
-        FILE *f = fopen(name_path, "r");
-        if (f) {
-          char name_buf[64] = "";
-          if (fgets(name_buf, sizeof(name_buf), f)) {
-            name_buf[strcspn(name_buf, "\r\n")] = 0;
-            if (strcmp(name_buf, "k10temp") == 0 ||
-                strcmp(name_buf, "coretemp") == 0) {
-              snprintf(app->cpu_hwmon, sizeof(app->cpu_hwmon),
-                       "/sys/class/hwmon/%s", dir->d_name);
-            } else if (strcmp(name_buf, "amdgpu") == 0 ||
-                       strcmp(name_buf, "nvidia") == 0) {
-              snprintf(app->gpu_hwmon, sizeof(app->gpu_hwmon),
-                       "/sys/class/hwmon/%s", dir->d_name);
-            } else if (strcmp(name_buf, "nvme") == 0 ||
-                       strncmp(name_buf, "sd", 2) == 0) {
-              snprintf(app->ssd_hwmon, sizeof(app->ssd_hwmon),
-                       "/sys/class/hwmon/%s", dir->d_name);
-            }
-          }
-          fclose(f);
-        }
-      }
-    }
-    closedir(d);
-  }
-}
-
-static long read_sysfs_int(const char *path) {
+static long read_long(const char *dir, const char *file, long fallback) {
+  char path[340];
+  snprintf(path, sizeof(path), "%s/%s", dir, file);
   FILE *f = fopen(path, "r");
   if (!f)
-    return 0;
-  long val = 0;
-  fscanf(f, "%ld", &val);
+    return fallback;
+  long v;
+  if (fscanf(f, "%ld", &v) != 1)
+    v = fallback;
   fclose(f);
-  return val;
+  return v;
 }
 
-static float calc_cpu_usage(AppData *app) {
-  FILE *f = fopen("/proc/stat", "r");
+static void read_line(const char *path, char *buf, size_t len) {
+  FILE *f = fopen(path, "r");
   if (!f)
-    return 0.0f;
+    return;
+  if (fgets(buf, len, f))
+    buf[strcspn(buf, "\n")] = '\0';
+  fclose(f);
+  g_strstrip(buf);
+}
 
-  char user_str[32];
-  unsigned long long user, nice, system, idle, iowait, irq, softirq, steal;
-  if (fscanf(f, "%s %llu %llu %llu %llu %llu %llu %llu %llu", user_str, &user,
-             &nice, &system, &idle, &iowait, &irq, &softirq, &steal) < 9) {
-    fclose(f);
-    return 0.0f;
+static void find_hwmons(App *app) {
+  DIR *d = opendir("/sys/class/hwmon");
+  if (!d)
+    return;
+  struct dirent *e;
+  while ((e = readdir(d))) {
+    if (strncmp(e->d_name, "hwmon", 5) != 0)
+      continue;
+    char dir[300], path[320], name[32] = "";
+    snprintf(dir, sizeof(dir), "/sys/class/hwmon/%s", e->d_name);
+    snprintf(path, sizeof(path), "%s/name", dir);
+    read_line(path, name, sizeof(name));
+    if (!strcmp(name, "k10temp") || !strcmp(name, "coretemp"))
+      snprintf(app->cpu_hwmon, sizeof(app->cpu_hwmon), "%s", dir);
+    else if (!strcmp(name, "amdgpu"))
+      snprintf(app->gpu_hwmon, sizeof(app->gpu_hwmon), "%s", dir);
+    else if (!strcmp(name, "nvme"))
+      snprintf(app->nvme_hwmon, sizeof(app->nvme_hwmon), "%s", dir);
+  }
+  closedir(d);
+}
+
+static void cpu_name(char *buf, size_t len) {
+  FILE *f = fopen("/proc/cpuinfo", "r");
+  if (!f)
+    return;
+  char line[256];
+  while (fgets(line, sizeof(line), f)) {
+    char *colon = strchr(line, ':');
+    if (strncmp(line, "model name", 10) != 0 || !colon)
+      continue;
+    char *name = g_strstrip(colon + 1);
+    char *cut = strstr(name, "-Core");
+    if (cut) {
+      while (cut > name && cut[-1] != ' ')
+        cut--;
+      *cut = '\0';
+    }
+    snprintf(buf, len, "%s", g_strstrip(name));
+    break;
   }
   fclose(f);
-
-  unsigned long long total_idle = idle + iowait;
-  unsigned long long total =
-      user + nice + system + idle + iowait + irq + softirq + steal;
-
-  unsigned long long diff_idle = total_idle - app->prev_idle;
-  unsigned long long diff_total = total - app->prev_total;
-
-  app->prev_idle = total_idle;
-  app->prev_total = total;
-
-  if (diff_total == 0)
-    return 0.0f;
-  return (float)(diff_total - diff_idle) / diff_total * 100.0f;
 }
 
-static void get_ram_info(float *used_gb, float *total_gb, int *percent) {
+static void gpu_name(char *buf, size_t len) {
+  FILE *p = popen("lspci 2>/dev/null", "r");
+  if (!p)
+    return;
+  char line[256];
+  while (fgets(line, sizeof(line), p)) {
+    if (!strstr(line, "VGA") && !strstr(line, "3D controller"))
+      continue;
+    char *open = strrchr(line, '['), *close = strrchr(line, ']');
+    if (open && close > open) {
+      *close = '\0';
+      snprintf(buf, len, "%s", open + 1);
+    } else {
+      char *name = strstr(line, ": ");
+      snprintf(buf, len, "%s", name ? g_strstrip(name + 2) : "");
+    }
+    break;
+  }
+  pclose(p);
+}
+
+static double cpu_load(App *app) {
+  FILE *f = fopen("/proc/stat", "r");
+  if (!f)
+    return 0;
+  unsigned long long user, nice, sys, idle, iowait, irq, softirq, steal;
+  int n = fscanf(f, "cpu %llu %llu %llu %llu %llu %llu %llu %llu", &user, &nice,
+                 &sys, &idle, &iowait, &irq, &softirq, &steal);
+  fclose(f);
+  if (n != 8)
+    return 0;
+
+  unsigned long long all_idle = idle + iowait;
+  unsigned long long total =
+      user + nice + sys + irq + softirq + steal + all_idle;
+  unsigned long long d_idle = all_idle - app->prev_idle;
+  unsigned long long d_total = total - app->prev_total;
+  app->prev_idle = all_idle;
+  app->prev_total = total;
+  return d_total ? (double)(d_total - d_idle) / d_total : 0;
+}
+
+static void set_row(Row *row, double fraction, const char *fmt, ...) {
+  fraction = CLAMP(fraction, 0, 1);
+  gtk_level_bar_set_value(GTK_LEVEL_BAR(row->bar), fraction);
+
+  char text[64];
+  va_list ap;
+  va_start(ap, fmt);
+  vsnprintf(text, sizeof(text), fmt, ap);
+  va_end(ap);
+  gtk_label_set_text(GTK_LABEL(row->value), text);
+
+  GtkWidget *widgets[] = {row->bar, row->value};
+  for (int i = 0; i < 2; i++) {
+    GtkStyleContext *ctx = gtk_widget_get_style_context(widgets[i]);
+    if (fraction >= CRITICAL)
+      gtk_style_context_add_class(ctx, "critical");
+    else
+      gtk_style_context_remove_class(ctx, "critical");
+  }
+}
+
+static void set_temp(Row *row, const char *hwmon, int n, double limit) {
+  char file[32];
+  snprintf(file, sizeof(file), "temp%d_input", n);
+  long milli = hwmon[0] ? read_long(hwmon, file, -1) : -1;
+  if (milli < 0) {
+    set_row(row, 0, "—");
+    return;
+  }
+  snprintf(file, sizeof(file), "temp%d_crit", n);
+  long crit = read_long(hwmon, file, 0);
+  if (crit > 0)
+    limit = crit / 1000.0;
+  set_row(row, milli / 1000.0 / limit, "%.0f °C", milli / 1000.0);
+}
+
+static void update_memory(App *app) {
   FILE *f = fopen("/proc/meminfo", "r");
   if (!f)
     return;
-
-  unsigned long total_kb = 0, avail_kb = 0;
+  unsigned long total = 0, avail = 0;
   char line[128];
   while (fgets(line, sizeof(line), f)) {
-    if (strncmp(line, "MemTotal:", 9) == 0) {
-      sscanf(line + 9, "%lu", &total_kb);
-    } else if (strncmp(line, "MemAvailable:", 13) == 0) {
-      sscanf(line + 13, "%lu", &avail_kb);
-    }
+    sscanf(line, "MemTotal: %lu", &total);
+    sscanf(line, "MemAvailable: %lu", &avail);
   }
   fclose(f);
+  double used = (total - avail) * 1024.0 / GIB, all = total * 1024.0 / GIB;
+  set_row(&app->ram, all ? used / all : 0, "%.1f / %.0f GB", used, all);
 
-  unsigned long used_kb = total_kb - avail_kb;
-  *total_gb = total_kb / (1024.0f * 1024.0f);
-  *used_gb = used_kb / (1024.0f * 1024.0f);
-  *percent = (int)((used_kb * 100.0f) / (total_kb > 0 ? total_kb : 1));
-}
-
-static void get_ssd_storage(float *used_gb, float *total_gb, int *percent) {
   struct statvfs st;
   if (statvfs("/", &st) == 0) {
-    unsigned long long total_bytes =
-        (unsigned long long)st.f_blocks * st.f_frsize;
-    unsigned long long free_bytes =
-        (unsigned long long)st.f_bavail * st.f_frsize;
-    unsigned long long used_bytes = total_bytes - free_bytes;
-
-    *total_gb = total_bytes / (1024.0f * 1024.0f * 1024.0f);
-    *used_gb = used_bytes / (1024.0f * 1024.0f * 1024.0f);
-    *percent =
-        (int)((used_bytes * 100.0f) / (total_bytes > 0 ? total_bytes : 1));
-  } else {
-    *used_gb = 0.0f;
-    *total_gb = 0.0f;
-    *percent = 0;
+    double size = (double)st.f_blocks * st.f_frsize / GIB;
+    double free = (double)st.f_bavail * st.f_frsize / GIB;
+    set_row(&app->disk, size ? (size - free) / size : 0, "%.0f / %.0f GB",
+            size - free, size);
   }
 }
 
-static gboolean update_stats_cb(gpointer user_data) {
-  AppData *app = (AppData *)user_data;
+static gboolean update(gpointer data) {
+  App *app = data;
+  double load = cpu_load(app);
+  set_row(&app->load, load, "%.0f %%", load * 100);
+  set_temp(&app->cpu_temp, app->cpu_hwmon, 1, 95);
 
-  float cpu_usage = calc_cpu_usage(app);
+  set_temp(&app->gpu_edge, app->gpu_hwmon, 1, 100);
+  set_temp(&app->gpu_junction, app->gpu_hwmon, 2, 110);
+  set_temp(&app->gpu_mem, app->gpu_hwmon, 3, 105);
+  if (app->gpu_hwmon[0]) {
+    long rpm = read_long(app->gpu_hwmon, "fan1_input", 0);
+    long rpm_max = read_long(app->gpu_hwmon, "fan1_max", 0);
+    set_row(&app->gpu_fan, rpm_max ? (double)rpm / rpm_max : 0, "%ld obr/min",
+            rpm);
 
-  char path[512];
-  snprintf(path, sizeof(path), "%s/temp1_input",
-           app->cpu_hwmon[0] ? app->cpu_hwmon : "/sys/class/hwmon/hwmon2");
-  float cpu_temp = read_sysfs_int(path) / 1000.0f;
-
-  snprintf(path, sizeof(path), "%s/temp1_input",
-           app->gpu_hwmon[0] ? app->gpu_hwmon : "/sys/class/hwmon/hwmon1");
-  float gpu_edge = read_sysfs_int(path) / 1000.0f;
-
-  snprintf(path, sizeof(path), "%s/temp2_input",
-           app->gpu_hwmon[0] ? app->gpu_hwmon : "/sys/class/hwmon/hwmon1");
-  float gpu_junc = read_sysfs_int(path) / 1000.0f;
-
-  snprintf(path, sizeof(path), "%s/temp3_input",
-           app->gpu_hwmon[0] ? app->gpu_hwmon : "/sys/class/hwmon/hwmon1");
-  float gpu_vram = read_sysfs_int(path) / 1000.0f;
-
-  snprintf(path, sizeof(path), "%s/fan1_input",
-           app->gpu_hwmon[0] ? app->gpu_hwmon : "/sys/class/hwmon/hwmon1");
-  long gpu_fan = read_sysfs_int(path);
-
-  snprintf(path, sizeof(path), "%s/power1_average",
-           app->gpu_hwmon[0] ? app->gpu_hwmon : "/sys/class/hwmon/hwmon1");
-  long p_raw = read_sysfs_int(path);
-  if (p_raw == 0) {
-    snprintf(path, sizeof(path), "%s/power1_input",
-             app->gpu_hwmon[0] ? app->gpu_hwmon : "/sys/class/hwmon/hwmon1");
-    p_raw = read_sysfs_int(path);
+    long uw = read_long(app->gpu_hwmon, "power1_average", -1);
+    if (uw < 0)
+      uw = read_long(app->gpu_hwmon, "power1_input", 0);
+    long cap = read_long(app->gpu_hwmon, "power1_cap", 0);
+    set_row(&app->gpu_power, cap ? (double)uw / cap : 0, "%.0f W", uw / 1e6);
   }
-  float gpu_power = p_raw / 1000000.0f;
 
-  float ram_used, ram_total;
-  int ram_pct;
-  get_ram_info(&ram_used, &ram_total, &ram_pct);
-
-  float ssd_used, ssd_total;
-  int ssd_pct;
-  get_ssd_storage(&ssd_used, &ssd_total, &ssd_pct);
-
-  char markup[4096];
-  snprintf(markup, sizeof(markup),
-           "<tt>"
-           "<b><span color='#4c7899'>PROCESOR</span></b>      ::  <span "
-           "color='#cccccc'>%s</span>\n"
-           "<span "
-           "color='#333333'>--------------------------------------------</"
-           "span>\n"
-           "OBCIĄŻENIE    ::  <b>%.1f%%</b>\n"
-           "TEMPERATURA   ::  <b>%.1f°C</b>\n\n"
-           "<b><span color='#1ed760'>GRAFIKA</span></b>       ::  <span "
-           "color='#cccccc'>%s</span>\n"
-           "<span "
-           "color='#333333'>--------------------------------------------</"
-           "span>\n"
-           "RDZEŃ (EDGE)  ::  <b>%.1f°C</b>  (JUNCTION: %.1f°C)\n"
-           "PAMIĘĆ VRAM   ::  <b>%.1f°C</b>\n"
-           "WENTYLATORY   ::  <b>%ld RPM</b>\n"
-           "POBÓR MOCY    ::  <b>%.1f W</b>\n\n"
-           "<b><span color='#e5c07b'>PAMIĘĆ I DYSK</span></b>\n"
-           "<span "
-           "color='#333333'>--------------------------------------------</"
-           "span>\n"
-           "PAMIĘĆ RAM    ::  <b>%.1f GB / %.1f GB (%d%%)</b>\n"
-           "DYSK SSD      ::  <b>%.1f GB / %.1f GB (%d%%)</b></tt>",
-           app->cpu_name, cpu_usage, cpu_temp, app->gpu_name, gpu_edge,
-           gpu_junc, gpu_vram, gpu_fan, gpu_power, ram_used, ram_total, ram_pct,
-           ssd_used, ssd_total, ssd_pct);
-
-  gtk_label_set_markup(GTK_LABEL(app->label), markup);
-  return TRUE;
+  update_memory(app);
+  set_temp(&app->nvme_temp, app->nvme_hwmon, 1, 85);
+  return G_SOURCE_CONTINUE;
 }
 
-static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event,
-                             gpointer user_data) {
-  gtk_main_quit();
-  return TRUE;
+static GtkWidget *label(const char *text, const char *class) {
+  GtkWidget *l = gtk_label_new(text);
+  gtk_style_context_add_class(gtk_widget_get_style_context(l), class);
+  return l;
 }
 
-static gboolean on_focus_out(GtkWidget *widget, GdkEventFocus *event,
-                             gpointer user_data) {
+// [ name ][ detail ]
+static GtkWidget *section(GtkWidget *parent, const char *title,
+                          const char *detail) {
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(box), "section");
+
+  GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_widget_set_halign(header, GTK_ALIGN_START);
+  gtk_box_pack_start(GTK_BOX(header), label(title, "segment-dark"), FALSE,
+                     FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(header), label("", "segment-arrow"), FALSE,
+                     FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(header), label(detail, "segment-light"), FALSE,
+                     FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), header, FALSE, FALSE, 0);
+
+  GtkWidget *rows = gtk_grid_new();
+  gtk_style_context_add_class(gtk_widget_get_style_context(rows), "rows");
+  gtk_grid_set_row_spacing(GTK_GRID(rows), 6);
+  gtk_grid_set_column_spacing(GTK_GRID(rows), 18);
+  gtk_box_pack_start(GTK_BOX(box), rows, FALSE, FALSE, 0);
+
+  gtk_box_pack_start(GTK_BOX(parent), box, FALSE, FALSE, 0);
+  return rows;
+}
+
+static Row row(GtkWidget *rows, const char *key) {
+  int y = 0;
+  while (gtk_grid_get_child_at(GTK_GRID(rows), 0, y))
+    y++;
+
+  GtkWidget *k = label(key, "key");
+  gtk_label_set_xalign(GTK_LABEL(k), 0);
+  gtk_label_set_width_chars(GTK_LABEL(k), 12);
+  gtk_grid_attach(GTK_GRID(rows), k, 0, y, 1, 1);
+
+  Row r = {.bar = gtk_level_bar_new(), .value = label("", "value")};
+  // no low/high/full classes of the GTK theme, "critical" is set here
+  gtk_level_bar_remove_offset_value(GTK_LEVEL_BAR(r.bar),
+                                    GTK_LEVEL_BAR_OFFSET_LOW);
+  gtk_level_bar_remove_offset_value(GTK_LEVEL_BAR(r.bar),
+                                    GTK_LEVEL_BAR_OFFSET_HIGH);
+  gtk_level_bar_remove_offset_value(GTK_LEVEL_BAR(r.bar),
+                                    GTK_LEVEL_BAR_OFFSET_FULL);
+  gtk_widget_set_valign(r.bar, GTK_ALIGN_CENTER);
+  gtk_widget_set_hexpand(r.bar, TRUE);
+  gtk_grid_attach(GTK_GRID(rows), r.bar, 1, y, 1, 1);
+
+  gtk_label_set_xalign(GTK_LABEL(r.value), 1);
+  gtk_label_set_width_chars(GTK_LABEL(r.value), 14);
+  gtk_grid_attach(GTK_GRID(rows), r.value, 2, y, 1, 1);
+  return r;
+}
+
+static gboolean quit(GtkWidget *w, GdkEvent *ev, gpointer data) {
   gtk_main_quit();
-  return FALSE;
+  return TRUE;
 }
 
 int main(int argc, char *argv[]) {
+  App app = {0};
+  cpu_load(&app);
+
+  g_set_prgname("sway-sys-info");
   gtk_init(&argc, &argv);
-
-  AppData app;
-  memset(&app, 0, sizeof(app));
-  detect_hardware(&app);
-
-  GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(window), "Informacje");
-  gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
-  gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
-  gtk_container_set_border_width(GTK_CONTAINER(window), 0);
+  find_hwmons(&app);
 
   GtkCssProvider *css = gtk_css_provider_new();
-  gtk_css_provider_load_from_data(css,
-                                  "window {\n"
-                                  "  background-color: #141418;\n"
-                                  "  border: 2px solid #4c7899;\n"
-                                  "  border-radius: 0px;\n"
-                                  "}\n"
-                                  "#main-box {\n"
-                                  "  padding: 24px 32px;\n"
-                                  "}\n",
-                                  -1, NULL);
-
+  char *path =
+      g_build_filename(g_get_user_config_dir(), "sway/modal/style.css", NULL);
+  gtk_css_provider_load_from_path(css, path, NULL);
+  g_free(path);
   gtk_style_context_add_provider_for_screen(
       gdk_screen_get_default(), GTK_STYLE_PROVIDER(css),
       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_widget_set_name(box, "main-box");
+  GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(window), "Informacje");
+  gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
-  app.label = gtk_label_new(NULL);
-  gtk_label_set_xalign(GTK_LABEL(app.label), 0.0);
-  gtk_box_pack_start(GTK_BOX(box), app.label, TRUE, TRUE, 0);
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_style_context_add_class(gtk_widget_get_style_context(box), "modal");
+
+  char cpu[96] = "procesor", gpu[96] = "karta graficzna", ram[32],
+       disk[96] = "";
+  cpu_name(cpu, sizeof(cpu));
+  gpu_name(gpu, sizeof(gpu));
+  long mem_kb = 0;
+  FILE *f = fopen("/proc/meminfo", "r");
+  if (f) {
+    if (fscanf(f, "MemTotal: %ld", &mem_kb) != 1)
+      mem_kb = 0;
+    fclose(f);
+  }
+  snprintf(ram, sizeof(ram), "%.0f GB", mem_kb * 1024.0 / GIB);
+  read_line("/sys/class/nvme/nvme0/model", disk, sizeof(disk));
+  if (!disk[0])
+    snprintf(disk, sizeof(disk), "/");
+
+  GtkWidget *rows = section(box, "procesor", cpu);
+  app.load = row(rows, "obciążenie");
+  app.cpu_temp = row(rows, "temperatura");
+
+  rows = section(box, "grafika", gpu);
+  app.gpu_edge = row(rows, "rdzeń");
+  app.gpu_junction = row(rows, "hotspot");
+  app.gpu_mem = row(rows, "vram");
+  app.gpu_fan = row(rows, "wentylator");
+  app.gpu_power = row(rows, "pobór mocy");
+
+  rows = section(box, "pamięć", ram);
+  app.ram = row(rows, "ram");
+
+  rows = section(box, "dysk", disk);
+  app.disk = row(rows, "zajęte");
+  app.nvme_temp = row(rows, "temperatura");
 
   gtk_container_add(GTK_CONTAINER(window), box);
-
-  update_stats_cb(&app);
-
-  g_timeout_add(350, update_stats_cb, &app);
+  update(&app);
+  g_timeout_add(1000, update, &app);
 
   g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-  g_signal_connect(window, "key-press-event", G_CALLBACK(on_key_press), NULL);
-  g_signal_connect(window, "focus-out-event", G_CALLBACK(on_focus_out), NULL);
+  g_signal_connect(window, "key-press-event", G_CALLBACK(quit), NULL);
+  g_signal_connect(window, "focus-out-event", G_CALLBACK(quit), NULL);
 
   gtk_widget_show_all(window);
   gtk_main();
-
   return 0;
 }

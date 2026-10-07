@@ -64,6 +64,24 @@ cat <<EOF >"${DOTFILES_DIR}/swaync/.config/swaync/colors.css"
 @define-color accent_urgent ${COLOR_ACCENT_URGENT};
 EOF
 
+# Sway modals GTK colors: sway/.config/sway/modal/colors.css
+mkdir -p "${DOTFILES_DIR}/sway/.config/sway/modal"
+cat <<EOF >"${DOTFILES_DIR}/sway/.config/sway/modal/colors.css"
+/* Generated automatically by dotfiles/theme/apply.sh - DO NOT EDIT MANUALLY */
+/* Edit dotfiles/theme/colors.sh instead! */
+
+@define-color bg_dark ${COLOR_BG_DARK};
+@define-color bg_surface ${COLOR_BG_SURFACE};
+@define-color bg_active ${COLOR_BG_ACTIVE};
+@define-color border_focused ${COLOR_BORDER_FOCUSED};
+@define-color border_inactive ${COLOR_BORDER_INACTIVE};
+@define-color border_subtle ${COLOR_BORDER_SUBTLE};
+@define-color text_main ${COLOR_TEXT_MAIN};
+@define-color text_muted ${COLOR_TEXT_MUTED};
+@define-color text_focused ${COLOR_TEXT_FOCUSED};
+@define-color accent_urgent ${COLOR_ACCENT_URGENT};
+EOF
+
 # Fuzzel config: fuzzel.ini
 FUZZEL_CONTENT="[main]
 font=${FONT_MAIN}:size=12,${FONT_FALLBACK}:size=12

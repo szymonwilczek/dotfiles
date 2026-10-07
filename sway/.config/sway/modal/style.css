@@ -1,0 +1,101 @@
+/* Shared look of the GTK modals in sway/scripts (calendar, sys-info),
+   drawn after the starship prompt: a dark segment, a light one,
+   and nothing louder than that. */
+
+@import "colors.css";
+
+* {
+  font-family: "Typus Mono 95", "JetBrainsMono Nerd Font", monospace;
+  font-size: 15px;
+  color: @text_main;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+window {
+  background-color: @bg_dark;
+}
+
+.modal {
+  padding: 18px 22px 20px 22px;
+}
+
+/* Header: [ title ][ value ] */
+
+.segment-dark,
+.segment-light {
+  padding: 1px 12px;
+}
+
+.segment-dark {
+  background-color: @bg_active;
+  color: @text_focused;
+  padding-right: 6px;
+  border-radius: 999px 0 0 999px;
+}
+
+.segment-arrow {
+  background-color: @border_focused;
+  color: @bg_active;
+  padding: 0;
+}
+
+.segment-light {
+  background-color: @border_focused;
+  color: @bg_dark;
+  font-weight: 600;
+  border-radius: 0 999px 999px 0;
+}
+
+.section + .section {
+  margin-top: 18px;
+}
+
+.section .rows {
+  margin-top: 12px;
+  margin-left: 6px;
+}
+
+.key {
+  color: @text_muted;
+}
+
+.value {
+  color: @text_focused;
+  font-weight: 600;
+}
+
+.note {
+  color: @text_muted;
+}
+
+.critical {
+  color: @accent_urgent;
+}
+
+levelbar trough {
+  min-height: 4px;
+  min-width: 140px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: @bg_active;
+}
+
+levelbar trough block {
+  min-height: 4px;
+  border: none;
+  border-radius: 999px;
+}
+
+levelbar trough block.filled {
+  background: @border_focused;
+}
+
+levelbar trough block.empty {
+  background: none;
+}
+
+levelbar.critical trough block.filled {
+  background: @accent_urgent;
+}
