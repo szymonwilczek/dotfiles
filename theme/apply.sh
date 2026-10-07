@@ -237,6 +237,9 @@ cursor-color = ${COLOR_BORDER_FOCUSED}
 cursor-text = ${COLOR_BG_DARK}
 EOF
 
+# reload running waybar, its style does not watch colors.css
+pkill -SIGUSR2 -x waybar 2>/dev/null || true
+
 # reload running tmux server if active
 if pgrep tmux >/dev/null 2>&1; then
     tmux source-file "${DOTFILES_DIR}/tmux/.tmux.conf" 2>/dev/null || true

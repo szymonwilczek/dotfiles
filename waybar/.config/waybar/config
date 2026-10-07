@@ -2,6 +2,7 @@
   {
     "output": "DP-2",
     "layer": "top",
+    "reload_style_on_change": true,
     "position": "top",
     "height": 28,
     "spacing": 0,
@@ -131,6 +132,7 @@
   {
     "output": ["DP-1", "HDMI-A-1"],
     "layer": "top",
+    "reload_style_on_change": true,
     "position": "bottom",
     "exclusive": false,
     "passthrough": true,
