@@ -1,7 +1,8 @@
 // The calendar under the waybar clock, one process for the bar's lifetime,
 // told by waybar-clock.c on its stdin what to do, a command a line:
 //
-//   peek X Y CX   show it unfocused, under the clock at CX on the output at X,Y
+//   peek X Y CX   show it unfocused, under the clock at CX on the output at X,Y,
+//                 once the pointer rested on the clock for a moment
 //   leave         the pointer left the clock: hide a peek, and an open one
 //                 too unless the pointer went onto it
 //   click X Y CX  open it focused, or close it when it is open
@@ -155,6 +156,9 @@ static GtkWidget *calendar_new(Calendar *cal) {
 // Closing on a click elsewhere, which may land on the clock, must not reopen it
 #define REOPEN_GUARD_US 300000
 
+// A peek waits for the pointer to rest on the clock
+#define PEEK_DELAY_MS 400
+
 typedef enum { HIDDEN, PEEK, OPEN } Mode;
 
 typedef struct {
@@ -164,6 +168,8 @@ typedef struct {
   gboolean pointer_inside;
   gboolean over_clock;
   guint hide_timer;
+  guint peek_timer;
+  int peek_x, peek_y, peek_cx; // where the waiting peek goes
   gint64 closed_at;
 } App;
 
@@ -194,6 +200,12 @@ static gboolean hide_open(gpointer data) {
 static void hide_open_soon(App *app) {
   cancel_hide(app);
   app->hide_timer = g_timeout_add(300, hide_open, app);
+}
+
+static void cancel_peek(App *app) {
+  if (app->peek_timer)
+    g_source_remove(app->peek_timer);
+  app->peek_timer = 0;
 }
 
 // Under the clock, centred on it, but within the output
@@ -239,22 +251,35 @@ static void show(App *app, Mode mode) {
   gtk_widget_show_all(app->window);
 }
 
+static gboolean peek(gpointer data) {
+  App *app = data;
+  app->peek_timer = 0;
+  if (app->mode == HIDDEN) {
+    place(app, app->peek_x, app->peek_y, app->peek_cx);
+    show(app, PEEK);
+  }
+  return G_SOURCE_REMOVE;
+}
+
 static void command(App *app, const char *line) {
   int x, y, cx, n;
   if (sscanf(line, "peek %d %d %d", &x, &y, &cx) == 3) {
+    // over the clock at once, so an open calendar stays
     app->over_clock = TRUE;
     cancel_hide(app);
-    if (app->mode == HIDDEN)
-      place(app, x, y, cx);
-    if (app->mode != OPEN)
-      show(app, PEEK);
+    if (app->mode == HIDDEN && !app->peek_timer) {
+      app->peek_x = x, app->peek_y = y, app->peek_cx = cx;
+      app->peek_timer = g_timeout_add(PEEK_DELAY_MS, peek, app);
+    }
   } else if (!strcmp(line, "leave")) {
     app->over_clock = FALSE;
+    cancel_peek(app);
     if (app->mode == PEEK)
       hide(app);
     else if (app->mode == OPEN)
       hide_open_soon(app);
   } else if (sscanf(line, "click %d %d %d", &x, &y, &cx) == 3) {
+    cancel_peek(app);
     if (app->mode == OPEN ||
         g_get_monotonic_time() - app->closed_at < REOPEN_GUARD_US) {
       hide(app);
