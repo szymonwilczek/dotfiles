@@ -1,13 +1,10 @@
 #!/bin/bash
-# (Re)starts autotiling, built anew when its source changed
+# (Re)starts autotiling, built by make
 dir=~/.config/sway/scripts
 bin=$dir/autotiling
 
 pkill -x autotiling
 
-if [ ! -x "$bin" ] || [ "$dir/autotiling.c" -nt "$bin" ]; then
-    cc -O2 -Wall -Wextra -o "$bin" "$dir/autotiling.c" \
-        $(pkg-config --cflags --libs json-c) || exit 1
-fi
+make -s -C "$dir" RESTART= autotiling || exit 1
 
 exec "$bin"

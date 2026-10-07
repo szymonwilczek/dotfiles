@@ -39,6 +39,9 @@ sway/.config/sway/scripts/calendar
 sway/.config/sway/scripts/pipewire-mixer
 sway/.config/sway/scripts/audio-switcher
 sway/.config/sway/scripts/waybar-clock.so
+sway/.config/sway/scripts/spotify-island
+sway/.config/sway/scripts/build
+sway/.config/sway/scripts/*.new
 sway/.config/sway/scripts/night-light
 sway/.config/sway/scripts/autotiling
 emacs/.config/emacs/tramp

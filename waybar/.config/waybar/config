@@ -46,6 +46,7 @@
 
     "custom/spotify": {
       "exec": "~/.config/sway/scripts/spotify-island",
+      "restart-interval": 1,
       "return-type": "json",
       "on-click": "playerctl -p spotify play-pause",
       "on-scroll-up": "playerctl -p spotify next",
