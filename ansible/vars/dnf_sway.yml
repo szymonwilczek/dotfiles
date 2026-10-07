@@ -1,6 +1,7 @@
 ---
 dnf_sway_packages:
   - SwayNotificationCenter
+  - cliphist
   - fuzzel
   - gcolor3
   - grim
