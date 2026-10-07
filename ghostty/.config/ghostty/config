@@ -21,7 +21,8 @@ cursor-style = block
 cursor-style-blink = false
 mouse-scroll-multiplier = 4
 
-shell-integration = none
+shell-integration = zsh
+shell-integration-features = no-cursor,sudo,no-title,ssh-env,no-ssh-terminfo
 confirm-close-surface = false
 app-notifications = false
 
