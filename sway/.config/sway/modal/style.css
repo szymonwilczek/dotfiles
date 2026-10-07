@@ -135,3 +135,29 @@ levelbar.critical trough block.filled {
   color: @bg_dark;
   font-weight: 600;
 }
+
+/* Mixer */
+
+.stream {
+  padding-left: 10px;
+  border-left: 2px solid transparent;
+}
+
+.stream.selected {
+  border-left-color: @border_focused;
+}
+
+.stream.selected .key {
+  color: @text_focused;
+  font-weight: 600;
+}
+
+levelbar.muted trough block.filled {
+  background: @border_inactive;
+}
+
+.hint {
+  margin-top: 18px;
+  color: @border_inactive;
+  font-size: 13px;
+}

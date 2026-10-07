@@ -1,259 +1,314 @@
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
-#include <stdio.h>
+#include <json-c/json.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #define MAX_STREAMS 32
+#define STEP 5
 
 typedef struct {
   int id;
-  char name[128];
+  char name[64];
   int volume;
-  int muted;
-} AudioStream;
+  gboolean muted;
+} Stream;
 
 typedef struct {
-  AudioStream streams[MAX_STREAMS];
+  Stream streams[MAX_STREAMS];
   int count;
-  int selected_idx;
-  GtkWidget *label;
-} AppState;
+  int selected;
+  GtkWidget *list;
+} Mixer;
 
-static void parse_streams(AppState *app) {
-  app->count = 0;
-  FILE *fp = popen("pactl list sink-inputs 2>/dev/null", "r");
-  if (!fp)
+// Output of a pactl command, NULL when it failed; argv is not run by a shell
+static char *pactl(const char *a, const char *b, const char *c, const char *d) {
+  const char *argv[] = {"pactl", a, b, c, d, NULL};
+  char *out = NULL;
+  int status;
+  if (!g_spawn_sync(NULL, (char **)argv, NULL,
+                    G_SPAWN_SEARCH_PATH | G_SPAWN_STDERR_TO_DEV_NULL, NULL,
+                    NULL, &out, NULL, &status, NULL) ||
+      !g_spawn_check_wait_status(status, NULL)) {
+    g_free(out);
+    return NULL;
+  }
+  return out;
+}
+
+static const char *prop(json_object *props, const char *key) {
+  json_object *v;
+  if (!json_object_object_get_ex(props, key, &v))
+    return NULL;
+  const char *s = json_object_get_string(v);
+  return s && *s ? s : NULL;
+}
+
+// Mean of the channels
+static int volume(json_object *channels) {
+  int sum = 0, n = 0;
+  json_object_object_foreach(channels, key, ch) {
+    (void)key;
+    json_object *pct;
+    if (json_object_object_get_ex(ch, "value_percent", &pct)) {
+      sum += atoi(json_object_get_string(pct));
+      n++;
+    }
+  }
+  return n ? sum / n : 0;
+}
+
+// pactl -f json, as its text output is translated
+static void read_streams(Mixer *m) {
+  int selected_id = m->count ? m->streams[m->selected].id : -1;
+  m->count = 0;
+
+  char *out = pactl("-f", "json", "list", "sink-inputs");
+  json_object *root = out ? json_tokener_parse(out) : NULL;
+  g_free(out);
+  if (!root)
     return;
 
-  char line[512];
-  AudioStream current;
-  memset(&current, 0, sizeof(current));
-  int in_stream = 0;
+  size_t len = json_object_array_length(root);
+  for (size_t i = 0; i < len && m->count < MAX_STREAMS; i++) {
+    json_object *in = json_object_array_get_idx(root, i), *v, *props = NULL;
+    json_object_object_get_ex(in, "properties", &props);
+    const char *name = prop(props, "application.name");
+    if (!name)
+      name = prop(props, "media.name");
+    if (!name || g_str_has_prefix(name, "speech-dispatcher"))
+      continue;
 
-  while (fgets(line, sizeof(line), fp)) {
-    if (strstr(line, "odpływ wejścia") || strstr(line, "Sink Input #")) {
-      if (in_stream && current.id > 0 && strlen(current.name) > 0) {
-        if (strstr(current.name, "speech-dispatcher") == NULL &&
-            app->count < MAX_STREAMS) {
-          app->streams[app->count++] = current;
-        }
-      }
-      memset(&current, 0, sizeof(current));
-      sscanf(line, "%d", &current.id);
-      in_stream = 1;
-    } else if (in_stream) {
-      if (strstr(line, "application.name = ")) {
-        char *start = strchr(line, '"');
-        if (start) {
-          start++;
-          char *end = strchr(start, '"');
-          if (end)
-            *end = '\0';
-          snprintf(current.name, sizeof(current.name), "%s", start);
-        }
-      } else if (strstr(line, "media.name = ") && strlen(current.name) == 0) {
-        char *start = strchr(line, '"');
-        if (start) {
-          start++;
-          char *end = strchr(start, '"');
-          if (end)
-            *end = '\0';
-          snprintf(current.name, sizeof(current.name), "%s", start);
-        }
-      } else if (strstr(line, "Wyciszenie:") || strstr(line, "Mute:")) {
-        if (strstr(line, "tak") || strstr(line, "yes")) {
-          current.muted = 1;
-        } else {
-          current.muted = 0;
-        }
-      } else if (strstr(line, "Poziom głośności:") || strstr(line, "Volume:")) {
-        char *pct = strchr(line, '%');
-        if (pct) {
-          char *p = pct;
-          while (p > line && *(p - 1) >= '0' && *(p - 1) <= '9')
-            p--;
-          sscanf(p, "%d", &current.volume);
-        }
-      }
+    Stream *s = &m->streams[m->count++];
+    json_object_object_get_ex(in, "index", &v);
+    s->id = json_object_get_int(v);
+    snprintf(s->name, sizeof(s->name), "%s", name);
+    const char *bin = prop(props, "application.process.binary");
+    if (!strcmp(name, "Chromium") && bin && !g_str_has_prefix(bin, "chrom")) {
+      snprintf(s->name, sizeof(s->name), "%s", bin);
+      char *ext = strstr(s->name, ".bin");
+      if (ext)
+        *ext = '\0';
     }
+    s->muted =
+        json_object_object_get_ex(in, "mute", &v) && json_object_get_boolean(v);
+    s->volume = json_object_object_get_ex(in, "volume", &v) ? volume(v) : 0;
   }
-  if (in_stream && current.id > 0 && strlen(current.name) > 0) {
-    if (strstr(current.name, "speech-dispatcher") == NULL &&
-        app->count < MAX_STREAMS) {
-      app->streams[app->count++] = current;
-    }
-  }
-  pclose(fp);
+  json_object_put(root);
 
-  if (app->selected_idx >= app->count) {
-    app->selected_idx = app->count > 0 ? app->count - 1 : 0;
-  }
+  m->selected = 0;
+  for (int i = 0; i < m->count; i++)
+    if (m->streams[i].id == selected_id)
+      m->selected = i;
 }
 
-static void update_display(AppState *app) {
-  parse_streams(app);
-
-  char markup[4096];
-  int offset = 0;
-
-  offset += snprintf(markup + offset, sizeof(markup) - offset, "<tt>");
-
-  if (app->count == 0) {
-    offset += snprintf(markup + offset, sizeof(markup) - offset,
-                       "<span color='#777777'><i>Brak aktywnych strumieni "
-                       "dźwięku</i></span>\n");
-  } else {
-    for (int i = 0; i < app->count; i++) {
-      int is_selected = (i == app->selected_idx);
-      AudioStream *s = &app->streams[i];
-
-      char bar[32] = "";
-      int blocks = s->volume / 10;
-      if (blocks > 10)
-        blocks = 10;
-      for (int b = 0; b < 10; b++) {
-        if (b < blocks)
-          strcat(bar, "█");
-        else
-          strcat(bar, "░");
-      }
-
-      const char *prefix = is_selected ? " ▶ " : "   ";
-      const char *name_color = is_selected ? "#4c7899" : "#cccccc";
-
-      if (s->muted) {
-        offset += snprintf(markup + offset, sizeof(markup) - offset,
-                           "%s<b><span color='%s'>%-16s</span></b>  "
-                           "[WYCISZONE]  <span color='#666666'>%d%%</span>\n",
-                           prefix, name_color, s->name, s->volume);
-      } else {
-        offset += snprintf(
-            markup + offset, sizeof(markup) - offset,
-            "%s<b><span color='%s'>%-16s</span></b>  [%s]  <b>%d%%</b>\n",
-            prefix, name_color, s->name, bar, s->volume);
-      }
-    }
-  }
-
-  offset += snprintf(markup + offset, sizeof(markup) - offset, "</tt>");
-
-  gtk_label_set_markup(GTK_LABEL(app->label), markup);
+static void add_class(GtkWidget *w, const char *class) {
+  gtk_style_context_add_class(gtk_widget_get_style_context(w), class);
 }
 
-static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event,
-                             gpointer user_data) {
-  AppState *app = (AppState *)user_data;
+static GtkWidget *label(const char *text, const char *class) {
+  GtkWidget *l = gtk_label_new(text);
+  add_class(l, class);
+  return l;
+}
 
-  switch (event->keyval) {
-  case GDK_KEY_j:
-  case GDK_KEY_Down:
-    if (app->count > 0) {
-      app->selected_idx = (app->selected_idx + 1) % app->count;
-      update_display(app);
-    }
-    return TRUE;
+static void render(Mixer *m) {
+  GList *rows = gtk_container_get_children(GTK_CONTAINER(m->list));
+  for (GList *r = rows; r; r = r->next)
+    gtk_widget_destroy(r->data);
+  g_list_free(rows);
 
-  case GDK_KEY_k:
-  case GDK_KEY_Up:
-    if (app->count > 0) {
-      app->selected_idx = (app->selected_idx - 1 + app->count) % app->count;
-      update_display(app);
-    }
-    return TRUE;
+  if (m->count == 0) {
+    GtkWidget *l = label("brak odtwarzanych strumieni", "note");
+    gtk_label_set_xalign(GTK_LABEL(l), 0);
+    gtk_box_pack_start(GTK_BOX(m->list), l, FALSE, FALSE, 0);
+  }
 
-  case GDK_KEY_l:
-  case GDK_KEY_Right:
-    if (app->count > 0 && app->selected_idx < app->count) {
-      char cmd[256];
-      snprintf(cmd, sizeof(cmd), "pactl set-sink-input-volume %d +5%%",
-               app->streams[app->selected_idx].id);
-      system(cmd);
-      update_display(app);
-    }
-    return TRUE;
+  for (int i = 0; i < m->count; i++) {
+    Stream *s = &m->streams[i];
+    GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 18);
+    add_class(row, "stream");
+    if (i == m->selected)
+      add_class(row, "selected");
 
-  case GDK_KEY_h:
-  case GDK_KEY_Left:
-    if (app->count > 0 && app->selected_idx < app->count) {
-      char cmd[256];
-      snprintf(cmd, sizeof(cmd), "pactl set-sink-input-volume %d -5%%",
-               app->streams[app->selected_idx].id);
-      system(cmd);
-      update_display(app);
-    }
-    return TRUE;
+    GtkWidget *name = label(s->name, "key");
+    gtk_label_set_xalign(GTK_LABEL(name), 0);
+    gtk_label_set_width_chars(GTK_LABEL(name), 16);
+    gtk_label_set_max_width_chars(GTK_LABEL(name), 16);
+    gtk_label_set_ellipsize(GTK_LABEL(name), PANGO_ELLIPSIZE_END);
+    gtk_box_pack_start(GTK_BOX(row), name, FALSE, FALSE, 0);
 
-  case GDK_KEY_m:
-    if (app->count > 0 && app->selected_idx < app->count) {
-      char cmd[256];
-      snprintf(cmd, sizeof(cmd), "pactl set-sink-input-mute %d toggle",
-               app->streams[app->selected_idx].id);
-      system(cmd);
-      update_display(app);
-    }
-    return TRUE;
+    GtkWidget *bar = gtk_level_bar_new();
+    gtk_level_bar_remove_offset_value(GTK_LEVEL_BAR(bar),
+                                      GTK_LEVEL_BAR_OFFSET_LOW);
+    gtk_level_bar_remove_offset_value(GTK_LEVEL_BAR(bar),
+                                      GTK_LEVEL_BAR_OFFSET_HIGH);
+    gtk_level_bar_remove_offset_value(GTK_LEVEL_BAR(bar),
+                                      GTK_LEVEL_BAR_OFFSET_FULL);
+    gtk_level_bar_set_value(GTK_LEVEL_BAR(bar),
+                            CLAMP(s->volume, 0, 100) / 100.0);
+    gtk_widget_set_valign(bar, GTK_ALIGN_CENTER);
+    if (s->muted)
+      add_class(bar, "muted");
+    gtk_box_pack_start(GTK_BOX(row), bar, TRUE, TRUE, 0);
 
+    char text[16];
+    snprintf(text, sizeof(text), "%d %%", s->volume);
+    GtkWidget *value =
+        label(s->muted ? "wyciszone" : text, s->muted ? "note" : "value");
+    gtk_label_set_xalign(GTK_LABEL(value), 1);
+    gtk_label_set_width_chars(GTK_LABEL(value), 9);
+    gtk_box_pack_start(GTK_BOX(row), value, FALSE, FALSE, 0);
+
+    gtk_box_pack_start(GTK_BOX(m->list), row, FALSE, FALSE, 0);
+  }
+  gtk_widget_show_all(m->list);
+}
+
+static gboolean refresh(gpointer data) {
+  read_streams(data);
+  render(data);
+  return G_SOURCE_CONTINUE;
+}
+
+static void change_volume(Mixer *m, int delta) {
+  Stream *s = &m->streams[m->selected];
+  char id[16], vol[16];
+  snprintf(id, sizeof(id), "%d", s->id);
+  snprintf(vol, sizeof(vol), "%d%%", CLAMP(s->volume + delta, 0, 100));
+  g_free(pactl("set-sink-input-volume", id, vol, NULL));
+}
+
+static void toggle_mute(Mixer *m) {
+  char id[16];
+  snprintf(id, sizeof(id), "%d", m->streams[m->selected].id);
+  g_free(pactl("set-sink-input-mute", id, "toggle", NULL));
+}
+
+static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data) {
+  Mixer *m = data;
+  switch (ev->keyval) {
   case GDK_KEY_Escape:
-  default:
+  case GDK_KEY_q:
     gtk_main_quit();
     return TRUE;
   }
+  if (m->count == 0)
+    return TRUE;
+
+  switch (ev->keyval) {
+  case GDK_KEY_j:
+  case GDK_KEY_Down:
+    m->selected = (m->selected + 1) % m->count;
+    render(m);
+    return TRUE;
+  case GDK_KEY_k:
+  case GDK_KEY_Up:
+    m->selected = (m->selected + m->count - 1) % m->count;
+    render(m);
+    return TRUE;
+  case GDK_KEY_l:
+  case GDK_KEY_Right:
+    change_volume(m, STEP);
+    break;
+  case GDK_KEY_h:
+  case GDK_KEY_Left:
+    change_volume(m, -STEP);
+    break;
+  case GDK_KEY_m:
+    toggle_mute(m);
+    break;
+  default:
+    return TRUE;
+  }
+  refresh(m);
+  return TRUE;
 }
 
-static gboolean on_focus_out(GtkWidget *widget, GdkEventFocus *event,
-                             gpointer user_data) {
+static gboolean on_focus_out(GtkWidget *w, GdkEventFocus *ev, gpointer data) {
   gtk_main_quit();
   return FALSE;
 }
 
+// Description of the default sink, for the header
+static void default_sink(char *buf, size_t len) {
+  char *name = pactl("get-default-sink", NULL, NULL, NULL);
+  char *out = name ? pactl("-f", "json", "list", "sinks") : NULL;
+  json_object *root = out ? json_tokener_parse(out) : NULL;
+  if (name)
+    g_strstrip(name);
+
+  size_t n = root ? json_object_array_length(root) : 0;
+  for (size_t i = 0; i < n; i++) {
+    json_object *sink = json_object_array_get_idx(root, i), *v;
+    if (json_object_object_get_ex(sink, "name", &v) &&
+        !strcmp(json_object_get_string(v), name) &&
+        json_object_object_get_ex(sink, "description", &v)) {
+      snprintf(buf, len, "%s", json_object_get_string(v));
+      break;
+    }
+  }
+  if (root)
+    json_object_put(root);
+  g_free(out);
+  g_free(name);
+}
+
 int main(int argc, char *argv[]) {
+  g_set_prgname("sway-mixer");
   gtk_init(&argc, &argv);
 
-  AppState app;
-  memset(&app, 0, sizeof(app));
-
-  GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(window), "Mikser dźwięku");
-  gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
-  gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
-  gtk_container_set_border_width(GTK_CONTAINER(window), 0);
-
   GtkCssProvider *css = gtk_css_provider_new();
-  gtk_css_provider_load_from_data(css,
-                                  "window {\n"
-                                  "  background-color: #141418;\n"
-                                  "  border: 2px solid #4c7899;\n"
-                                  "  border-radius: 0px;\n"
-                                  "}\n"
-                                  "#main-box {\n"
-                                  "  padding: 24px 32px;\n"
-                                  "}\n",
-                                  -1, NULL);
-
+  char *path =
+      g_build_filename(g_get_user_config_dir(), "sway/modal/style.css", NULL);
+  gtk_css_provider_load_from_path(css, path, NULL);
+  g_free(path);
   gtk_style_context_add_provider_for_screen(
       gdk_screen_get_default(), GTK_STYLE_PROVIDER(css),
       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  gtk_widget_set_name(box, "main-box");
+  GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(window), "Mikser dźwięku");
+  gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
-  app.label = gtk_label_new(NULL);
-  gtk_label_set_xalign(GTK_LABEL(app.label), 0.0);
-  gtk_box_pack_start(GTK_BOX(box), app.label, TRUE, TRUE, 0);
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  add_class(box, "modal");
+
+  GtkWidget *section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  add_class(section, "section");
+  GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_widget_set_halign(header, GTK_ALIGN_START);
+  char sink[96] = "wyjście";
+  default_sink(sink, sizeof(sink));
+  GtkWidget *detail = label(sink, "segment-light");
+  gtk_label_set_max_width_chars(GTK_LABEL(detail), 36);
+  gtk_label_set_ellipsize(GTK_LABEL(detail), PANGO_ELLIPSIZE_END);
+  gtk_box_pack_start(GTK_BOX(header), label("dźwięk", "segment-dark"), FALSE,
+                     FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(header), label("", "segment-arrow"), FALSE,
+                     FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(header), detail, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(section), header, FALSE, FALSE, 0);
+
+  Mixer m = {.list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6)};
+  add_class(m.list, "rows");
+  gtk_box_pack_start(GTK_BOX(section), m.list, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), section, FALSE, FALSE, 0);
+
+  GtkWidget *hint = label("j/k wybór   h/l głośność   m wycisz", "hint");
+  gtk_label_set_xalign(GTK_LABEL(hint), 0);
+  gtk_box_pack_start(GTK_BOX(box), hint, FALSE, FALSE, 0);
 
   gtk_container_add(GTK_CONTAINER(window), box);
-
-  update_display(&app);
+  refresh(&m);
+  g_timeout_add(1000, refresh, &m);
 
   g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
-  g_signal_connect(window, "key-press-event", G_CALLBACK(on_key_press), &app);
-  g_signal_connect(window, "focus-out-event", G_CALLBACK(on_focus_out), &app);
+  g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), &m);
+  g_signal_connect(window, "focus-out-event", G_CALLBACK(on_focus_out), NULL);
 
   gtk_widget_show_all(window);
   gtk_main();
-
   return 0;
 }
