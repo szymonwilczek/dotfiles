@@ -18,7 +18,7 @@
     "custom/recording": {
       "exec": "~/.config/sway/scripts/recording-status.sh",
       "return-type": "json",
-      "interval": 1,
+      "interval": "once",
       "signal": 8,
       "tooltip": false
     },
@@ -42,7 +42,7 @@
 
     "clock": {
       "locale": "pl_PL.UTF-8",
-      "interval": 1,
+      "interval": 60,
       "format": "{:L%A, %d %B %H:%M}",
       "tooltip-format": "<tt><small>{calendar}</small></tt>",
       "calendar": {
