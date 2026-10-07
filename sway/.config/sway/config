@@ -14,6 +14,7 @@ exec swaync
 exec ~/.config/sway/scripts/waybar.sh
 exec ~/.config/sway/scripts/modal.sh pipewire-mixer --hidden
 exec ~/.config/sway/scripts/modal.sh audio-switcher --hidden
+exec wl-paste --watch cliphist store
 
 # Output configuration
 output * bg ~/Pulpit/Personalne/Tapety/fall-house-norm.jpg fill
@@ -157,6 +158,7 @@ bindsym $mod+Shift+p exec ~/.config/sway/scripts/modal.sh pipewire-mixer
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
 bindsym $mod+n exec ~/.config/sway/scripts/toggle-night-light.sh
 bindsym $mod+grave exec ~/.config/sway/scripts/jot-scratch.sh
+bindsym $mod+c exec ~/.config/sway/scripts/clipboard.sh
 
 # Screen recording & Drawing
 bindsym $mod+Shift+r exec ~/.config/sway/scripts/record-screen.sh
