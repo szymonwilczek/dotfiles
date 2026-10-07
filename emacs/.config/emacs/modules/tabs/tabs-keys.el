@@ -4,6 +4,11 @@
     "[b" #'bufferline-prev-tab
     "]b" #'bufferline-next-tab))
 
+(with-eval-after-load 'evil-collection-unimpaired
+  (evil-define-key 'normal evil-collection-unimpaired-mode-map
+    "[b" #'bufferline-prev-tab
+    "]b" #'bufferline-next-tab))
+
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)
     (my-leader-def
