@@ -142,6 +142,7 @@ bindsym --whole-window $mod+button4 exec $ws next
 bindsym --whole-window $mod+button5 exec $ws prev
 bindsym $mod+Tab workspace back_and_forth
 
+# TODO: remove that
 bindsym $mod+b splith
 bindsym $mod+v splitv
 
@@ -161,6 +162,7 @@ bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
 bindsym $mod+n exec ~/.config/sway/scripts/toggle-night-light.sh
 bindsym $mod+grave exec ~/.config/sway/scripts/jot-scratch.sh
 bindsym $mod+c exec ~/.config/sway/scripts/clipboard.sh
+bindsym $mod+b exec ~/.config/sway/scripts/window-picker.sh
 
 # Screen recording & Drawing
 bindsym $mod+Shift+r exec ~/.config/sway/scripts/record-screen.sh
