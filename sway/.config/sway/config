@@ -244,7 +244,7 @@ bindsym --locked XF86AudioMicMute exec swayosd-client --input-volume mute-toggle
 # Idle management
 exec swayidle -w timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"'
 
-exec_always ~/.config/sway/scripts/workspace-init.sh
+exec ~/.config/sway/scripts/workspace-init.sh
 exec_always ~/.config/sway/scripts/autotiling.sh
 
 include /etc/sway/config.d/*
