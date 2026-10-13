@@ -88,7 +88,7 @@
     (pcase type
       ('claude
        (when (bound-and-true-p my/agent-claude-quota-data)
-         (let* ((c-logo (propertize "󰘑" 'face (if active
+         (let* ((c-logo (propertize "󰜡" 'face (if active
                                                   '(:foreground "#da7756" :weight bold)
                                                 'shadow)))
                 (u5 (alist-get '5h-util my/agent-claude-quota-data))
