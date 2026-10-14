@@ -12,4 +12,4 @@ make -s -C "$dir" RESTART= night-light || exit 1
 
 "$bin" &
 swayosd-client --custom-icon night-light-symbolic \
-    --custom-message "Night light $("$bin" -p)K"
+    --custom-message "Night light $("$bin" -p)%"

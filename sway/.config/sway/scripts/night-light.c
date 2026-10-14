@@ -1,14 +1,19 @@
-// Warms the screen color temperature the later it gets.
+// Filters the screen the stronger the later it gets.
 //
-// The day temperature applies while the sun is up, dusk warms it to the evening
-// temperature, and the hours before bedtime warm it further to the night one.
+// Unlike the usual black body warming, which turns white orange, the filter
+// keeps white close to neutral, like the hardware low blue light of laptop
+// panels: it trims some blue and dims the screen as a whole, so less blue
+// light reaches the eyes without the color cast.
+//
+// The day level applies while the sun is up, dusk raises it to the evening
+// level, and the hours before bedtime raise it further to the night one.
 //
 // Sunset follows the date and the location, so winter evenings start earlier.
 // SIGTERM fades back to neutral and exits.
 //
 // Built by toggle-night-light.sh;
-//      -p prints the current temperature and
-//      -t <kelvin> holds a fixed one, to try out values.
+//      -p prints the current level in percent and
+//      -t <percent> holds a fixed one, to try out values.
 
 #define _GNU_SOURCE
 #include <math.h>
@@ -29,16 +34,20 @@
 #define LATITUDE 52.0
 #define LONGITUDE 19.0
 
-#define DAY_TEMP 6000
-#define EVENING_TEMP 4000
-#define NIGHT_TEMP 3400
-#define NEUTRAL_TEMP 6500
+// Levels of the filter, from 0 for none to 100 for the full night one
+#define DAY_LEVEL 10
+#define EVENING_LEVEL 60
+#define NIGHT_LEVEL 100
+
+// The full filter dims white by this much and trims blue by this much more
+#define DIM 0.10
+#define BLUE_CUT 0.06
 
 #define DUSK_START 3.0
 #define DUSK_END -6.0
 
 // Local bedtime in minutes after midnight;
-// the night temperature is reached two hours before it, after a two hour ramp,
+// the night level is reached two hours before it, after a two hour ramp,
 // and holds until it
 #define BEDTIME (4 * 60 + 30)
 #define WIND_DOWN 120
@@ -61,7 +70,7 @@ static struct zwlr_gamma_control_manager_v1 *manager;
 static Output *outputs;
 static int dirty;
 static volatile sig_atomic_t stop;
-static double fixed_temp;
+static double fixed_level = -1;
 
 static double to_rad(double deg) { return deg * M_PI / 180.0; }
 
@@ -88,12 +97,12 @@ static double sun_elevation(time_t now) {
       asin(sin(lat) * sin(dec) + cos(lat) * cos(dec) * cos(hour_angle)));
 }
 
-static double temperature(time_t now) {
-  if (fixed_temp > 0)
-    return fixed_temp;
+static double level(time_t now) {
+  if (fixed_level >= 0)
+    return fixed_level;
   double elevation = sun_elevation(now);
-  double temp = lerp(EVENING_TEMP, DAY_TEMP,
-                     (elevation - DUSK_END) / (DUSK_START - DUSK_END));
+  double day = lerp(EVENING_LEVEL, DAY_LEVEL,
+                    (elevation - DUSK_END) / (DUSK_START - DUSK_END));
 
   struct tm local;
   localtime_r(&now, &local);
@@ -101,34 +110,28 @@ static double temperature(time_t now) {
   int minutes = local.tm_hour * 60 + local.tm_min - BEDTIME;
   minutes = ((minutes + 720) % 1440 + 1440) % 1440 - 720;
 
-  double bed = INFINITY;
+  double bed = 0;
   if (minutes >= -WIND_DOWN - NIGHT_HOLD && minutes < -NIGHT_HOLD)
-    bed = lerp(EVENING_TEMP, NIGHT_TEMP,
+    bed = lerp(EVENING_LEVEL, NIGHT_LEVEL,
                (minutes + WIND_DOWN + NIGHT_HOLD) / (double)WIND_DOWN);
   else if (minutes >= -NIGHT_HOLD && minutes < 0)
-    bed = NIGHT_TEMP;
+    bed = NIGHT_LEVEL;
   else if (minutes >= 0 && minutes < WAKE_UP)
-    bed = lerp(NIGHT_TEMP, DAY_TEMP, minutes / (double)WAKE_UP);
-  return fmin(temp, bed);
+    bed = lerp(NIGHT_LEVEL, DAY_LEVEL, minutes / (double)WAKE_UP);
+  return fmax(day, bed);
 }
 
-// White point of a black body, approximated by Tanner Helland's fit
-// and scaled so that the neutral temperature is white
-static void white_point(double temp, double rgb[3]) {
-  double t = temp / 100.0;
-  double neutral = NEUTRAL_TEMP / 100.0;
-  double green = (99.4708025861 * log(t) - 161.1195681661) /
-                 (99.4708025861 * log(neutral) - 161.1195681661);
-  double blue = t <= 19
-                    ? 0
-                    : (138.5177312231 * log(t - 10) - 305.0447927307) /
-                          (138.5177312231 * log(neutral - 10) - 305.0447927307);
-  rgb[0] = 1.0;
-  rgb[1] = green < 0 ? 0 : green > 1 ? 1 : green;
-  rgb[2] = blue < 0 ? 0 : blue > 1 ? 1 : blue;
+// Channel gains of the filter at the given level: white dims evenly,
+// and blue a little more, so it stays near neutral instead of turning orange
+static void white_point(double level, double rgb[3]) {
+  double strength = level / 100.0;
+  double white = 1.0 - DIM * strength;
+  rgb[0] = white;
+  rgb[1] = white;
+  rgb[2] = white * (1.0 - BLUE_CUT * strength);
 }
 
-static void set_gamma(Output *output, double temp) {
+static void set_gamma(Output *output, double level) {
   size_t size = output->ramp_size * 3 * sizeof(uint16_t);
   int fd = memfd_create("night-light", MFD_CLOEXEC);
   if (fd < 0 || ftruncate(fd, size) < 0) {
@@ -144,7 +147,7 @@ static void set_gamma(Output *output, double temp) {
     return;
   }
   double rgb[3];
-  white_point(temp, rgb);
+  white_point(level, rgb);
   for (uint32_t c = 0; c < 3; c++)
     for (uint32_t i = 0; i < output->ramp_size; i++)
       ramp[c * output->ramp_size + i] =
@@ -154,10 +157,10 @@ static void set_gamma(Output *output, double temp) {
   close(fd);
 }
 
-static void set_all(struct wl_display *display, double temp) {
+static void set_all(struct wl_display *display, double level) {
   for (Output *o = outputs; o; o = o->next)
     if (o->control && o->ramp_size > 1)
-      set_gamma(o, temp);
+      set_gamma(o, level);
   wl_display_flush(display);
 }
 
@@ -237,11 +240,11 @@ static void handle_signal(int sig) { stop = 1; }
 
 int main(int argc, char **argv) {
   if (argc > 1 && strcmp(argv[1], "-p") == 0) {
-    printf("%.0f\n", temperature(time(NULL)));
+    printf("%.0f\n", level(time(NULL)));
     return 0;
   }
   if (argc > 2 && strcmp(argv[1], "-t") == 0)
-    fixed_temp = atof(argv[2]);
+    fixed_level = atof(argv[2]);
 
   struct wl_display *display = wl_display_connect(NULL);
   if (!display) {
@@ -262,8 +265,8 @@ int main(int argc, char **argv) {
   sigaction(SIGTERM, &action, NULL);
   sigaction(SIGINT, &action, NULL);
 
-  double current = temperature(time(NULL));
-  fade(display, NEUTRAL_TEMP, current);
+  double current = level(time(NULL));
+  fade(display, 0, current);
   dirty = 0;
 
   struct pollfd pfd = {.fd = wl_display_get_fd(display), .events = POLLIN};
@@ -280,16 +283,16 @@ int main(int argc, char **argv) {
     if (wl_display_dispatch_pending(display) < 0)
       break;
 
-    double temp = temperature(time(NULL));
-    if (dirty || fabs(temp - current) >= 1) {
-      current = temp;
+    double next = level(time(NULL));
+    if (dirty || fabs(next - current) >= 0.5) {
+      current = next;
       dirty = 0;
       set_all(display, current);
     }
   }
 
   if (stop)
-    fade(display, current, NEUTRAL_TEMP);
+    fade(display, current, 0);
   wl_display_disconnect(display);
   return 0;
 }
