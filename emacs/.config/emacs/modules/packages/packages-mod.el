@@ -9,11 +9,15 @@
 ;; in the original order, so redefined functions take effect at once.
 ;; Variables already set by `defvar' and `defcustom' keep their values.
 
+(require 'cl-lib)
 (require 'package)
 (require 'package-vc)
 
 (defconst my/repack-own-url-re "github\\.com[:/]szymonwilczek/"
   "Remote URLs matching this regexp mark packages I maintain.")
+
+(defconst my/repack--test-dir-re "/tests?\\(?:/\\|\\'\\)"
+  "Regexp matching directories of test suites inside a checkout.")
 
 (defun my/repack--desc (name)
   "Return the installed package description of NAME."
@@ -86,7 +90,10 @@
       (let ((file (car entry)))
         (when (and (stringp file)
                    (string-prefix-p dir file)
-                   (string-match-p "\\.elc?\\'" file))
+                   (string-match-p "\\.elc?\\'" file)
+                   (not (string-match-p
+                         my/repack--test-dir-re
+                         (concat "/" (file-relative-name file dir)))))
           (push (file-name-sans-extension (file-relative-name file dir))
                 files))))
     (delete-dups files)))
@@ -145,6 +152,31 @@ fi"
   "Shell script bringing a package checkout up to its remote branch.
 Its first argument names a branch to check out first, or is empty.")
 
+(defun my/repack--rebuild (desc)
+  "Rebuild the VC package DESC without running its test suite.
+Rebuilding byte-compiles the whole checkout inside this Emacs,
+and compiling a test file evaluates its top-level `require's,
+so a test helper setting variables would clobber my settings.
+Test directories are compiled no more, and variables of the
+package that compilation changed anyway get their values back."
+  (let* ((prefix (concat (symbol-name (package-desc-name desc)) "-"))
+         (dir (regexp-quote (directory-file-name (package-desc-dir desc))))
+         (parse (symbol-function 'package--parse-elpaignore))
+         saved)
+    (mapatoms (lambda (sym)
+                (when (and (boundp sym)
+                           (string-prefix-p prefix (symbol-name sym)))
+                  (push (cons sym (default-value sym)) saved))))
+    (unwind-protect
+        (cl-letf (((symbol-function 'package--parse-elpaignore)
+                   (lambda (pkg)
+                     (cons (concat "\\`" dir ".*" my/repack--test-dir-re)
+                           (funcall parse pkg)))))
+          (package-vc-rebuild desc))
+      (pcase-dolist (`(,sym . ,value) saved)
+        (unless (eq (default-value sym) value)
+          (set-default sym value))))))
+
 (defun my/repack--update-vc (desc then)
   "Update the checkout of DESC, rebuild it if it changed, then call THEN.
 A checkout on a detached HEAD, as left by installing a release,
@@ -177,7 +209,7 @@ history, unless the checkout has commits or changes of its own."
                (message "repack: updating %s failed" name))
            (if (equal before (my/repack--git dir "rev-parse" "HEAD"))
                (message "repack: %s is already up to date" name)
-             (package-vc-rebuild desc))
+             (my/repack--rebuild desc))
            (funcall then)))))))
 
 (defun my/repack--update-archive (desc then)
