@@ -22,6 +22,7 @@
 (require 'jot-mod)
 (require 'dired-mod)
 (require 'tramp-mod)
+(require 'chashitsu-mod)
 
 
 (provide 'init)
