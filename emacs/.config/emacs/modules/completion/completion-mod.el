@@ -84,6 +84,13 @@
   (interactive)
   (consult-fd (my/project-root)))
 
+(defun my/open-file-anywhere (file)
+  "Open FILE from anywhere, starting the prompt in the home directory.
+The file opens in the current perspective, whatever project it is in."
+  (interactive
+   (list (read-file-name "Open file: " (expand-file-name "~/") nil t)))
+  (find-file (expand-file-name file)))
+
 (defun my/project-search-word ()
   "Search for text in the project root with `ripgrep', including hidden files."
   (interactive)
