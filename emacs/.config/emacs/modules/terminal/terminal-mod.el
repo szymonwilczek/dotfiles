@@ -1,5 +1,8 @@
 ;;; Ghostel terminal configuration with libghostty -*- lexical-binding: t; -*-
 
+(require 'color)
+(require 'cl-lib)
+
 (defun my/get-clipboard-string ()
   "Safely retrieve string from kill ring, Emacs GUI selection, or Wayland clipboard."
   (let ((text (or (current-kill 0 t)
@@ -63,6 +66,56 @@
       (setq my/ghostel-last-escape-time now)
       (evil-force-normal-state))))
 
+;; Theme-aware palette
+(defvar my/ghostel-base-palette
+  ["#1d1f21" "#cc6666" "#b5bd68" "#f0c674" "#81a2be" "#b294bb" "#8abeb7" "#c5c8c6"
+   "#666666" "#d54e53" "#b9ca4a" "#e7c547" "#7aa6da" "#c397d8" "#70c0b1" "#eaeaea"]
+  "Ghostty's default ANSI palette, used as the hue source for ghostel.")
+
+(defvar my/ghostel-min-contrast 4.5
+  "Minimum WCAG contrast ratio of every palette color against the background.")
+
+(defun my/ghostel--luminance (rgb)
+  "Relative WCAG luminance of RGB, a list of floats in 0..1."
+  (let ((lin (mapcar (lambda (c)
+                       (if (<= c 0.03928) (/ c 12.92)
+                         (expt (/ (+ c 0.055) 1.055) 2.4)))
+                     rgb)))
+    (+ (* 0.2126 (nth 0 lin)) (* 0.7152 (nth 1 lin)) (* 0.0722 (nth 2 lin)))))
+
+(defun my/ghostel--contrast (a b)
+  "WCAG contrast ratio between RGB lists A and B."
+  (let ((la (my/ghostel--luminance a))
+        (lb (my/ghostel--luminance b)))
+    (/ (+ (max la lb) 0.05) (+ (min la lb) 0.05))))
+
+(defun my/ghostel--readable (color bg)
+  "Return COLOR mixed toward black or white just enough to be readable on BG."
+  (let* ((fg (color-name-to-rgb color))
+         (bg (color-name-to-rgb bg))
+         (target (if (> (my/ghostel--contrast bg '(0.0 0.0 0.0))
+                        (my/ghostel--contrast bg '(1.0 1.0 1.0)))
+                     '(0.0 0.0 0.0)
+                   '(1.0 1.0 1.0)))
+         (mix (lambda (tt) (cl-mapcar (lambda (c g) (+ c (* tt (- g c)))) fg target))))
+    (if (>= (my/ghostel--contrast fg bg) my/ghostel-min-contrast)
+        color
+      (let ((lo 0.0) (hi 1.0))
+        (dotimes (_ 14)
+          (let ((mid (/ (+ lo hi) 2)))
+            (if (>= (my/ghostel--contrast (funcall mix mid) bg) my/ghostel-min-contrast)
+                (setq hi mid)
+              (setq lo mid))))
+        (apply #'color-rgb-to-hex (append (funcall mix hi) '(2)))))))
+
+(defun my/ghostel-apply-readable-palette (term)
+  "Push a palette readable on the current background to ghostel TERM."
+  (when term
+    (let ((bg (ghostel--face-hex-color 'ghostel-default :background)))
+      (ghostel--set-palette
+       term (mapconcat (lambda (c) (my/ghostel--readable c bg))
+                       my/ghostel-base-palette "")))))
+
 (use-package ghostel
   :vc (:url "https://github.com/dakra/ghostel" :lisp-dir "lisp" :rev :newest)
   :commands (ghostel ghostel-project ghostel-exec)
@@ -73,7 +126,10 @@
       (unless (member key ghostel-keymap-exceptions)
         (setq ghostel-keymap-exceptions (append (list key) ghostel-keymap-exceptions)))))
   :config
+  ;; theme ansi-color faces are off, so keep ghostty hues and fix contrast
+  ;; runs on terminal start and on every theme switch
   (setq ghostel-color-palette nil)
+  (advice-add 'ghostel--apply-palette :after #'my/ghostel-apply-readable-palette)
 
   ;; Rebuild semi-char map with exceptions
   (ghostel--rebuild-semi-char-keymap)
