@@ -62,15 +62,15 @@
   (expand-file-name ".theme-cache" user-emacs-directory))
 
 (defun my/get-cached-theme ()
-  "Return saved theme symbol from `.theme-cache', or fallback to `au-whispergrove-night'."
+  "Return saved theme symbol from `.theme-cache', or fallback to `au-salina-night'."
   (if (file-exists-p my/theme-cache-file)
       (let ((theme-sym (intern (with-temp-buffer
                                  (insert-file-contents my/theme-cache-file)
                                  (string-trim (buffer-string))))))
         (if (custom-theme-p theme-sym)
             theme-sym
-          'au-whispergrove-night))
-    'au-whispergrove-night))
+          'au-salina-night))
+    'au-salina-night))
 
 (defun my/save-theme-to-cache (theme)
   "Persist THEME symbol to `.theme-cache'."
