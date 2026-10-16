@@ -22,6 +22,11 @@
 #   Pull <area> updates from <author>:
 #    "<first paragraph of the Solution section>"
 #
+# Without a Solution section the whole pull request description is taken instead,
+# with heading markers removed, to cut down by hand.
+# Prose and list items are wrapped to 72 columns, quoted text included;
+# code blocks, tables and indented lines are kept as they are.
+#
 # <area> is the "area:" prefix of the pull request title, up to its first '/'
 #
 # -n prints the message and merges nothing.
@@ -66,28 +71,64 @@ login=$(field .author.login)
 author=$(field '(.author.name | select(. != null and . != "")) // .author.login')
 
 # First paragraph under a "Solution" heading,
-# else the first paragraph that is not a heading.
-summary=$(field .body | tr -d '\r' | awk '
+# else the whole description, whose '#' headings would otherwise
+# be stripped as comments after editing
+summary=$(field '.body // ""' | tr -d '\r' | awk '
 	/^#+[ \t]*[Ss]olution:?[ \t]*$/ { insol = 1; next }
 	insol && /^#/ { exit }
 	insol && NF { found = 1; print; next }
 	insol && found { exit }
 ')
 if [[ -z $summary ]]; then
-    summary=$(field .body | tr -d '\r' | awk '
-		/^#/ { if (found) exit; next }
-		NF { found = 1; print; next }
-		found { exit }
-	')
+    summary=$(field '.body // ""' | tr -d '\r' | sed -E 's/^#+[[:space:]]*//' | git stripspace)
 fi
+
+# Markdown-aware fmt: wraps paragraphs and list items (with a hanging indent)
+# to width $1, never breaks a word, leaves code alone
+wrap() {
+    awk -v width="$1" '
+	function flush(   n, i, line, w) {
+		if (para == "") return
+		n = split(para, words, " ")
+		line = lead
+		for (i = 1; i <= n; i++) {
+			w = words[i]
+			if (line != lead && length(line) + 1 + length(w) > width) {
+				print line
+				line = hang w
+			} else {
+				line = (line == lead || line == hang) ? line w : line " " w
+			}
+		}
+		print line
+		para = ""
+	}
+	/^[ \t]*(```|~~~)/ { flush(); fence = !fence; print; next }
+	fence || /^(    |\t)/ || /^[ \t]*\|/ { flush(); print; next }
+	!NF { flush(); print ""; next }
+	match($0, /^[ \t]*([-*+]|[0-9]+[.)])[ \t]+/) {
+		flush()
+		lead = substr($0, 1, RLENGTH)
+		hang = sprintf("%*s", RLENGTH, "")
+		para = substr($0, RLENGTH + 1)
+		next
+	}
+	{
+		sub(/^[ \t]+/, "")
+		if (para == "") { lead = ""; hang = ""; para = $0 }
+		else para = para " " $0
+	}
+	END { flush() }
+	'
+}
 
 intro=
 if [[ $login != "$(gh api user --jq .login)" ]]; then
     intro="Pull ${area}updates from $author:"
     [[ -n $summary ]] &&
-        intro+=$'\n'$(fmt -w 70 <<<"$summary" | sed -e '1s/^/ "/' -e '2,$s/^/  /' -e '$s/$/"/')
+        intro+=$'\n'$(wrap 69 <<<"$summary" | sed -e '1s/^/ "/' -e '2,$s/^./  &/' -e '$s/$/"/')
 elif [[ -n $summary ]]; then
-    intro=$(fmt -w 72 <<<"$summary")
+    intro=$(wrap 72 <<<"$summary")
 fi
 
 # Named MERGE_MSG so Magit's with-editor opens it as a commit message
