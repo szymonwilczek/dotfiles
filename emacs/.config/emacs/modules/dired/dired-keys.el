@@ -70,6 +70,14 @@ state; otherwise the marked files, or the file at point."
         (revert-buffer)
         (dired-goto-file (expand-file-name new (file-name-directory file)))))))
 
+(defun my/dired-move ()
+  "Move the marked files or the file at point, offering the other pane.
+Like `dired-do-rename', but the prompt says Move for a single file too."
+  (interactive)
+  (dired-do-create-files 'move #'dired-rename-file
+                         "Move" nil dired-keep-marker-rename "Move")
+  (dired-post-do-command))
+
 (defun my/dired-home ()
   "Replace this dired buffer with the home directory."
   (interactive)
@@ -102,7 +110,7 @@ With two dired windows, C and R offer the other one as the target."
     ("dd" "Trash" my/dired-delete)
     ("D"  "Delete for good" my/dired-delete-permanently)
     ("C"  "Copy to other pane" dired-do-copy)
-    ("R"  "Move to other pane" dired-do-rename)]
+    ("R"  "Move to other pane" my/dired-move)]
    ["Select"
     ("m" "Mark" dired-mark :transient t)
     ("u" "Unmark" dired-unmark :transient t)
@@ -147,6 +155,7 @@ With two dired windows, C and R offer the other one as the target."
       "cw" #'my/dired-rename
       "dd" #'my/dired-delete
       "D"  #'my/dired-delete-permanently
+      "R"  #'my/dired-move
       "yy" #'my/dired-copy
       "x"  #'my/dired-cut
       "p"  #'my/dired-paste
