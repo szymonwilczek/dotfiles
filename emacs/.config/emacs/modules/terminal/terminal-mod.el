@@ -304,7 +304,14 @@
 
 ;; Dedicated bottom popup terminal
 (defvar my/ghostel-bottom-buffer-name "*ghostel-bottom*"
-  "Buffer name used for the dedicated bottom popup terminal.")
+  "Base buffer name used for the dedicated bottom popup terminal.")
+
+(defun my/ghostel-bottom-buffer-name ()
+  "Return the bottom terminal buffer name for the current perspective.
+Each perspective gets its own terminal; without `persp-mode' there is one."
+  (if (bound-and-true-p persp-mode)
+      (format "*ghostel-bottom<%s>*" (persp-current-name))
+    my/ghostel-bottom-buffer-name))
 
 (defvar-local my/ghostel-bottom-buffer-p nil
   "Non-nil when current buffer is the dedicated bottom popup terminal.")
@@ -312,7 +319,7 @@
 (defun my/ghostel-get-bottom-buffer ()
   "Return the dedicated bottom Ghostel buffer if live, otherwise nil.
 If the buffer exists but its process died, kill the stale buffer."
-  (let ((buf (get-buffer my/ghostel-bottom-buffer-name)))
+  (let ((buf (get-buffer (my/ghostel-bottom-buffer-name))))
     (when (and buf (buffer-live-p buf))
       (let ((proc (get-buffer-process buf)))
         (if (and proc (process-live-p proc))
@@ -323,10 +330,10 @@ If the buffer exists but its process died, kill the stale buffer."
 (defun my/ghostel-create-bottom-buffer (&optional target-dir)
   "Create, configure, and start a fresh Ghostel process for the bottom terminal.
 Working directory is set to TARGET-DIR or current buffer project root."
-  (when-let* ((old (get-buffer my/ghostel-bottom-buffer-name)))
+  (when-let* ((old (get-buffer (my/ghostel-bottom-buffer-name))))
     (when (buffer-live-p old)
       (kill-buffer old)))
-  (let ((buf (get-buffer-create my/ghostel-bottom-buffer-name))
+  (let ((buf (get-buffer-create (my/ghostel-bottom-buffer-name)))
         (dir (or target-dir (my/project-root-dwim default-directory))))
     (with-current-buffer buf
       (setq default-directory dir)
