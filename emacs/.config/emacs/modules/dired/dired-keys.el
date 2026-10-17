@@ -96,6 +96,9 @@ state; otherwise the marked files, or the file at point."
       "cw" #'my/dired-rename
       "dd" #'my/dired-delete
       "D"  #'my/dired-delete-permanently
+      "yy" #'my/dired-copy
+      "x"  #'my/dired-cut
+      "p"  #'my/dired-paste
       "ya" #'my/dired-copy-path
       "yn" #'my/dired-copy-name
       "of" #'my/show-in-file-manager
@@ -106,6 +109,8 @@ state; otherwise the marked files, or the file at point."
       "."  #'my/dired-toggle-hidden
       "("  #'dired-hide-details-mode)
     (evil-define-key* 'visual dired-mode-map
+      "y" #'my/dired-copy
+      "x" #'my/dired-cut
       "d" #'my/dired-delete
       "D" #'my/dired-delete-permanently))
 

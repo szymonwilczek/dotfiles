@@ -39,6 +39,183 @@
       (my/dired-apply-hidden)))
   (message "Hidden files %s" (if my/dired-show-hidden "shown" "hidden")))
 
+;; File clipboard shared with the desktop
+(defvar my/dired-clipboard nil
+  "Files copied or cut in dired as (OPERATION . FILES).
+Holds the clipboard on frames without a window system.")
+
+(defun my/dired-clipboard--files (value)
+  "Return the (OPERATION . FILES) that VALUE was put on the clipboard with."
+  (and (stringp value) (get-text-property 0 'my/dired-clipboard value)))
+
+(defun my/dired-clipboard--uri (file)
+  "Return FILE as a file:// URI."
+  (concat "file://" (url-hexify-string file url-path-allowed-chars)))
+
+(defun my/dired-clipboard--convert-uri-list (selection type value)
+  "Serve dired's files as text/uri-list, or fall back to the stock converter."
+  (if-let* ((clip (my/dired-clipboard--files value)))
+      (cons type (encode-coding-string
+                  (mapconcat (lambda (f) (concat (my/dired-clipboard--uri f) "\r\n"))
+                             (cdr clip) "")
+                  'utf-8))
+    (xselect-convert-to-text-uri-list selection type value)))
+
+(defun my/dired-clipboard--convert-gnome (_selection type value)
+  "Serve dired's files as x-special/gnome-copied-files."
+  (when-let* ((clip (my/dired-clipboard--files value)))
+    (cons type (encode-coding-string
+                (mapconcat #'identity
+                           (cons (symbol-name (car clip))
+                                 (mapcar #'my/dired-clipboard--uri (cdr clip)))
+                           "\n")
+                'utf-8))))
+
+(defun my/dired-clipboard--convert-kde-cut (_selection type value)
+  "Tell KDE that dired's files were cut."
+  (when (eq (car (my/dired-clipboard--files value)) 'cut)
+    (cons type "1")))
+
+(with-eval-after-load 'select
+  (require 'url-util)
+  (dolist (conv `((text/uri-list
+                   ,(lambda (selection type value)
+                      (or (my/dired-clipboard--files value)
+                          (xselect-uri-list-available-p selection type value)))
+                   . my/dired-clipboard--convert-uri-list)
+                  (x-special/gnome-copied-files
+                   ,(lambda (_selection _type value) (my/dired-clipboard--files value))
+                   . my/dired-clipboard--convert-gnome)
+                  (application/x-kde-cutselection
+                   ,(lambda (_selection _type value)
+                      (eq (car (my/dired-clipboard--files value)) 'cut))
+                   . my/dired-clipboard--convert-kde-cut)))
+    (setf (alist-get (car conv) selection-converter-alist) (cdr conv))))
+
+(defun my/dired-clipboard--set (operation files)
+  "Put FILES on the clipboard for OPERATION, `copy' or `cut'."
+  (setq my/dired-clipboard (cons operation files))
+  (when (display-graphic-p)
+    (gui-set-selection 'CLIPBOARD
+                       (propertize (string-join files "\n")
+                                   'my/dired-clipboard my/dired-clipboard))))
+
+(defun my/dired-clipboard--parse-uris (text)
+  "Return the local file names of the file:// URIs in TEXT."
+  (delq nil
+        (mapcar (lambda (line)
+                  (when (string-prefix-p "file://" line)
+                    (decode-coding-string
+                     (url-unhex-string (url-filename (url-generic-parse-url line)))
+                     'utf-8)))
+                (split-string text "[\r\n]+" t))))
+
+(defun my/dired-clipboard--reader ()
+  "Return a function reading the clipboard as a given type, or nil.
+Wayland only hands the clipboard to the focused window, so wl-paste
+reads it there."
+  (if (and (getenv "WAYLAND_DISPLAY") (executable-find "wl-paste"))
+      (let ((types (ignore-errors (process-lines "wl-paste" "--list-types"))))
+        (lambda (type)
+          (when (member (symbol-name type) types)
+            (ignore-errors
+              (decode-coding-string
+               (with-output-to-string
+                 (call-process "wl-paste" nil standard-output nil
+                               "--no-newline" "--type" (symbol-name type)))
+               'utf-8)))))
+    (let ((targets (ignore-errors (gui-get-selection 'CLIPBOARD 'TARGETS))))
+      (lambda (type)
+        (when (and (vectorp targets) (seq-contains-p targets type))
+          (when-let* ((text (ignore-errors (gui-get-selection 'CLIPBOARD type))))
+            (if (multibyte-string-p text) text (decode-coding-string text 'utf-8))))))))
+
+(defun my/dired-clipboard--get ()
+  "Return the files on the clipboard as (OPERATION . FILES), or nil."
+  (if (or (not (display-graphic-p))
+          ;; asking wl-paste for it would wait on Emacs
+          (gui-backend-selection-owner-p 'CLIPBOARD))
+      (if (display-graphic-p)
+          (my/dired-clipboard--files (gui-get-selection 'CLIPBOARD))
+        my/dired-clipboard)
+    (let ((get (my/dired-clipboard--reader)))
+      (if-let* ((gnome (funcall get 'x-special/gnome-copied-files))
+                (lines (split-string gnome "[\r\n]+" t)))
+          (cons (if (string= (car lines) "cut") 'cut 'copy)
+                (my/dired-clipboard--parse-uris (string-join (cdr lines) "\n")))
+        (when-let* ((uris (funcall get 'text/uri-list))
+                    (files (my/dired-clipboard--parse-uris uris)))
+          (cons (if (equal (funcall get 'application/x-kde-cutselection) "1") 'cut 'copy)
+                files))))))
+
+(defun my/dired-clipboard--free-name (file)
+  "Return FILE, or FILE with \" (N)\" before its extension when taken."
+  (let ((dir (file-name-directory file))
+        (base (file-name-sans-extension (file-name-nondirectory file)))
+        (ext (or (file-name-extension file t) ""))
+        (n 1))
+    (while (file-exists-p file)
+      (setq file (expand-file-name (format "%s (%d)%s" base n ext) dir)
+            n (1+ n)))
+    file))
+
+(defun my/dired-copy ()
+  "Copy the selected lines, the marked files or the file at point to the clipboard."
+  (interactive)
+  (let ((files (mapcar #'car (my/dired--targets))))
+    (my/dired-clipboard--set 'copy files)
+    (message "Copied %d file%s" (length files) (if (= (length files) 1) "" "s"))))
+
+(defun my/dired-cut ()
+  "Cut the selected lines, the marked files or the file at point to the clipboard."
+  (interactive)
+  (let ((files (mapcar #'car (my/dired--targets))))
+    (my/dired-clipboard--set 'cut files)
+    (message "Cut %d file%s" (length files) (if (= (length files) 1) "" "s"))))
+
+(defun my/dired-paste ()
+  "Paste the files on the clipboard into the current dired directory.
+Copied files that would land on themselves get a \" (N)\" suffix; cut
+files are moved and the clipboard is emptied."
+  (interactive)
+  (let* ((clip (or (my/dired-clipboard--get) (user-error "No files on the clipboard")))
+         (cut (eq (car clip) 'cut))
+         (dir (dired-current-directory))
+         pasted)
+    (dolist (from (mapcar #'directory-file-name (cdr clip)))
+      (let ((to (expand-file-name (file-name-nondirectory from) dir)))
+        (cond
+         ((not (file-exists-p from))
+          (message "Gone, skipped: %s" from))
+         ((and (file-directory-p from) (file-in-directory-p dir from)
+               (not (file-equal-p from to)))
+          (message "Cannot paste a directory into itself: %s" from))
+         ((file-equal-p from to)
+          (unless cut
+            (setq to (my/dired-clipboard--free-name to))
+            (dired-copy-file from to nil)
+            (push to pasted)))
+         ((and (file-exists-p to)
+               (not (y-or-n-p (format "Overwrite %s? " (abbreviate-file-name to))))))
+         (t
+          (if cut
+              (dired-rename-file from to t)
+            (dired-copy-file from to t))
+          (push to pasted)))))
+    (when cut
+      (setq my/dired-clipboard nil)
+      (when (gui-backend-selection-owner-p 'CLIPBOARD)
+        (gui-set-selection 'CLIPBOARD nil)))
+    (dolist (d (delete-dups (cons dir (mapcar #'file-name-directory
+                                              (mapcar #'directory-file-name (cdr clip))))))
+      (dolist (buf (dired-buffers-for-dir d))
+        (with-current-buffer buf
+          (revert-buffer))))
+    (when pasted
+      (dired-goto-file (car (last pasted))))
+    (message "%s %d file%s" (if cut "Moved" "Pasted")
+             (length pasted) (if (= (length pasted) 1) "" "s"))))
+
 (use-package wdired
   :ensure nil
   :after dired
