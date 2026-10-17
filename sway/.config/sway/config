@@ -10,6 +10,8 @@ set $explorer QT_QPA_PLATFORMTHEME=kde dolphin
 set $taskmanager plasma-systemmonitor
 
 # Execs
+exec dbus-update-activation-environment --systemd QT_QPA_PLATFORMTHEME=kde
+
 exec swaync
 exec ~/.config/sway/scripts/waybar.sh
 exec ~/.config/sway/scripts/modal.sh pipewire-mixer --hidden
