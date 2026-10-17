@@ -33,6 +33,13 @@
 (defun my/project-root (&optional _may-prompt)
   "Return the root directory of the current project or perspective."
   (or
+   ;; directory of the current perspective, while inside it
+   (when-let* (((bound-and-true-p persp-mode))
+               (dir (cdr (assoc (persp-current-name)
+                                (bound-and-true-p my/persp-directories))))
+               ((or (null buffer-file-name)
+                    (file-in-directory-p default-directory dir))))
+     dir)
    ;; Projectile if active and recognized
    (when (and (bound-and-true-p projectile-mode)
               (fboundp 'projectile-project-root))

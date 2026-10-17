@@ -1,5 +1,10 @@
 ;;; Project management and Perspective session integration -*- lexical-binding: t; -*-
 
+(defvar projectile-project-name-function)
+
+(defvar my/persp-directories nil
+  "Alist of perspective names to directories opened by `my/open-directory-anywhere'.")
+
 (use-package perspective
   :ensure t
   :custom
@@ -54,7 +59,38 @@ If killed or missing, seamlessly fall back to an active perspective."
                  (fallback (or (car names) "main")))
             (set-frame-parameter frame 'persp--curr (gethash fallback (perspectives-hash frame))))))))
 
-  (advice-add 'persp-kill :after #'my/persp-cleanup-killed-frame-refs))
+  (advice-add 'persp-kill :after #'my/persp-cleanup-killed-frame-refs)
+
+  (add-hook 'persp-killed-hook
+            (lambda ()
+              (setq my/persp-directories
+                    (assoc-delete-all (persp-current-name) my/persp-directories)))))
+
+(defun my/persp-directory (name)
+  "Return the directory behind perspective NAME.
+A directory opened with `my/open-directory-anywhere' wins over a
+Projectile known project of the same name."
+  (or (cdr (assoc name (bound-and-true-p my/persp-directories)))
+      (when (fboundp 'projectile-relevant-known-projects)
+        (cl-find-if (lambda (p)
+                      (string= (funcall projectile-project-name-function p) name))
+                    (projectile-relevant-known-projects)))))
+
+(defun my/open-directory-anywhere (dir)
+  "Switch to a perspective named after DIR, starting the prompt in home.
+DIR need not be a Projectile project and is not added to the known
+projects; treemacs shows it as the perspective's only root.  A new
+perspective opens DIR in dired, an existing one is just switched to."
+  (interactive
+   (list (read-directory-name "Open directory: " (expand-file-name "~/") nil t)))
+  (let* ((dir (file-name-as-directory (expand-file-name dir)))
+         (name (file-name-nondirectory (directory-file-name dir)))
+         (existing (gethash name (perspectives-hash))))
+    (unless existing
+      (setf (alist-get name my/persp-directories nil nil #'string=) dir))
+    (persp-switch name)
+    (unless existing
+      (dired dir))))
 
 (use-package projectile
   :ensure t
@@ -83,21 +119,17 @@ If killed or missing, seamlessly fall back to an active perspective."
     "Derive project root for current perspective from Projectile known projects."
     (when (and (bound-and-true-p persp-mode) (persp-curr))
       (let ((name (persp-current-name)))
-        (when-let* ((proj (or (cl-find-if (lambda (p)
-                                            (string= (funcall projectile-project-name-function p) name))
-                                          (projectile-relevant-known-projects))
+        (when-let* ((proj (or (my/persp-directory name)
                               (projectile-project-root))))
           (treemacs-canonical-path (expand-file-name proj))))))
 
   (add-to-list 'treemacs--find-user-project-functions #'my/treemacs-perspective-project-root)
 
   (defun my/treemacs-ensure-perspective-project (&rest _)
-    "Ensure the active perspective workspace contains its Projectile project."
+    "Ensure the active perspective workspace contains its project or directory."
     (when (and (featurep 'treemacs) (bound-and-true-p persp-mode) (persp-curr))
       (when-let* ((name (persp-current-name))
-                  (proj (cl-find-if (lambda (p)
-                                      (string= (funcall projectile-project-name-function p) name))
-                                    (projectile-relevant-known-projects)))
+                  (proj (my/persp-directory name))
                   (canonical (treemacs-canonical-path (expand-file-name proj)))
                   (ws-name (treemacs-perspective--format-workspace-name name))
                   (ws (or (treemacs--find-workspace-by-name ws-name)
