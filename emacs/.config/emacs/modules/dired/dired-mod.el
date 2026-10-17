@@ -39,6 +39,42 @@
       (my/dired-apply-hidden)))
   (message "Hidden files %s" (if my/dired-show-hidden "shown" "hidden")))
 
+;; Per-window history of visited directories
+(defvar my/dired-history-max 50
+  "Number of directories each window remembers for `my/dired-back'.")
+
+(defun my/dired-history--record (frame)
+  "Remember the directory each dired window of FRAME showed before."
+  (dolist (window (window-list frame 'no-minibuf))
+    (with-current-buffer (window-buffer window)
+      (when (derived-mode-p 'dired-mode)
+        (let ((dir (dired-current-directory))
+              (prev (window-parameter window 'my/dired-dir)))
+          (unless (equal prev dir)
+            (if (window-parameter window 'my/dired-going-back)
+                (set-window-parameter window 'my/dired-going-back nil)
+              (when prev
+                (set-window-parameter
+                 window 'my/dired-history
+                 (seq-take (cons prev (delete prev (window-parameter window 'my/dired-history)))
+                           my/dired-history-max))))
+            (set-window-parameter window 'my/dired-dir dir)))))))
+
+(add-hook 'window-buffer-change-functions #'my/dired-history--record)
+
+(defun my/dired-back ()
+  "Go back to the directory this window showed before.
+Point lands on the directory just left when it is listed there."
+  (interactive)
+  (let* ((window (selected-window))
+         (from (dired-current-directory))
+         (history (seq-filter #'file-directory-p (window-parameter window 'my/dired-history)))
+         (dir (or (car history) (user-error "No previous directory"))))
+    (set-window-parameter window 'my/dired-history (cdr history))
+    (set-window-parameter window 'my/dired-going-back t)
+    (dired--find-possibly-alternative-file dir)
+    (dired-goto-file (directory-file-name from))))
+
 ;; File clipboard shared with the desktop
 (defvar my/dired-clipboard nil
   "Files copied or cut in dired as (OPERATION . FILES).

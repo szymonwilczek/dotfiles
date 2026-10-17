@@ -79,9 +79,9 @@ Like `dired-do-rename', but the prompt says Move for a single file too."
   (dired-post-do-command))
 
 (defun my/dired-home ()
-  "Replace this dired buffer with the home directory."
+  "Go to the home directory in this window."
   (interactive)
-  (find-alternate-file (expand-file-name "~/")))
+  (dired--find-possibly-alternative-file (expand-file-name "~/")))
 
 (defun my/dired-terminal ()
   "Open a terminal in the current dired directory."
@@ -136,7 +136,8 @@ With two dired windows, C and R offer the other one as the target."
     ("gr" "Refresh" revert-buffer)]
    ["Go"
     ("h" "Up" dired-up-directory)
-    ("~" "Home" my/dired-home)]])
+    ("~" "Home" my/dired-home)
+    ("DEL" "Back" my/dired-back)]])
 
 (with-eval-after-load 'dired
   (with-eval-after-load 'evil
@@ -149,6 +150,7 @@ With two dired windows, C and R offer the other one as the target."
       "h"  #'dired-up-directory
       "l"  #'dired-find-file
       "~"  #'my/dired-home
+      (kbd "DEL") #'my/dired-back
       "i"  #'wdired-change-to-wdired-mode
       "+"  #'dired-create-directory
       "%"  #'dired-create-empty-file
