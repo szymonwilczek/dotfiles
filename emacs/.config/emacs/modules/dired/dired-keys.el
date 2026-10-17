@@ -89,6 +89,45 @@ With two dired windows, C and R offer the other one as the target."
     (with-selected-window (split-window-right)
       (dired dir))))
 
+(require 'transient)
+
+(transient-define-prefix my/dired-menu ()
+  "Dired actions under the keys they are bound to in dired."
+  [["Files"
+    ("yy" "Copy" my/dired-copy)
+    ("x"  "Cut" my/dired-cut)
+    ("p"  "Paste" my/dired-paste)
+    ("dd" "Trash" my/dired-delete)
+    ("D"  "Delete for good" my/dired-delete-permanently)
+    ("C"  "Copy to other pane" dired-do-copy)
+    ("R"  "Move to other pane" dired-do-rename)]
+   ["Select"
+    ("m" "Mark" dired-mark :transient t)
+    ("u" "Unmark" dired-unmark :transient t)
+    ("U" "Unmark all" dired-unmark-all-marks :transient t)
+    ("t" "Invert" dired-toggle-marks :transient t)]
+   ["Open"
+    ("of" "File manager" my/show-in-file-manager)
+    ("oa" "Default application" dired-do-open)
+    ("ow" "Other window" dired-find-file-other-window)
+    ("ot" "Terminal here" my/dired-terminal)]]
+  [["Create & rename"
+    ("+"  "Directory" dired-create-directory)
+    ("%"  "File" dired-create-empty-file)
+    ("cw" "Rename" my/dired-rename)
+    ("i"  "Rename many (wdired)" wdired-change-to-wdired-mode)]
+   ["Yank path"
+    ("ya" "Absolute path" my/dired-copy-path)
+    ("yn" "File name" my/dired-copy-name)]
+   ["View"
+    ("." "Hidden files" my/dired-toggle-hidden :transient t)
+    ("(" "Details" dired-hide-details-mode :transient t)
+    ("s" "Sort" dired-sort-toggle-or-edit :transient t)
+    ("gr" "Refresh" revert-buffer)]
+   ["Go"
+    ("h" "Up" dired-up-directory)
+    ("~" "Home" my/dired-home)]])
+
 (with-eval-after-load 'dired
   (with-eval-after-load 'evil
     (evil-define-key* '(normal motion) dired-mode-map
@@ -117,7 +156,8 @@ With two dired windows, C and R offer the other one as the target."
       "ot" #'my/dired-terminal
       "s"  #'dired-sort-toggle-or-edit
       "."  #'my/dired-toggle-hidden
-      "("  #'dired-hide-details-mode)
+      "("  #'dired-hide-details-mode
+      "?"  #'my/dired-menu)
     (evil-define-key* 'visual dired-mode-map
       "y" #'my/dired-copy
       "x" #'my/dired-cut
