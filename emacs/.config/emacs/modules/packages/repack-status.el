@@ -172,7 +172,8 @@ Such a package is not listed, it is updated with its dependents."
 (defun my/repack-status--update-package (name)
   "Update the hidden dependencies of NAME, then update and reload NAME."
   (let* ((desc (my/repack--desc name))
-         (state (gethash name my/repack-status--state))
+         ;; read now, marking NAME busy below changes its state in place
+         (status (plist-get (gethash name my/repack-status--state) :status))
          (deps (my/repack-status--outdated-deps name))
          (files (my/repack--loaded-files desc))
          (done (lambda ()
@@ -182,8 +183,9 @@ Such a package is not listed, it is updated with its dependents."
          (fail (lambda (log)
                  (my/repack-status--update name :status 'error
                                            :info "update failed" :log log))))
-    (unless (eq (plist-get state :status) 'busy)
+    (unless (eq status 'busy)
       (my/repack-status--update name :status 'busy :info "updating…")
+      (redisplay)
       (condition-case err
           (progn
             ;; first, so that NAME reloads on top of their new code
@@ -195,7 +197,7 @@ Such a package is not listed, it is updated with its dependents."
                       (funcall fail (with-current-buffer
                                         (format " *repack: %s*" name)
                                       (buffer-string))))))
-                  ((eq (plist-get state :status) 'update)
+                  ((eq status 'update)
                    (package-upgrade name)
                    (funcall done))
                   (t (my/repack-status--check-one name))))
