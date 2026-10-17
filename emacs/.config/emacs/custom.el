@@ -26,7 +26,7 @@
                ef-themes evil evil-collection evil-commentary
                evil-matchit evil-numbers evil-surround general
                gh-radar ghostel git-gutter git-gutter-fringe jot magit
-               marginalia nerd-icons nerd-icons-completion
+               marginalia markdown-mode nerd-icons nerd-icons-completion
                nerd-icons-dired olivetti orderless persp-projectile
                perspective plan-polsl projectile rainbow-mode rere
                treemacs treemacs-evil treemacs-nerd-icons

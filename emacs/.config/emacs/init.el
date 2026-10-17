@@ -16,6 +16,7 @@
 (require 'terminal-mod)
 (require 'tabs-mod)
 (require 'org-mod)
+(require 'markdown-mod)
 (require 'latex-mod)
 (require 'bibliography-mod)
 (require 'agent-mod)
