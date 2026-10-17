@@ -41,7 +41,7 @@
 
 ;; Per-window history of visited directories
 (defvar my/dired-history-max 50
-  "Number of directories each window remembers for `my/dired-back'.")
+  "Number of directories each window remembers to go back or forward to.")
 
 (defun my/dired-history--record (frame)
   "Remember the directory each dired window of FRAME showed before."
@@ -51,14 +51,21 @@
         (let ((dir (dired-current-directory))
               (prev (window-parameter window 'my/dired-dir)))
           (unless (equal prev dir)
-            (if (window-parameter window 'my/dired-going-back)
-                (set-window-parameter window 'my/dired-going-back nil)
-              (when prev
-                (set-window-parameter
-                 window 'my/dired-history
-                 (seq-take (cons prev (delete prev (window-parameter window 'my/dired-history)))
-                           my/dired-history-max))))
+            (let ((moving (window-parameter window 'my/dired-moving)))
+              (when (and prev (not (eq moving 'back)))
+                (my/dired-history--push window 'my/dired-history prev))
+              ;; fresh visit drops the directories to go forward to
+              (unless moving
+                (set-window-parameter window 'my/dired-future nil))
+              (set-window-parameter window 'my/dired-moving nil))
             (set-window-parameter window 'my/dired-dir dir)))))))
+
+(defun my/dired-history--push (window param dir)
+  "Put DIR in front of WINDOW's PARAM list of directories."
+  (set-window-parameter
+   window param
+   (seq-take (cons dir (delete dir (window-parameter window param)))
+             my/dired-history-max)))
 
 (add-hook 'window-buffer-change-functions #'my/dired-history--record)
 
@@ -71,9 +78,20 @@ Point lands on the directory just left when it is listed there."
          (history (seq-filter #'file-directory-p (window-parameter window 'my/dired-history)))
          (dir (or (car history) (user-error "No previous directory"))))
     (set-window-parameter window 'my/dired-history (cdr history))
-    (set-window-parameter window 'my/dired-going-back t)
+    (my/dired-history--push window 'my/dired-future from)
+    (set-window-parameter window 'my/dired-moving 'back)
     (dired--find-possibly-alternative-file dir)
     (dired-goto-file (directory-file-name from))))
+
+(defun my/dired-forward ()
+  "Go forward again to the directory left by `my/dired-back'."
+  (interactive)
+  (let* ((window (selected-window))
+         (future (seq-filter #'file-directory-p (window-parameter window 'my/dired-future)))
+         (dir (or (car future) (user-error "No next directory"))))
+    (set-window-parameter window 'my/dired-future (cdr future))
+    (set-window-parameter window 'my/dired-moving 'forward)
+    (dired--find-possibly-alternative-file dir)))
 
 ;; File clipboard shared with the desktop
 (defvar my/dired-clipboard nil

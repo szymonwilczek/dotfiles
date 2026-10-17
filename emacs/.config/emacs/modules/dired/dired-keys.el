@@ -137,7 +137,8 @@ With two dired windows, C and R offer the other one as the target."
    ["Go"
     ("h" "Up" dired-up-directory)
     ("~" "Home" my/dired-home)
-    ("DEL" "Back" my/dired-back)]])
+    ("DEL" "Back" my/dired-back)
+    ("S-<backspace>" "Forward" my/dired-forward)]])
 
 (with-eval-after-load 'dired
   (with-eval-after-load 'evil
@@ -151,6 +152,7 @@ With two dired windows, C and R offer the other one as the target."
       "l"  #'dired-find-file
       "~"  #'my/dired-home
       (kbd "DEL") #'my/dired-back
+      (kbd "S-<backspace>") #'my/dired-forward
       "i"  #'wdired-change-to-wdired-mode
       "+"  #'dired-create-directory
       "%"  #'dired-create-empty-file
