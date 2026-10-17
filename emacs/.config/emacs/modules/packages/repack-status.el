@@ -39,6 +39,37 @@ and the number of changed files.")
                    (directory-file-name (package-desc-dir (cadr entry)))))
                 package-alist))
 
+(defun my/repack-status--hidden-p (name)
+  "Return non-nil if NAME was installed only as a dependency.
+Such a package is not listed, it is updated with its dependents."
+  (when-let* ((desc (my/repack--desc name)))
+    (and (not (memq name package-selected-packages))
+         (not (package-vc-p desc))
+         (cl-some (lambda (entry) (assq name (package-desc-reqs (cadr entry))))
+                  package-alist))))
+
+(defun my/repack-status--outdated-deps (name)
+  "Return hidden packages NAME needs, directly or not, that can be updated."
+  (let ((todo (list name)) deps)
+    (while todo
+      (dolist (req (package-desc-reqs (my/repack--desc (pop todo))))
+        (let ((dep (car req)))
+          (when (and (not (memq dep deps)) (my/repack-status--hidden-p dep))
+            (push dep deps)
+            (push dep todo)))))
+    (cl-remove-if-not
+     (lambda (dep)
+       (eq (plist-get (gethash dep my/repack-status--state) :status) 'update))
+     (nreverse deps))))
+
+(defun my/repack-status--status (name)
+  "Return the status of NAME, `update' also when a hidden dependency has one."
+  (let ((status (or (plist-get (gethash name my/repack-status--state) :status)
+                    'checking)))
+    (if (and (eq status 'ok) (my/repack-status--outdated-deps name))
+        'update
+      status)))
+
 (defun my/repack-status--version (desc)
   "Return the installed version or revision of DESC."
   (if (package-vc-p desc)
@@ -129,11 +160,20 @@ and the number of changed files.")
       (add-hook 'package--post-download-archives-hook done)
       (package-refresh-contents t))))
 
+(defun my/repack-status--upgrade (name)
+  "Upgrade NAME from its archive, reload it and check it again."
+  ;; collected before upgrading, the package moves to a new directory
+  (let ((files (my/repack--loaded-files (my/repack--desc name))))
+    (package-upgrade name)
+    (my/repack--reload name files)
+    (my/repack-status--update name :reloaded t)
+    (my/repack-status--check-one name)))
+
 (defun my/repack-status--update-package (name)
-  "Update NAME, reload it and check it again."
+  "Update the hidden dependencies of NAME, then update and reload NAME."
   (let* ((desc (my/repack--desc name))
-         ;; collected before updating, an archive upgrade
-         ;; moves the package to a new directory
+         (state (gethash name my/repack-status--state))
+         (deps (my/repack-status--outdated-deps name))
          (files (my/repack--loaded-files desc))
          (done (lambda ()
                  (my/repack--reload name files)
@@ -142,17 +182,24 @@ and the number of changed files.")
          (fail (lambda (log)
                  (my/repack-status--update name :status 'error
                                            :info "update failed" :log log))))
-    (unless (eq (plist-get (gethash name my/repack-status--state) :status) 'busy)
+    (unless (eq (plist-get state :status) 'busy)
       (my/repack-status--update name :status 'busy :info "updating…")
-      (if (package-vc-p desc)
-          (my/repack--update-vc
-           desc done
-           (lambda ()
-             (funcall fail (with-current-buffer (format " *repack: %s*" name)
-                             (buffer-string)))))
-        (condition-case err
-            (progn (package-upgrade name) (funcall done))
-          (error (funcall fail (error-message-string err))))))))
+      (condition-case err
+          (progn
+            ;; first, so that NAME reloads on top of their new code
+            (mapc #'my/repack-status--upgrade deps)
+            (cond ((package-vc-p desc)
+                   (my/repack--update-vc
+                    desc done
+                    (lambda ()
+                      (funcall fail (with-current-buffer
+                                        (format " *repack: %s*" name)
+                                      (buffer-string))))))
+                  ((eq (plist-get state :status) 'update)
+                   (package-upgrade name)
+                   (funcall done))
+                  (t (my/repack-status--check-one name))))
+        (error (funcall fail (error-message-string err)))))))
 
 (defun my/repack-status--entries ()
   "Return the dashboard rows, updates first in each kind."
@@ -161,10 +208,18 @@ and the number of changed files.")
         rows)
     (pcase-dolist (`(,name . ,_) (my/repack-status--packages))
       (let* ((state (gethash name my/repack-status--state))
-             (status (or (plist-get state :status) 'checking))
+             (status (my/repack-status--status name))
              (glyph (alist-get status my/repack-status--glyphs))
-             (info (plist-get state :info)))
+             (deps (my/repack-status--outdated-deps name))
+             (info (string-join
+                    (delete "" (list (or (plist-get state :info) "")
+                                     (if deps
+                                         (concat "deps: "
+                                                 (mapconcat #'symbol-name deps ", "))
+                                       "")))
+                    "  ")))
         (unless (or (null state)
+                    (my/repack-status--hidden-p name)
                     (and my/repack-status--only-updates (not (eq status 'update))))
           (push (list name
                       (vector (propertize (car glyph) 'face (cadr glyph))
@@ -173,7 +228,7 @@ and the number of changed files.")
                               (or (plist-get state :installed) "")
                               (if (and (eq status 'ok) (plist-get state :reloaded))
                                   "reloaded"
-                                (or info "")))
+                                info))
                       (list (alist-get (plist-get state :kind) rank)
                             (alist-get status urgency 3)
                             (symbol-name name)))
@@ -186,7 +241,7 @@ and the number of changed files.")
                                  (t (string< (nth 2 ka) (nth 2 kb))))))))))
 
 (defun my/repack-status--details (name)
-  "Return the detail lines of NAME: new commits, a log or its summary."
+  "Return the detail lines of NAME: new commits or a log, outdated\nhidden dependencies, or else its summary."
   (let* ((state (gethash name my/repack-status--state))
          (desc (my/repack--desc name))
          (dir (package-desc-dir desc))
@@ -195,14 +250,21 @@ and the number of changed files.")
                 (let ((default-directory (file-name-as-directory dir)))
                   (ignore-errors
                     (process-lines "git" "log" "--format=%h %s" range))))))
-    (or (when-let* ((text (plist-get state :log)))
-          (split-string text "\n" t))
-        (when (and ref (package-vc-p desc))
-          (append (funcall log (concat "HEAD.." ref))
-                  (mapcar (lambda (line) (concat "local: " line))
-                          (funcall log (concat ref "..HEAD")))))
-        (when-let* ((available (plist-get state :available)))
-          (list (format "%s → %s" (plist-get state :installed) available)))
+    (or (append
+         (or (when-let* ((text (plist-get state :log)))
+               (split-string text "\n" t))
+             (when (and ref (package-vc-p desc))
+               (append (funcall log (concat "HEAD.." ref))
+                       (mapcar (lambda (line) (concat "local: " line))
+                               (funcall log (concat ref "..HEAD")))))
+             (when-let* ((available (plist-get state :available)))
+               (list (format "%s → %s" (plist-get state :installed) available))))
+         (mapcar (lambda (dep)
+                   (let ((dep-state (gethash dep my/repack-status--state)))
+                     (format "dep %s: %s → %s" dep
+                             (plist-get dep-state :installed)
+                             (plist-get dep-state :available))))
+                 (my/repack-status--outdated-deps name)))
         (list (package-desc-summary desc)))))
 
 (defun my/repack-status--print-entry (id cols)
@@ -237,10 +299,11 @@ and the number of changed files.")
 (defun my/repack-status-update-all ()
   "Update and reload every package with an update available."
   (interactive)
-  (let (names)
-    (maphash (lambda (name state)
-               (when (eq (plist-get state :status) 'update) (push name names)))
-             my/repack-status--state)
+  (let ((names (cl-remove-if
+                (lambda (name)
+                  (or (my/repack-status--hidden-p name)
+                      (not (eq (my/repack-status--status name) 'update))))
+                (mapcar #'car (my/repack-status--packages)))))
     (unless names (user-error "Nothing to update"))
     (when (y-or-n-p (format "Update %d packages? " (length names)))
       (mapc #'my/repack-status--update-package names))))
