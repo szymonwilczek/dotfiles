@@ -16,6 +16,9 @@
       "bb" '(consult-buffer :which-key "Switch Buffer")
       "bp" '(bufferline-pick :which-key "Pick Buffer")
       "bd" '(bufferline-pick-close :which-key "Pick Close Buffer")
-      "bP" '(bufferline-toggle-pin :which-key "Toggle Pin Buffer"))))
+      "bP" '(bufferline-toggle-pin :which-key "Toggle Pin Buffer")
+      "bs" '(bufferline-swap-tab :which-key "Swap Buffer")
+      "b<" '(bufferline-move-tab-left :which-key "Move Buffer Left")
+      "b>" '(bufferline-move-tab-right :which-key "Move Buffer Right"))))
 
 (provide 'tabs-keys)
