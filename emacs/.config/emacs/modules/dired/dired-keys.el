@@ -30,7 +30,9 @@ state; otherwise the marked files, or the file at point."
       (let* ((beg (min (point) (mark)))
              (end (max (point) (mark)))
              (last (save-excursion
-                     (goto-char (if (and (> end beg) (= end (pos-bol end))) (1- end) end))
+                     (goto-char end)
+                     (when (and (> end beg) (bolp))
+                       (backward-char))
                      (pos-bol)))
              targets)
         (evil-exit-visual-state)
@@ -42,7 +44,7 @@ state; otherwise the marked files, or the file at point."
               (push (cons file (point-marker)) targets))
             (if (eobp) (setq last -1) (forward-line 1))))
         (or (nreverse targets) (user-error "No files selected")))
-    (dired-map-over-marks (cons (dired-get-filename) (point-marker)) nil)))
+    (nreverse (dired-map-over-marks (cons (dired-get-filename) (point-marker)) nil))))
 
 (defun my/dired-delete ()
   "Move the selected lines, the marked files or the file at point to trash."
