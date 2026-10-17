@@ -15,6 +15,37 @@
 (setq use-package-always-ensure t
       use-package-compute-statistics t)
 
+;; `package-autoremove' deletes every package missing from
+;; `package-selected-packages', and a package lands there only when
+;; installed by `package-install' itself: one installed as a dependency
+;; first, or from a checkout, does not.
+;; So every package declared with :ensure or :vc is added to it once
+;; the config has loaded.
+(defvar my/declared-packages nil
+  "Packages declared with :ensure or :vc in `use-package'.")
+
+(define-advice use-package-ensure-elpa (:after (name args &rest _) my/declare)
+  (dolist (ensure args)
+    (let ((package (or (and (eq ensure t) (use-package-as-symbol name))
+                       ensure)))
+      (when (consp package) (setq package (car package)))
+      (when package (push package my/declared-packages)))))
+
+(define-advice use-package-vc-install (:after (arg &rest _) my/declare)
+  (push (car arg) my/declared-packages))
+
+(defun my/select-declared-packages ()
+  "Add the installed declared packages to `package-selected-packages'."
+  (when-let* ((missing (seq-remove
+                        (lambda (package)
+                          (or (memq package package-selected-packages)
+                              (not (package-installed-p package))))
+                        (delete-dups my/declared-packages))))
+    (package--save-selected-packages
+     (append missing package-selected-packages))))
+
+(add-hook 'after-init-hook #'my/select-declared-packages)
+
 ;; Encoding
 (set-charset-priority 'unicode)
 (setq locale-coding-system 'utf-8)
