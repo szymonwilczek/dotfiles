@@ -177,8 +177,9 @@ package that compilation changed anyway get their values back."
         (unless (eq (default-value sym) value)
           (set-default sym value))))))
 
-(defun my/repack--update-vc (desc then)
+(defun my/repack--update-vc (desc then &optional fail)
   "Update the checkout of DESC, rebuild it if it changed, then call THEN.
+On failure call FAIL, or show the output when FAIL is nil.
 A checkout on a detached HEAD, as left by installing a release,
 first switches to the default branch of its remote.
 Remote history rewritten by a force push replaces the checkout's
@@ -205,7 +206,7 @@ history, unless the checkout has commits or changes of its own."
        (when (memq (process-status proc) '(exit signal))
          (if (/= (process-exit-status proc) 0)
              (progn
-               (display-buffer buffer)
+               (if fail (funcall fail) (display-buffer buffer))
                (message "repack: updating %s failed" name))
            (if (equal before (my/repack--git dir "rev-parse" "HEAD"))
                (message "repack: %s is already up to date" name)
@@ -248,5 +249,7 @@ ACTION is `update' or `reload'."
       ('update (if (package-vc-p desc)
                    (my/repack--update-vc desc reload)
                  (my/repack--update-archive desc reload))))))
+
+(require 'repack-status)
 
 (provide 'packages-mod)

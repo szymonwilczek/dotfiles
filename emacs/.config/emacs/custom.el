@@ -9,7 +9,8 @@
  ;; If there is more than one, they won't work right.
  '(c-ts-indent-offset 8 nil nil "Customized with use-package c-ts-mode")
  '(custom-safe-themes
-   '("4708145e09e0c8cf3c2b510840f22c91fe39e6dbb89bece9823f642b8f02f79b"
+   '("4abf5f58295f706d44d10a19d8dcd841087482a45538a844afecaf5a9c7754bf"
+     "4708145e09e0c8cf3c2b510840f22c91fe39e6dbb89bece9823f642b8f02f79b"
      "702cb3858a94b60bbb4272accf786b9a149585e95a5628639bda523c86ee4bd0"
      "5b10222a2166243bb7a21d53f9e723e0c12c23d284dd7638f5071e3bd4bddfea"
      "7331c708908bf13667cb817e774a0efaf9d10f5b369b5833bf6b0fb66efcf8d4"
