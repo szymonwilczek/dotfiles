@@ -39,7 +39,7 @@
                       ""))))
     t)
 
-  (add-hook 'kill-buffer-query-functions #'my/refuse-closing-last-tab)
+  (add-hook 'kill-buffer-query-functions #'my/refuse-closing-last-tab -90)
   ;; bufferline-close-tab switches away before killing, so stop it first
   (advice-add 'bufferline-close-tab :before #'my/refuse-closing-last-tab)
 
