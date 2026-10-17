@@ -150,6 +150,8 @@ Such a package is not listed, it is updated with its dependents."
   "Check every listed package for an update."
   (interactive)
   (let ((names (mapcar #'car (my/repack-status--packages))))
+    ;; forgets packages deleted since the last check too
+    (clrhash my/repack-status--state)
     (dolist (name names) (my/repack-status--check-one name t))
     (letrec ((done (lambda ()
                      (remove-hook 'package--post-download-archives-hook done)
