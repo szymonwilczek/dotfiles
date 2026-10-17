@@ -79,6 +79,16 @@ state; otherwise the marked files, or the file at point."
   (let ((default-directory (dired-current-directory)))
     (my/ghostel-open-full-buffer)))
 
+(defun my/dired-split (dir)
+  "Show the current directory and DIR side by side in dired.
+With two dired windows, C and R offer the other one as the target."
+  (interactive
+   (list (read-directory-name "Second pane: " (expand-file-name "~/") nil t)))
+  (let ((here (if (derived-mode-p 'dired-mode) (dired-current-directory) default-directory)))
+    (dired here)
+    (with-selected-window (split-window-right)
+      (dired dir))))
+
 (with-eval-after-load 'dired
   (with-eval-after-load 'evil
     (evil-define-key* '(normal motion) dired-mode-map
@@ -126,6 +136,7 @@ state; otherwise the marked files, or the file at point."
     (my-leader-def
       "d"  '(:ignore t :which-key "Dired")
       "dd" '(dired-jump :which-key "Dired (Current File)")
-      "df" '(dired :which-key "Open Directory"))))
+      "df" '(dired :which-key "Open Directory")
+      "ds" '(my/dired-split :which-key "Split Panes"))))
 
 (provide 'dired-keys)
