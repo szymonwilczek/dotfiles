@@ -1,5 +1,7 @@
 ;;; Dired Evil keybindings -*- lexical-binding: t; -*-
 
+(require 'dired)
+
 (defun my/dired-copy-path ()
   "Copy the absolute path of the file at point to the kill ring."
   (interactive)
@@ -20,17 +22,99 @@
           (message "Copied filename: %s" filename))
       (user-error "No file at point"))))
 
+(defun my/dired--targets ()
+  "Return the files to act on as (FILE . MARKER) pairs.
+In Evil visual state these are the selected lines, which leaves visual
+state; otherwise the marked files, or the file at point."
+  (if (and (fboundp 'evil-visual-state-p) (evil-visual-state-p))
+      (let* ((beg (min (point) (mark)))
+             (end (max (point) (mark)))
+             (last (save-excursion
+                     (goto-char (if (and (> end beg) (= end (pos-bol end))) (1- end) end))
+                     (pos-bol)))
+             targets)
+        (evil-exit-visual-state)
+        (save-excursion
+          (goto-char beg)
+          (forward-line 0)
+          (while (<= (point) last)
+            (when-let* ((file (dired-get-filename nil t)))
+              (push (cons file (point-marker)) targets))
+            (if (eobp) (setq last -1) (forward-line 1))))
+        (or (nreverse targets) (user-error "No files selected")))
+    (dired-map-over-marks (cons (dired-get-filename) (point-marker)) nil)))
+
+(defun my/dired-delete ()
+  "Move the selected lines, the marked files or the file at point to trash."
+  (interactive)
+  (dired-internal-do-deletions (my/dired--targets) nil delete-by-moving-to-trash))
+
+(defun my/dired-delete-permanently ()
+  "Delete the selected lines, the marked files or the file at point for good."
+  (interactive)
+  (let ((delete-by-moving-to-trash nil))
+    (dired-internal-do-deletions (my/dired--targets) nil nil)))
+
+(defun my/dired-rename ()
+  "Rename the file at point within its directory."
+  (interactive)
+  (let* ((file (dired-get-filename nil t))
+         (name (and file (file-name-nondirectory file))))
+    (unless file
+      (user-error "No file at point"))
+    (let ((new (read-string "Rename to: " name)))
+      (unless (string= new name)
+        (dired-rename-file file (expand-file-name new (file-name-directory file)) nil)
+        (revert-buffer)
+        (dired-goto-file (expand-file-name new (file-name-directory file)))))))
+
+(defun my/dired-home ()
+  "Replace this dired buffer with the home directory."
+  (interactive)
+  (find-alternate-file (expand-file-name "~/")))
+
+(defun my/dired-terminal ()
+  "Open a terminal in the current dired directory."
+  (interactive)
+  (let ((default-directory (dired-current-directory)))
+    (my/ghostel-open-full-buffer)))
+
 (with-eval-after-load 'dired
   (with-eval-after-load 'evil
-    (evil-define-key* '(normal visual motion) dired-mode-map
+    (evil-define-key* '(normal motion) dired-mode-map
+      "c" nil
+      "d" nil
+      "o" nil
+      "y" nil)
+    (evil-define-key* '(normal motion) dired-mode-map
       "h"  #'dired-up-directory
       "l"  #'dired-find-file
+      "~"  #'my/dired-home
       "i"  #'wdired-change-to-wdired-mode
-      "("  #'dired-hide-details-mode
-      "Y"  #'my/dired-copy-path
-      "gy" #'my/dired-copy-name
       "+"  #'dired-create-directory
-      "%"  #'dired-create-empty-file)))
+      "%"  #'dired-create-empty-file
+      "cw" #'my/dired-rename
+      "dd" #'my/dired-delete
+      "D"  #'my/dired-delete-permanently
+      "ya" #'my/dired-copy-path
+      "yn" #'my/dired-copy-name
+      "of" #'my/show-in-file-manager
+      "oa" #'dired-do-open
+      "ow" #'dired-find-file-other-window
+      "ot" #'my/dired-terminal
+      "s"  #'dired-sort-toggle-or-edit
+      "."  #'my/dired-toggle-hidden
+      "("  #'dired-hide-details-mode)
+    (evil-define-key* 'visual dired-mode-map
+      "d" #'my/dired-delete
+      "D" #'my/dired-delete-permanently))
+
+  (with-eval-after-load 'which-key
+    (which-key-add-major-mode-key-based-replacements 'dired-mode
+      "c" "change"
+      "d" "delete"
+      "o" "open"
+      "y" "yank")))
 
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)
