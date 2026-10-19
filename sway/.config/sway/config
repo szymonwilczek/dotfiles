@@ -143,8 +143,6 @@ bindsym --whole-window $mod+button4 exec $ws next
 bindsym --whole-window $mod+button5 exec $ws prev
 bindsym $mod+Tab workspace back_and_forth
 
-# TODO: remove that
-bindsym $mod+b splith
 bindsym $mod+v splitv
 
 # bindsym $mod+s layout stacking
