@@ -95,19 +95,6 @@
 
 (add-hook 'find-file-hook #'my/kill-scratch-on-find-file)
 
-;; Avoid landing on *scratch* when opening a client frame
-(defun my/switch-to-last-file-buffer (&optional frame)
-  "Switch new frame to the most recent real file buffer if current is scratch."
-  (with-selected-frame (or frame (selected-frame))
-    (when (string-match-p "\\`\\*scratch" (buffer-name))
-      (when-let* ((file-buf (cl-find-if (lambda (b)
-                                          (and (buffer-file-name b)
-                                               (not (string-prefix-p " " (buffer-name b)))))
-                                        (buffer-list))))
-        (switch-to-buffer file-buf)))))
-
-(add-hook 'server-after-make-frame-hook #'my/switch-to-last-file-buffer)
-
 ;; Jump directly without prompt
 (setq xref-prompt-for-identifier nil)
 

@@ -109,6 +109,23 @@ perspective opens DIR in dired, an existing one is just switched to."
   :ensure t
   :after (perspective projectile))
 
+;; Perspectives die with their frame
+(defun my/new-frame-switch-project (frame)
+  "Prompt for a Projectile project in FRAME while it still shows scratch.
+Frames opened on a file or by `emacsclient -e', like the jot scratchpad,
+already show their own buffer and are left alone."
+  (when (and (frame-live-p frame)
+             (string-match-p "\\`\\*scratch\\*"
+                             (buffer-name (window-buffer (frame-selected-window frame)))))
+    (select-frame-set-input-focus frame)
+    (with-local-quit
+      (call-interactively #'projectile-persp-switch-project))))
+
+;; deferred until the client has opened its files and run its -e forms
+(add-hook 'server-after-make-frame-hook
+          (lambda ()
+            (run-at-time 0 nil #'my/new-frame-switch-project (selected-frame))))
+
 (use-package treemacs-perspective
   :ensure t
   :after (treemacs perspective)
