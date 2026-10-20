@@ -10,6 +10,11 @@
   (setq vertico-count 12
         vertico-cycle t))
 
+(use-package savehist
+  :ensure nil
+  :init
+  (savehist-mode 1))
+
 (use-package orderless
   :ensure t
   :custom
