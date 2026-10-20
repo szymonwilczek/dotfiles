@@ -38,10 +38,10 @@
  '(global-wakatime-mode t)
  '(package-selected-packages
    '(astro-ts-mode au-themes bufferline citar citar-org colorful-mode
-                   company consult ef-themes evil evil-collection
-                   evil-commentary evil-matchit evil-numbers
-                   evil-surround general gh-radar ghostel git-gutter
-                   git-gutter-fringe jot magit marginalia
+                   company consult ef-themes embark embark-consult
+                   evil evil-collection evil-commentary evil-matchit
+                   evil-numbers evil-surround general gh-radar ghostel
+                   git-gutter git-gutter-fringe jot magit marginalia
                    markdown-mode nerd-icons nerd-icons-completion
                    nerd-icons-dired olivetti orderless org-appear
                    persp-projectile perspective plan-polsl projectile

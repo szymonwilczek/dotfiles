@@ -25,6 +25,11 @@
 (global-set-key (kbd "M-x") #'execute-extended-command)
 (global-set-key (kbd "A-x") #'execute-extended-command)
 
+;; Embark actions
+(global-set-key (kbd "C-.") #'embark-act)
+(with-eval-after-load 'evil
+  (define-key evil-normal-state-map (kbd "C-.") #'embark-act))
+
 ;; Leader search keybindings
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)

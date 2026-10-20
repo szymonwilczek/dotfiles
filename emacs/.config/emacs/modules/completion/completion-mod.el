@@ -103,6 +103,14 @@ The file opens in the current perspective, whatever project it is in."
   (interactive)
   (consult-ripgrep (my/project-root)))
 
+(use-package embark
+  :ensure t
+  :defer t)
+
+(use-package embark-consult
+  :ensure t
+  :after (embark consult))
+
 ;; In-Buffer Completion
 ;; (Company with overlay frontend)
 (defcustom my-disabled-completion-modes
