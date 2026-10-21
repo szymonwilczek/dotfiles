@@ -130,6 +130,44 @@ If formatted output is identical to current buffer content, no modifications are
   "Window, buffer and diagnostic spans the popup was opened for.
 A list (WINDOW BUFFER SPANS), where SPANS is a list of (BEG . END).")
 
+(defvar-keymap my/diagnostic-popup-mode-map
+  :doc "Keymap active in the diagnostic popup.")
+
+(define-minor-mode my/diagnostic-popup-mode
+  "Minor mode of the diagnostic popup buffer."
+  :keymap my/diagnostic-popup-mode-map)
+
+(defun my/diagnostic-popup--window ()
+  "Return the popup's window while it is shown, else nil."
+  (and my/diagnostic-popup--source
+       (get-buffer-window my/diagnostic-popup-buffer t)))
+
+(defun my/diagnostic-popup--select (window)
+  "Select WINDOW and give its frame input focus."
+  (select-frame-set-input-focus (window-frame window))
+  (select-window window))
+
+(defun my/diagnostic-popup-window-next (count)
+  "Move between the diagnostic popup and the window it was opened from.
+Without a popup shown, run `evil-window-next' with COUNT."
+  (interactive "P")
+  (let ((popup (my/diagnostic-popup--window))
+        (source (car my/diagnostic-popup--source)))
+    (cond
+     ((and popup (eq (selected-window) popup) (window-live-p source))
+      (my/diagnostic-popup--select source))
+     ((and popup (eq (selected-window) source))
+      (my/diagnostic-popup--select popup))
+     (t (evil-window-next count)))))
+
+(defun my/diagnostic-popup-quit ()
+  "Hide the diagnostic popup and return to the window it was opened from."
+  (interactive)
+  (let ((source (car my/diagnostic-popup--source)))
+    (my/diagnostic-popup-hide)
+    (when (window-live-p source)
+      (my/diagnostic-popup--select source))))
+
 (defun my/diagnostic-popup--label (diag)
   "Return the severity label of flymake DIAG, in its echo face."
   (pcase (flymake--lookup-type-property (flymake-diagnostic-type diag)
@@ -152,6 +190,11 @@ A list (WINDOW BUFFER SPANS), where SPANS is a list of (BEG . END).")
           (fill-region beg (point))))
       (goto-char (point-min)))
     (setq buffer-read-only t)
+    (my/diagnostic-popup-mode 1)
+    (when (fboundp 'evil-local-mode)
+      (evil-local-mode 1)
+      (evil-normal-state)
+      (evil-normalize-keymaps))
     (current-buffer)))
 
 (defun my/diagnostic-popup-hide ()
@@ -217,7 +260,10 @@ Moving into the popup itself keeps it open."
     "K"  'eldoc
     "[d" #'my/goto-prev-diagnostic
     "]d" #'my/goto-next-diagnostic
-    (kbd "C-w d") #'my/show-diagnostic))
+    (kbd "C-w d") #'my/show-diagnostic
+    (kbd "C-w w") #'my/diagnostic-popup-window-next)
+  (evil-define-key 'normal my/diagnostic-popup-mode-map
+    "q" #'my/diagnostic-popup-quit))
 
 ;; Leader code actions & refactoring
 (with-eval-after-load 'evil-keys
