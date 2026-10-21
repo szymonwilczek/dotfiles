@@ -123,12 +123,85 @@ If formatted output is identical to current buffer content, no modifications are
     (condition-case nil (next-error) (error (message "No next diagnostic found"))))
    (t (message "No active diagnostic engine"))))
 
+(defvar my/diagnostic-popup-buffer " *diagnostic-popup*"
+  "Buffer shown in the diagnostic popup.")
+
+(defvar my/diagnostic-popup--source nil
+  "Window, buffer and diagnostic spans the popup was opened for.
+A list (WINDOW BUFFER SPANS), where SPANS is a list of (BEG . END).")
+
+(defun my/diagnostic-popup--label (diag)
+  "Return the severity label of flymake DIAG, in its echo face."
+  (pcase (flymake--lookup-type-property (flymake-diagnostic-type diag)
+                                        'flymake-category)
+    ('flymake-error (propertize "error" 'face 'flymake-error-echo))
+    ('flymake-warning (propertize "warning" 'face 'flymake-warning-echo))
+    (_ (propertize "note" 'face 'flymake-note-echo))))
+
+(defun my/diagnostic-popup--fill (diags)
+  "Fill the popup buffer with DIAGS, one paragraph each."
+  (with-current-buffer (get-buffer-create my/diagnostic-popup-buffer)
+    (let ((inhibit-read-only t)
+          (fill-column 78))
+      (erase-buffer)
+      (dolist (diag diags)
+        (unless (bobp) (insert "\n\n"))
+        (let ((beg (point)))
+          (insert (my/diagnostic-popup--label diag) ": "
+                  (flymake-diagnostic-text diag))
+          (fill-region beg (point))))
+      (goto-char (point-min)))
+    (setq buffer-read-only t)
+    (current-buffer)))
+
+(defun my/diagnostic-popup-hide ()
+  "Hide the diagnostic popup."
+  (interactive)
+  (setq my/diagnostic-popup--source nil)
+  (remove-hook 'post-command-hook #'my/diagnostic-popup--maybe-hide)
+  (when (get-buffer my/diagnostic-popup-buffer)
+    (posframe-hide my/diagnostic-popup-buffer)))
+
+(defun my/diagnostic-popup--maybe-hide ()
+  "Hide the popup once point leaves the diagnostics it was opened for.
+Moving into the popup itself keeps it open."
+  (pcase-let ((`(,window ,buffer ,spans) my/diagnostic-popup--source))
+    (unless (or (eq (current-buffer) (get-buffer my/diagnostic-popup-buffer))
+                (and (eq (selected-window) window)
+                     (eq (current-buffer) buffer)
+                     (seq-some (lambda (span)
+                                 (<= (car span) (point) (cdr span)))
+                               spans)))
+      (my/diagnostic-popup-hide))))
+
+(defun my/diagnostic-popup ()
+  "Show the flymake diagnostics at point in a popup above the cursor."
+  (interactive)
+  (let ((diags (flymake-diagnostics (point))))
+    (unless diags
+      (user-error "No diagnostic at point"))
+    (posframe-show (my/diagnostic-popup--fill diags)
+                   :poshandler #'posframe-poshandler-point-bottom-left-corner-upward
+                   :border-width 1
+                   :border-color (face-foreground 'shadow nil t)
+                   :left-fringe 6
+                   :right-fringe 6
+                   :accept-focus t
+                   :cursor 'box)
+    (setq my/diagnostic-popup--source
+          (list (selected-window) (current-buffer)
+                (mapcar (lambda (d)
+                          (cons (flymake-diagnostic-beg d)
+                                (flymake-diagnostic-end d)))
+                        diags)))
+    (add-hook 'post-command-hook #'my/diagnostic-popup--maybe-hide)))
+
 (defun my/show-diagnostic ()
   "Show diagnostic message under point."
   (interactive)
   (cond
-   ((and (bound-and-true-p flymake-mode) (fboundp 'flymake-show-diagnostic))
-    (flymake-show-diagnostic (point)))
+   ((bound-and-true-p flymake-mode)
+    (my/diagnostic-popup))
    ((and (bound-and-true-p flycheck-mode) (fboundp 'flycheck-display-error-at-point))
     (flycheck-display-error-at-point))
    ((fboundp 'eldoc-doc-buffer)

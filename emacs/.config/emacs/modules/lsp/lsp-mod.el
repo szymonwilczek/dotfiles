@@ -318,6 +318,9 @@ stay tab-indented."
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode) . ("ruff" "server"))))
 
+(use-package posframe
+  :defer t)
+
 (require 'lsp-keys)
 
 (provide 'lsp-mod)
