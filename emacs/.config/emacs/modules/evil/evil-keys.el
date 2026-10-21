@@ -168,4 +168,43 @@ The last argument takes the comma before it instead."
   (define-key evil-inner-text-objects-map "i" (evil-textobj-tree-sitter-get-textobj "conditional.inner"))
   (define-key evil-outer-text-objects-map "/" (evil-textobj-tree-sitter-get-textobj "comment.outer")))
 
+;; Tree-sitter motions
+(defmacro my/define-tree-sitter-motion (name group previous end)
+  "Define the evil motion NAME to the start or END of the GROUP text object.
+PREVIOUS searches backward instead of forward."
+  `(evil-define-motion ,name (count)
+     ,(format "Go to the %s of the %s %s, COUNT times."
+              (if end "end" "start")
+              (if previous "previous" "next")
+              group)
+     :jump t
+     :type ,(if end 'inclusive 'exclusive)
+     (dotimes (_ (or count 1))
+       (evil-textobj-tree-sitter-goto-textobj ,group ,previous ,end))))
+
+(my/define-tree-sitter-motion my/next-function-start "function.outer" nil nil)
+(my/define-tree-sitter-motion my/previous-function-start "function.outer" t nil)
+(my/define-tree-sitter-motion my/next-function-end "function.outer" nil t)
+(my/define-tree-sitter-motion my/previous-function-end "function.outer" t t)
+(my/define-tree-sitter-motion my/next-argument "parameter.inner" nil nil)
+(my/define-tree-sitter-motion my/previous-argument "parameter.inner" t nil)
+(my/define-tree-sitter-motion my/next-loop "loop.outer" nil nil)
+(my/define-tree-sitter-motion my/previous-loop "loop.outer" t nil)
+
+(with-eval-after-load 'evil
+  (evil-define-key '(normal visual operator) 'global
+    "]f" #'my/next-function-start
+    "[f" #'my/previous-function-start
+    "]F" #'my/next-function-end
+    "[F" #'my/previous-function-end
+    "]a" #'my/next-argument
+    "[a" #'my/previous-argument
+    "]l" #'my/next-loop
+    "[l" #'my/previous-loop))
+
+(with-eval-after-load 'evil-collection-unimpaired
+  (evil-define-key 'normal evil-collection-unimpaired-mode-map
+    "]l" #'my/next-loop
+    "[l" #'my/previous-loop))
+
 (provide 'evil-keys)
