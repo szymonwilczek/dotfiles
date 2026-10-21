@@ -142,9 +142,17 @@ If formatted output is identical to current buffer content, no modifications are
        (get-buffer-window my/diagnostic-popup-buffer t)))
 
 (defun my/diagnostic-popup--select (window)
-  "Select WINDOW and give its frame input focus."
-  (select-frame-set-input-focus (window-frame window))
-  (select-window window))
+  "Select WINDOW, in the popup or in the frame it was opened from.
+Input focus stays with the parent frame throughout: keystrokes reach
+the popup through `redirect-frame-focus', because hiding a child frame
+that holds focus leaves no frame with focus on pgtk."
+  (let* ((frame (window-frame window))
+         (parent (frame-parent frame)))
+    (if parent
+        (redirect-frame-focus parent frame)
+      (redirect-frame-focus frame nil))
+    (select-frame frame)
+    (select-window window)))
 
 (defun my/diagnostic-popup-window-next (count)
   "Move between the diagnostic popup and the window it was opened from.
@@ -211,7 +219,6 @@ Focus moves into the popup, which stays until q closes it."
                    :border-color (face-foreground 'shadow nil t)
                    :left-fringe 6
                    :right-fringe 6
-                   :accept-focus t
                    :cursor 'box)
     (setq my/diagnostic-popup--source source)
     (my/diagnostic-popup--select (my/diagnostic-popup--window))))
