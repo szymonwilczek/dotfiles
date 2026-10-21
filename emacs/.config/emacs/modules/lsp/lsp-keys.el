@@ -123,129 +123,12 @@ If formatted output is identical to current buffer content, no modifications are
     (condition-case nil (next-error) (error (message "No next diagnostic found"))))
    (t (message "No active diagnostic engine"))))
 
-(defvar my/diagnostic-popup-buffer " *diagnostic-popup*"
-  "Buffer shown in the diagnostic popup.")
-
-(defvar my/diagnostic-popup--source nil
-  "Window the diagnostic popup was opened from, while it is shown.")
-
-(defvar my/diagnostic-popup--face-remap nil
-  "Source buffer and face remap cookie that keep its mode line active.")
-
-(defvar-keymap my/diagnostic-popup-mode-map
-  :doc "Keymap active in the diagnostic popup.")
-
-(define-minor-mode my/diagnostic-popup-mode
-  "Minor mode of the diagnostic popup buffer."
-  :keymap my/diagnostic-popup-mode-map)
-
-(defun my/diagnostic-popup--window ()
-  "Return the popup's window while it is shown, else nil."
-  (and my/diagnostic-popup--source
-       (get-buffer-window my/diagnostic-popup-buffer t)))
-
-(defun my/diagnostic-popup--select (window)
-  "Select WINDOW, in the popup or in the frame it was opened from.
-Input focus stays with the parent frame throughout: keystrokes reach
-the popup through `redirect-frame-focus', because hiding a child frame
-that holds focus leaves no frame with focus on pgtk."
-  (let* ((frame (window-frame window))
-         (parent (frame-parent frame)))
-    (if parent
-        (redirect-frame-focus parent frame)
-      (redirect-frame-focus frame nil))
-    (select-frame frame)
-    (select-window window)))
-
-(defun my/diagnostic-popup-window-next (count)
-  "Move between the diagnostic popup and the window it was opened from.
-Without a popup shown, run `evil-window-next' with COUNT."
-  (interactive "P")
-  (let ((popup (my/diagnostic-popup--window))
-        (source my/diagnostic-popup--source))
-    (cond
-     ((and popup (eq (selected-window) popup) (window-live-p source))
-      (my/diagnostic-popup--select source))
-     ((and popup (eq (selected-window) source))
-      (my/diagnostic-popup--select popup))
-     (t (evil-window-next count)))))
-
-(defun my/diagnostic-popup-quit ()
-  "Hide the diagnostic popup and return to the window it was opened from."
-  (interactive)
-  (let ((source my/diagnostic-popup--source)
-        ;; pgtk otherwise blocks for the full timeout waiting for
-        ;; unmap event that never comes for a child frame
-        (pgtk-wait-for-event-timeout nil))
-    (setq my/diagnostic-popup--source nil)
-    (when (window-live-p source)
-      (my/diagnostic-popup--select source))
-    (pcase-let ((`(,buffer . ,cookie) my/diagnostic-popup--face-remap))
-      (when (buffer-live-p buffer)
-        (with-current-buffer buffer
-          (face-remap-remove-relative cookie))))
-    (setq my/diagnostic-popup--face-remap nil)
-    (posframe-hide my/diagnostic-popup-buffer)))
-
-(defun my/diagnostic-popup--label (diag)
-  "Return the severity label of flymake DIAG, in its echo face."
-  (pcase (flymake--lookup-type-property (flymake-diagnostic-type diag)
-                                        'flymake-category)
-    ('flymake-error (propertize "error" 'face 'flymake-error-echo))
-    ('flymake-warning (propertize "warning" 'face 'flymake-warning-echo))
-    (_ (propertize "note" 'face 'flymake-note-echo))))
-
-(defun my/diagnostic-popup--fill (diags)
-  "Fill the popup buffer with DIAGS, one paragraph each."
-  (with-current-buffer (get-buffer-create my/diagnostic-popup-buffer)
-    (let ((inhibit-read-only t)
-          (fill-column 78))
-      (erase-buffer)
-      (dolist (diag diags)
-        (unless (bobp) (insert "\n\n"))
-        (let ((beg (point)))
-          (insert (my/diagnostic-popup--label diag) ": "
-                  (flymake-diagnostic-text diag))
-          (fill-region beg (point))))
-      (goto-char (point-min)))
-    (setq buffer-read-only t)
-    (my/diagnostic-popup-mode 1)
-    (when (fboundp 'evil-local-mode)
-      (evil-local-mode 1)
-      (evil-normal-state)
-      (evil-normalize-keymaps))
-    (current-buffer)))
-
-(defun my/diagnostic-popup ()
-  "Show the flymake diagnostics at point in a popup above the cursor.
-Focus moves into the popup, which stays until q closes it."
-  (interactive)
-  (let ((diags (flymake-diagnostics (point)))
-        (source (selected-window))
-        (pgtk-wait-for-event-timeout nil))
-    (unless diags
-      (user-error "No diagnostic at point"))
-    (posframe-show (my/diagnostic-popup--fill diags)
-                   :poshandler #'posframe-poshandler-point-bottom-left-corner-upward
-                   :border-width 1
-                   :border-color (face-foreground 'shadow nil t)
-                   :left-fringe 6
-                   :right-fringe 6
-                   :cursor 'box)
-    (setq my/diagnostic-popup--source source)
-    (unless my/diagnostic-popup--face-remap
-      (setq my/diagnostic-popup--face-remap
-            (cons (current-buffer)
-                  (face-remap-add-relative 'mode-line-inactive
-                                           'mode-line-active))))
-    (my/diagnostic-popup--select (my/diagnostic-popup--window))))
-
 (defun my/show-diagnostic ()
   "Show diagnostic message under point."
   (interactive)
   (cond
-   ((bound-and-true-p flymake-mode)
-    (my/diagnostic-popup))
+   ((and (bound-and-true-p flymake-mode) (fboundp 'flymake-show-diagnostic))
+    (flymake-show-diagnostic (point)))
    ((and (bound-and-true-p flycheck-mode) (fboundp 'flycheck-display-error-at-point))
     (flycheck-display-error-at-point))
    ((fboundp 'eldoc-doc-buffer)
@@ -261,10 +144,7 @@ Focus moves into the popup, which stays until q closes it."
     "K"  'eldoc
     "[d" #'my/goto-prev-diagnostic
     "]d" #'my/goto-next-diagnostic
-    (kbd "C-w d") #'my/show-diagnostic
-    (kbd "C-w w") #'my/diagnostic-popup-window-next)
-  (evil-define-key 'normal my/diagnostic-popup-mode-map
-    "q" #'my/diagnostic-popup-quit))
+    (kbd "C-w d") #'my/show-diagnostic))
 
 ;; Leader code actions & refactoring
 (with-eval-after-load 'evil-keys

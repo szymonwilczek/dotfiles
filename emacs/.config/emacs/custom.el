@@ -44,7 +44,7 @@
                    ghostel git-gutter git-gutter-fringe jot magit
                    marginalia markdown-mode nerd-icons
                    nerd-icons-completion nerd-icons-dired olivetti
-                   orderless org-appear persp-projectile perspective posframe
+                   orderless org-appear persp-projectile perspective
                    plan-polsl projectile rainbow-mode rere treemacs
                    treemacs-evil treemacs-nerd-icons
                    treemacs-perspective treemacs-projectile vertico
