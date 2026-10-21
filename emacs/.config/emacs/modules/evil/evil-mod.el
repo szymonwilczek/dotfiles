@@ -76,6 +76,9 @@
 (use-package evil-numbers
   :after evil)
 
+(use-package evil-textobj-tree-sitter
+  :after evil)
+
 (use-package avy
   :defer t
   :custom
