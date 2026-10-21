@@ -104,7 +104,7 @@ If formatted output is identical to current buffer content, no modifications are
   (interactive)
   (cond
    ((and (bound-and-true-p flymake-mode) (fboundp 'flymake-goto-prev-error))
-    (flymake-goto-prev-error 1 t))
+    (flymake-goto-prev-error 1 nil t))
    ((and (bound-and-true-p flycheck-mode) (fboundp 'flycheck-previous-error))
     (flycheck-previous-error))
    ((fboundp 'previous-error)
@@ -116,7 +116,7 @@ If formatted output is identical to current buffer content, no modifications are
   (interactive)
   (cond
    ((and (bound-and-true-p flymake-mode) (fboundp 'flymake-goto-next-error))
-    (flymake-goto-next-error 1 t))
+    (flymake-goto-next-error 1 nil t))
    ((and (bound-and-true-p flycheck-mode) (fboundp 'flycheck-next-error))
     (flycheck-next-error))
    ((fboundp 'next-error)
