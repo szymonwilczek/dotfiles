@@ -133,5 +133,39 @@ match or the labels are dismissed."
             (insert (make-string (- width (% (current-column) width)) ?\s))))))))
 
 (global-set-key [remap indent-for-tab-command] #'my/indent-or-insert-tab)
+(evil-define-text-object my/evil-an-argument (count &optional beg end type)
+  "Select an argument together with the comma separating it from the next.
+The last argument takes the comma before it instead."
+  (let* ((range (evil-textobj-tree-sitter-function--parameter.inner
+                 count beg end type))
+         (beg (evil-range-beginning range))
+         (end (evil-range-end range)))
+    (save-excursion
+      (goto-char end)
+      (skip-chars-forward " \t")
+      (if (eq (char-after) ?,)
+          (progn
+            (forward-char)
+            (skip-chars-forward " \t")
+            (setq end (point)))
+        (goto-char beg)
+        (skip-chars-backward " \t\n")
+        (when (eq (char-before) ?,)
+          (setq beg (1- (point))))))
+    (evil-range beg end)))
+
+;; Tree-sitter text objects after a or i
+(with-eval-after-load 'evil-textobj-tree-sitter
+  (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
+  (define-key evil-inner-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.inner"))
+  (define-key evil-inner-text-objects-map "a" (evil-textobj-tree-sitter-get-textobj "parameter.inner"))
+  (define-key evil-outer-text-objects-map "a" #'my/evil-an-argument)
+  (define-key evil-outer-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "class.outer"))
+  (define-key evil-inner-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "class.inner"))
+  (define-key evil-outer-text-objects-map "l" (evil-textobj-tree-sitter-get-textobj "loop.outer"))
+  (define-key evil-inner-text-objects-map "l" (evil-textobj-tree-sitter-get-textobj "loop.inner"))
+  (define-key evil-outer-text-objects-map "i" (evil-textobj-tree-sitter-get-textobj "conditional.outer"))
+  (define-key evil-inner-text-objects-map "i" (evil-textobj-tree-sitter-get-textobj "conditional.inner"))
+  (define-key evil-outer-text-objects-map "/" (evil-textobj-tree-sitter-get-textobj "comment.outer")))
 
 (provide 'evil-keys)
