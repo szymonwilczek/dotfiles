@@ -76,6 +76,12 @@
 (use-package evil-numbers
   :after evil)
 
+(use-package avy
+  :defer t
+  :custom
+  (avy-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (avy-all-windows t))
+
 (use-package evil-mc
   :after evil
   :ensure t

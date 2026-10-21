@@ -37,7 +37,7 @@
      default))
  '(global-wakatime-mode t)
  '(package-selected-packages
-   '(astro-ts-mode au-themes bufferline citar citar-org colorful-mode
+   '(astro-ts-mode au-themes avy bufferline citar citar-org colorful-mode
                    company consult ef-themes embark embark-consult
                    evil evil-collection evil-commentary evil-matchit
                    evil-mc evil-numbers evil-surround general gh-radar
