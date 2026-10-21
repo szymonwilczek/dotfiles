@@ -1,26 +1,20 @@
 ### Variables
 set $mod Mod4
 set $left h
-set $down j
-set $up k
-set $right l
-set $term ghostty
-set $menu fuzzel
-set $explorer QT_QPA_PLATFORMTHEME=kde dolphin
-set $taskmanager plasma-systemmonitor
+set $down j set $up k set $right l set $term ghostty set $menu fuzzel
+set $explorer QT_QPA_PLATFORMTHEME=kde dolphin set $taskmanager
+plasma-systemmonitor
 
-# Execs
-exec dbus-update-activation-environment --systemd QT_QPA_PLATFORMTHEME=kde
+# Execs exec dbus-update-activation-environment --systemd
+QT_QPA_PLATFORMTHEME=kde
 
-exec swaync
-exec ~/.config/sway/scripts/waybar.sh
-exec ~/.config/sway/scripts/modal.sh pipewire-mixer --hidden
-exec ~/.config/sway/scripts/modal.sh audio-switcher --hidden
-exec ~/.config/sway/scripts/modal.sh powermenu --hidden
-exec wl-paste --watch cliphist store
+exec swaync exec ~/.config/sway/scripts/waybar.sh exec
+~/.config/sway/scripts/modal.sh pipewire-mixer --hidden exec
+~/.config/sway/scripts/modal.sh audio-switcher --hidden exec
+~/.config/sway/scripts/modal.sh powermenu --hidden exec wl-paste
+--watch cliphist store
 
-# Output configuration
-output * bg ~/Pulpit/Personalne/Tapety/fall-house-norm.jpg fill
+# Output configuration output * bg ~/Dokumenty/GitHub/dotfiles/wallpapers/misc/room.png fill
 output * subpixel none
 # output * render_bit_depth 10
 output HDMI-A-1 mode 1920x1080@75Hz pos 0 0
