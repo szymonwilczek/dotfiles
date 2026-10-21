@@ -246,6 +246,18 @@
   (org-babel-do-load-languages 'org-babel-load-languages ;; university
                                '((emacs-lisp . t) (python . t)))) ;; university
 
+;; university
+(use-package jupyter ;; university
+  :after org ;; university
+  :config ;; university
+  (org-babel-do-load-languages 'org-babel-load-languages ;; university
+                               '((emacs-lisp . t) (python . t) (jupyter . t))) ;; university
+  (setq org-babel-default-header-args:jupyter-python ;; university
+        '((:session . "adiio") (:kernel . "adiio") (:async . "yes"))) ;; university
+  (define-advice org-element-drawer-interpreter (:before (drawer _) my/pre-blank) ;; university
+    (unless (org-element-property :pre-blank drawer) ;; university
+      (org-element-put-property drawer :pre-blank 0)))) ;; university
+
 (require 'org-keybindings)
 
 (provide 'org-mod)

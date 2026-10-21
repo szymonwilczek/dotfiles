@@ -63,6 +63,10 @@
                  :branch "main")
      (astro-ts-mode :url "https://github.com/Sorixelle/astro-ts-mode"
                     :branch "master")))
+ '(safe-local-variable-values
+   '((python-shell-interpreter . "python")
+     (python-shell-virtualenv-root
+      . "/home/wolfie/Dokumenty/GitHub/polibuda-notatki/ADIIO/.venv")))
  '(tramp-use-connection-share t nil nil "Customized with use-package tramp"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
