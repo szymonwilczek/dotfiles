@@ -140,6 +140,12 @@ With two dired windows, C and R offer the other one as the target."
     ("DEL" "Back" my/dired-back)
     ("S-<backspace>" "Forward" my/dired-forward)]])
 
+(defun my/dired-skip-matchit ()
+  "Return non-nil in dired, where `%' creates a file instead of matching."
+  (derived-mode-p 'dired-mode))
+
+(advice-add 'turn-on-evil-matchit-mode :before-until #'my/dired-skip-matchit)
+
 (with-eval-after-load 'dired
   (with-eval-after-load 'evil
     (evil-define-key* '(normal motion) dired-mode-map
