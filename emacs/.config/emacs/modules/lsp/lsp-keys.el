@@ -154,7 +154,8 @@ If formatted output is identical to current buffer content, no modifications are
       ;; Code & Refactor
       "c"  '(:ignore t :which-key "Code")
       "cf" '(my/format-buffer :which-key "Format Buffer")
-      "cd" '(flymake-show-buffer-diagnostics :which-key "Diagnostics List")
+      "cd" '(consult-flymake :which-key "Search Diagnostics")
+      "cD" '(flymake-show-buffer-diagnostics :which-key "Diagnostics List")
       "ci" '(eglot-inlay-hints-mode :which-key "Toggle Inlay Hints")
       "cr" '(eglot-rename :which-key "Rename Symbol"))))
 
