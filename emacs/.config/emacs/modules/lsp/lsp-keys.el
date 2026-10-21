@@ -127,8 +127,7 @@ If formatted output is identical to current buffer content, no modifications are
   "Buffer shown in the diagnostic popup.")
 
 (defvar my/diagnostic-popup--source nil
-  "Window, buffer and diagnostic spans the popup was opened for.
-A list (WINDOW BUFFER SPANS), where SPANS is a list of (BEG . END).")
+  "Window the diagnostic popup was opened from, while it is shown.")
 
 (defvar-keymap my/diagnostic-popup-mode-map
   :doc "Keymap active in the diagnostic popup.")
@@ -152,7 +151,7 @@ A list (WINDOW BUFFER SPANS), where SPANS is a list of (BEG . END).")
 Without a popup shown, run `evil-window-next' with COUNT."
   (interactive "P")
   (let ((popup (my/diagnostic-popup--window))
-        (source (car my/diagnostic-popup--source)))
+        (source my/diagnostic-popup--source))
     (cond
      ((and popup (eq (selected-window) popup) (window-live-p source))
       (my/diagnostic-popup--select source))
@@ -163,8 +162,9 @@ Without a popup shown, run `evil-window-next' with COUNT."
 (defun my/diagnostic-popup-quit ()
   "Hide the diagnostic popup and return to the window it was opened from."
   (interactive)
-  (let ((source (car my/diagnostic-popup--source)))
-    (my/diagnostic-popup-hide)
+  (let ((source my/diagnostic-popup--source))
+    (setq my/diagnostic-popup--source nil)
+    (posframe-hide my/diagnostic-popup-buffer)
     (when (window-live-p source)
       (my/diagnostic-popup--select source))))
 
@@ -197,30 +197,12 @@ Without a popup shown, run `evil-window-next' with COUNT."
       (evil-normalize-keymaps))
     (current-buffer)))
 
-(defun my/diagnostic-popup-hide ()
-  "Hide the diagnostic popup."
-  (interactive)
-  (setq my/diagnostic-popup--source nil)
-  (remove-hook 'post-command-hook #'my/diagnostic-popup--maybe-hide)
-  (when (get-buffer my/diagnostic-popup-buffer)
-    (posframe-hide my/diagnostic-popup-buffer)))
-
-(defun my/diagnostic-popup--maybe-hide ()
-  "Hide the popup once point leaves the diagnostics it was opened for.
-Moving into the popup itself keeps it open."
-  (pcase-let ((`(,window ,buffer ,spans) my/diagnostic-popup--source))
-    (unless (or (eq (current-buffer) (get-buffer my/diagnostic-popup-buffer))
-                (and (eq (selected-window) window)
-                     (eq (current-buffer) buffer)
-                     (seq-some (lambda (span)
-                                 (<= (car span) (point) (cdr span)))
-                               spans)))
-      (my/diagnostic-popup-hide))))
-
 (defun my/diagnostic-popup ()
-  "Show the flymake diagnostics at point in a popup above the cursor."
+  "Show the flymake diagnostics at point in a popup above the cursor.
+Focus moves into the popup, which stays until q closes it."
   (interactive)
-  (let ((diags (flymake-diagnostics (point))))
+  (let ((diags (flymake-diagnostics (point)))
+        (source (selected-window)))
     (unless diags
       (user-error "No diagnostic at point"))
     (posframe-show (my/diagnostic-popup--fill diags)
@@ -231,13 +213,8 @@ Moving into the popup itself keeps it open."
                    :right-fringe 6
                    :accept-focus t
                    :cursor 'box)
-    (setq my/diagnostic-popup--source
-          (list (selected-window) (current-buffer)
-                (mapcar (lambda (d)
-                          (cons (flymake-diagnostic-beg d)
-                                (flymake-diagnostic-end d)))
-                        diags)))
-    (add-hook 'post-command-hook #'my/diagnostic-popup--maybe-hide)))
+    (setq my/diagnostic-popup--source source)
+    (my/diagnostic-popup--select (my/diagnostic-popup--window))))
 
 (defun my/show-diagnostic ()
   "Show diagnostic message under point."
