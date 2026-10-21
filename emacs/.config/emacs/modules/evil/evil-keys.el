@@ -42,6 +42,10 @@
   (define-key evil-normal-state-map (kbd "M-k") #'evil-mc-make-cursor-move-prev-line)
   (define-key evil-visual-state-map (kbd "M-k") #'evil-mc-make-cursor-move-prev-line)
 
+  ;; Avy jumps
+  (define-key evil-normal-state-map "s" #'evil-avy-goto-char-2)
+  (define-key evil-visual-state-map "s" #'evil-avy-goto-char-2)
+
   ;; Window navigation
   (define-key evil-normal-state-map (kbd "C-w h") 'evil-window-left)
   (define-key evil-normal-state-map (kbd "C-w j") 'evil-window-down)
