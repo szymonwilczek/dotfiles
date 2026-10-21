@@ -170,11 +170,14 @@ Without a popup shown, run `evil-window-next' with COUNT."
 (defun my/diagnostic-popup-quit ()
   "Hide the diagnostic popup and return to the window it was opened from."
   (interactive)
-  (let ((source my/diagnostic-popup--source))
+  (let ((source my/diagnostic-popup--source)
+        ;; pgtk otherwise blocks for the full timeout waiting for
+        ;; unmap event that never comes for a child frame
+        (pgtk-wait-for-event-timeout nil))
     (setq my/diagnostic-popup--source nil)
-    (posframe-hide my/diagnostic-popup-buffer)
     (when (window-live-p source)
-      (my/diagnostic-popup--select source))))
+      (my/diagnostic-popup--select source))
+    (posframe-hide my/diagnostic-popup-buffer)))
 
 (defun my/diagnostic-popup--label (diag)
   "Return the severity label of flymake DIAG, in its echo face."
@@ -210,7 +213,8 @@ Without a popup shown, run `evil-window-next' with COUNT."
 Focus moves into the popup, which stays until q closes it."
   (interactive)
   (let ((diags (flymake-diagnostics (point)))
-        (source (selected-window)))
+        (source (selected-window))
+        (pgtk-wait-for-event-timeout nil))
     (unless diags
       (user-error "No diagnostic at point"))
     (posframe-show (my/diagnostic-popup--fill diags)
