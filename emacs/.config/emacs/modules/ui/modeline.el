@@ -144,12 +144,21 @@
       (or (gh-radar-modeline-format) "")
     ""))
 
+(defun my/modeline-window-selected-p ()
+  "Like `mode-line-window-selected-p', also while a child frame has focus.
+A popup child frame counts as part of the window it was opened from,
+so that window keeps its active statusline."
+  (or (mode-line-window-selected-p)
+      (let ((parent (frame-parent (window-frame (old-selected-window)))))
+        (and parent
+             (eq (selected-window) (frame-selected-window parent))))))
+
 (defun my/render-modeline ()
   "Assemble active or inactive statusline."
   (if (and (fboundp 'my/agents-modeline-buffer-p)
            (my/agents-modeline-buffer-p))
       (my/agents-modeline-render)
-    (if (not (mode-line-window-selected-p))
+    (if (not (my/modeline-window-selected-p))
         ;; inactive standard window
         (concat " " (my/modeline-filename))
       ;; active standard window

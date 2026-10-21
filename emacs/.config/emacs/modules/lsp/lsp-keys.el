@@ -129,6 +129,9 @@ If formatted output is identical to current buffer content, no modifications are
 (defvar my/diagnostic-popup--source nil
   "Window the diagnostic popup was opened from, while it is shown.")
 
+(defvar my/diagnostic-popup--face-remap nil
+  "Source buffer and face remap cookie that keep its mode line active.")
+
 (defvar-keymap my/diagnostic-popup-mode-map
   :doc "Keymap active in the diagnostic popup.")
 
@@ -177,6 +180,11 @@ Without a popup shown, run `evil-window-next' with COUNT."
     (setq my/diagnostic-popup--source nil)
     (when (window-live-p source)
       (my/diagnostic-popup--select source))
+    (pcase-let ((`(,buffer . ,cookie) my/diagnostic-popup--face-remap))
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (face-remap-remove-relative cookie))))
+    (setq my/diagnostic-popup--face-remap nil)
     (posframe-hide my/diagnostic-popup-buffer)))
 
 (defun my/diagnostic-popup--label (diag)
@@ -225,6 +233,11 @@ Focus moves into the popup, which stays until q closes it."
                    :right-fringe 6
                    :cursor 'box)
     (setq my/diagnostic-popup--source source)
+    (unless my/diagnostic-popup--face-remap
+      (setq my/diagnostic-popup--face-remap
+            (cons (current-buffer)
+                  (face-remap-add-relative 'mode-line-inactive
+                                           'mode-line-active))))
     (my/diagnostic-popup--select (my/diagnostic-popup--window))))
 
 (defun my/show-diagnostic ()
