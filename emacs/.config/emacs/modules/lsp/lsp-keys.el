@@ -222,6 +222,7 @@ The split is selected and stays until q closes it."
 
       ;; Code & Refactor
       "c"  '(:ignore t :which-key "Code")
+      "ca" '(eglot-code-actions :which-key "Code Actions")
       "cf" '(my/format-buffer :which-key "Format Buffer")
       "cd" '(consult-flymake :which-key "Search Diagnostics")
       "cD" '(flymake-show-buffer-diagnostics :which-key "Diagnostics List")
