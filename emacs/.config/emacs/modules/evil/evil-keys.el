@@ -45,6 +45,7 @@
   ;; Avy jumps
   (define-key evil-normal-state-map "s" #'evil-avy-goto-char-2)
   (define-key evil-visual-state-map "s" #'evil-avy-goto-char-2)
+  (define-key evil-operator-state-map "z" #'my/evil-avy-goto-char-2)
 
   ;; Window navigation
   (define-key evil-normal-state-map (kbd "C-w h") 'evil-window-left)
@@ -88,6 +89,19 @@
     "ee" '(eval-last-sexp :which-key "Eval Expression")
     "er" '(eval-region :which-key "Eval Region")
     "ed" '(eval-defun :which-key "Eval Defun/Function")))
+
+(evil-define-motion my/evil-avy-goto-char-2 (count)
+  "Like `evil-avy-goto-char-2', but abort when avy does not jump.
+Otherwise an operator would act on the character at point when there is
+no match or the labels are dismissed."
+  :type inclusive
+  :jump t
+  :repeat abort
+  (let ((start (point))
+        (window (selected-window)))
+    (evil-avy-goto-char-2 count)
+    (when (and (= (point) start) (eq (selected-window) window))
+      (user-error "No jump"))))
 
 (defun my/indent-or-insert-tab ()
   "Indent the current line, or insert a tab when it is already indented."
