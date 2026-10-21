@@ -46,6 +46,7 @@
   (define-key evil-normal-state-map "s" #'evil-avy-goto-char-2)
   (define-key evil-visual-state-map "s" #'evil-avy-goto-char-2)
   (define-key evil-operator-state-map "z" #'my/evil-avy-goto-char-2)
+  (define-key evil-motion-state-map "gl" #'my/evil-avy-goto-line)
 
   ;; Window navigation
   (define-key evil-normal-state-map (kbd "C-w h") 'evil-window-left)
@@ -90,18 +91,29 @@
     "er" '(eval-region :which-key "Eval Region")
     "ed" '(eval-defun :which-key "Eval Defun/Function")))
 
+(defun my/evil-avy-jump-or-abort (motion count)
+  "Run the avy MOTION with COUNT, signalling an error when it does not jump.
+Otherwise an operator would act on the text at point when there is no
+match or the labels are dismissed."
+  (let ((start (point))
+        (window (selected-window)))
+    (funcall motion count)
+    (when (and (= (point) start) (eq (selected-window) window))
+      (user-error "No jump"))))
+
 (evil-define-motion my/evil-avy-goto-char-2 (count)
-  "Like `evil-avy-goto-char-2', but abort when avy does not jump.
-Otherwise an operator would act on the character at point when there is
-no match or the labels are dismissed."
+  "Like `evil-avy-goto-char-2', but abort when avy does not jump."
   :type inclusive
   :jump t
   :repeat abort
-  (let ((start (point))
-        (window (selected-window)))
-    (evil-avy-goto-char-2 count)
-    (when (and (= (point) start) (eq (selected-window) window))
-      (user-error "No jump"))))
+  (my/evil-avy-jump-or-abort #'evil-avy-goto-char-2 count))
+
+(evil-define-motion my/evil-avy-goto-line (count)
+  "Like `evil-avy-goto-line', but abort when avy does not jump."
+  :type line
+  :jump t
+  :repeat abort
+  (my/evil-avy-jump-or-abort #'evil-avy-goto-line count))
 
 (defun my/indent-or-insert-tab ()
   "Indent the current line, or insert a tab when it is already indented."
