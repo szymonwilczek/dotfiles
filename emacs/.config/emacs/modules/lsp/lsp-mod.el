@@ -202,12 +202,18 @@ stay tab-indented."
               ("M-n"     . code-cells-forward-cell) ;; university
               ("M-p"     . code-cells-backward-cell)) ;; university
   :config ;; university
-  ;; Start the venv REPL on first eval instead of erroring out ;; university
-  (define-advice code-cells-eval (:before (&rest _) my/start-python) ;; university
+  (setq jupyter-repl-echo-eval-p t) ;; university
+  (with-eval-after-load 'jupyter-repl ;; university
+    (keymap-set jupyter-repl-interaction-mode-map "C-c C-c" nil)) ;; university
+  (define-advice code-cells-eval (:before (&rest _) my/start-jupyter) ;; university
     (when (and (derived-mode-p 'python-base-mode) ;; university
-               (not (python-shell-get-process))) ;; university
-      (run-python nil nil t) ;; university
-      (sit-for 1)))) ;; university
+               (not (bound-and-true-p jupyter-repl-interaction-mode))) ;; university
+      (require 'jupyter) ;; university
+      (setq-local jupyter-current-client ;; university
+                  (save-current-buffer ;; university
+                    (save-selected-window ;; university
+                      (jupyter-run-repl "adiio" "adiio" nil nil t)))) ;; university
+      (jupyter-repl-interaction-mode 1)))) ;; university
 
 ;; Python embedded in shell heredocs
 (use-package sh-script
