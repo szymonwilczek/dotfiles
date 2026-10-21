@@ -200,7 +200,14 @@ stay tab-indented."
   :bind (:map code-cells-mode-map ;; university
               ("C-c C-c" . code-cells-eval) ;; university
               ("M-n"     . code-cells-forward-cell) ;; university
-              ("M-p"     . code-cells-backward-cell))) ;; university
+              ("M-p"     . code-cells-backward-cell)) ;; university
+  :config ;; university
+  ;; Start the venv REPL on first eval instead of erroring out ;; university
+  (define-advice code-cells-eval (:before (&rest _) my/start-python) ;; university
+    (when (and (derived-mode-p 'python-base-mode) ;; university
+               (not (python-shell-get-process))) ;; university
+      (run-python nil nil t) ;; university
+      (sit-for 1)))) ;; university
 
 ;; Python embedded in shell heredocs
 (use-package sh-script
