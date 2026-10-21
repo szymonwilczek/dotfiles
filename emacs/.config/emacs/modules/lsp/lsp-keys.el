@@ -123,12 +123,79 @@ If formatted output is identical to current buffer content, no modifications are
     (condition-case nil (next-error) (error (message "No next diagnostic found"))))
    (t (message "No active diagnostic engine"))))
 
+(defvar my/diagnostic-split-buffer "*diagnostics-at-point*"
+  "Buffer listing the diagnostics at point, shown in a split below.")
+
+(defvar-keymap my/diagnostic-split-mode-map
+  :doc "Keymap active in the diagnostics-at-point buffer.")
+
+(define-minor-mode my/diagnostic-split-mode
+  "Minor mode of the diagnostics-at-point buffer."
+  :keymap my/diagnostic-split-mode-map)
+
+(defun my/diagnostic-split--label (diag)
+  "Return the severity label of flymake DIAG, in its echo face."
+  (pcase (flymake--lookup-type-property (flymake-diagnostic-type diag)
+                                        'flymake-category)
+    ('flymake-error (propertize "error" 'face 'flymake-error-echo))
+    ('flymake-warning (propertize "warning" 'face 'flymake-warning-echo))
+    (_ (propertize "note" 'face 'flymake-note-echo))))
+
+(defun my/diagnostic-split--fill (diags width)
+  "Fill the diagnostics buffer with DIAGS, wrapped to WIDTH columns."
+  (with-current-buffer (get-buffer-create my/diagnostic-split-buffer)
+    (let ((inhibit-read-only t)
+          (fill-column width))
+      (erase-buffer)
+      (dolist (diag diags)
+        (unless (bobp) (insert "\n\n"))
+        (let ((beg (point)))
+          (insert (my/diagnostic-split--label diag) ": "
+                  (flymake-diagnostic-text diag))
+          (fill-region beg (point))))
+      (goto-char (point-min)))
+    (setq buffer-read-only t)
+    (my/diagnostic-split-mode 1)
+    (when (fboundp 'evil-local-mode)
+      (evil-local-mode 1)
+      (evil-normal-state)
+      (evil-normalize-keymaps))
+    (current-buffer)))
+
+(defun my/diagnostic-split-quit ()
+  "Close the diagnostics split and return to the window it was opened from."
+  (interactive)
+  (let* ((window (selected-window))
+         (source (window-parameter window 'my/diagnostic-source)))
+    (delete-window window)
+    (when (window-live-p source)
+      (select-window source))))
+
+(defun my/diagnostic-split ()
+  "Show the flymake diagnostics at point in a split below the window.
+The split is selected and stays until q closes it."
+  (interactive)
+  (let ((diags (flymake-diagnostics (point)))
+        (source (selected-window)))
+    (unless diags
+      (user-error "No diagnostic at point"))
+    (when-let* ((old (get-buffer-window my/diagnostic-split-buffer)))
+      (delete-window old))
+    (let* ((buffer (my/diagnostic-split--fill
+                    diags (1- (window-body-width source))))
+           (window (split-window source nil 'below)))
+      (set-window-buffer window buffer)
+      (set-window-dedicated-p window t)
+      (set-window-parameter window 'my/diagnostic-source source)
+      (fit-window-to-buffer window (/ (window-total-height source) 2))
+      (select-window window))))
+
 (defun my/show-diagnostic ()
   "Show diagnostic message under point."
   (interactive)
   (cond
-   ((and (bound-and-true-p flymake-mode) (fboundp 'flymake-show-diagnostic))
-    (flymake-show-diagnostic (point)))
+   ((bound-and-true-p flymake-mode)
+    (my/diagnostic-split))
    ((and (bound-and-true-p flycheck-mode) (fboundp 'flycheck-display-error-at-point))
     (flycheck-display-error-at-point))
    ((fboundp 'eldoc-doc-buffer)
@@ -144,7 +211,9 @@ If formatted output is identical to current buffer content, no modifications are
     "K"  'eldoc
     "[d" #'my/goto-prev-diagnostic
     "]d" #'my/goto-next-diagnostic
-    (kbd "C-w d") #'my/show-diagnostic))
+    (kbd "C-w d") #'my/show-diagnostic)
+  (evil-define-key 'normal my/diagnostic-split-mode-map
+    "q" #'my/diagnostic-split-quit))
 
 ;; Leader code actions & refactoring
 (with-eval-after-load 'evil-keys
