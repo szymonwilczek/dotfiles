@@ -241,6 +241,11 @@
     (evil-define-key 'normal doc-view-mode-map
       "f" #'my/presentation-toggle-fullscreen)))
 
+;; university
+(with-eval-after-load 'org ;; university
+  (org-babel-do-load-languages 'org-babel-load-languages ;; university
+                               '((emacs-lisp . t) (python . t)))) ;; university
+
 (require 'org-keybindings)
 
 (provide 'org-mod)

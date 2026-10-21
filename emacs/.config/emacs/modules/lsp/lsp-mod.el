@@ -195,6 +195,13 @@ stay tab-indented."
   (python-indent-guess-indent-offset-verbose nil)
   (python-indent-offset 4))
 
+;; university
+(use-package code-cells ;; university
+  :bind (:map code-cells-mode-map ;; university
+              ("C-c C-c" . code-cells-eval) ;; university
+              ("M-n"     . code-cells-forward-cell) ;; university
+              ("M-p"     . code-cells-backward-cell))) ;; university
+
 ;; Python embedded in shell heredocs
 (use-package sh-script
   :ensure nil
