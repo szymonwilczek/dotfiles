@@ -128,6 +128,49 @@ selection becomes its description."
           (call-interactively #'org-insert-link))
       (call-interactively #'org-insert-link))))
 
+(defun my/org-paste-image ()
+  "Save an image into images/ next to this note and link it here.
+The image is taken from the clipboard: a copied image (grim, a
+browser), or a copied path or URL of one. With none of those, it asks
+for a file, starting in the Downloads directory."
+  (interactive)
+  (unless buffer-file-name
+    (user-error "Save the note first, the image goes next to it"))
+  (require 'xdg)
+  (let* ((types (ignore-errors (process-lines "wl-paste" "--list-types")))
+         (type (seq-find (lambda (type) (string-prefix-p "image/" type)) types))
+         (text (and (not type) (member "text/plain" types)
+                    (string-trim (car (process-lines "wl-paste" "--no-newline" "--type" "text/plain")))))
+         (source (cond (type nil)
+                       ((and text (string-match-p "\\`https?://" text)) text)
+                       ((and text (file-regular-p (expand-file-name text))) (expand-file-name text))
+                       (t (read-file-name "Image: " (file-name-as-directory (xdg-user-dir "DOWNLOAD")) nil t))))
+         (ext (if type
+                  (car (last (split-string type "/")))
+                (or (file-name-extension (url-file-nondirectory source)) "png")))
+         (default (expand-file-name
+                   (format "images/%s-%s.%s"
+                           (file-name-base buffer-file-name)
+                           (format-time-string "%Y%m%d-%H%M%S")
+                           ext)))
+         (file (expand-file-name (read-file-name "Save as: " (file-name-directory default) nil nil
+                                                 (file-name-nondirectory default)))))
+    (make-directory (file-name-directory file) t)
+    (cond (type
+           (let ((coding-system-for-read 'binary)
+                 (coding-system-for-write 'binary))
+             (with-temp-file file
+               (unless (zerop (call-process "wl-paste" nil t nil "--no-newline" "--type" type))
+                 (error "wl-paste failed")))))
+          ((string-match-p "\\`https?://" source)
+           (url-copy-file source file 1))
+          (t (copy-file source file 1)))
+    (when (and (evil-normal-state-p) (not (eolp)))
+      (forward-char))
+    (let ((beg (point)))
+      (insert (format "[[file:%s]]" (file-relative-name file)))
+      (org-link-preview-region t t beg (point)))))
+
 (defun my/org-toggle-latex-preview ()
   "Toggle LaTeX math preview for equation at point or entire buffer."
   (interactive)
