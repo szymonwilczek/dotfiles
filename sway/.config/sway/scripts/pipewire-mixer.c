@@ -16,6 +16,13 @@ typedef struct {
   gboolean muted;
 } Stream;
 
+// What is read of pactl, in a thread
+typedef struct {
+  Stream streams[MAX_STREAMS];
+  int count;
+  char device[96], nick[96]; // of the default sink
+} Read;
+
 typedef struct {
   Stream streams[MAX_STREAMS];
   int count;
@@ -40,16 +47,13 @@ static int volume(json_object *channels) {
   return n ? sum / n : 0;
 }
 
-static void read_streams(Mixer *m) {
-  int selected_id = m->count ? m->streams[m->selected].id : -1;
-  m->count = 0;
-
+static void read_streams(Read *r) {
   json_object *root = pactl_json("sink-inputs");
   if (!root)
     return;
 
   size_t len = json_object_array_length(root);
-  for (size_t i = 0; i < len && m->count < MAX_STREAMS; i++) {
+  for (size_t i = 0; i < len && r->count < MAX_STREAMS; i++) {
     json_object *in = json_object_array_get_idx(root, i), *v, *props = NULL;
     json_object_object_get_ex(in, "properties", &props);
     const char *name = str(props, "application.name");
@@ -58,7 +62,7 @@ static void read_streams(Mixer *m) {
     if (!name || g_str_has_prefix(name, "speech-dispatcher"))
       continue;
 
-    Stream *s = &m->streams[m->count++];
+    Stream *s = &r->streams[r->count++];
     json_object_object_get_ex(in, "index", &v);
     s->id = json_object_get_int(v);
     snprintf(s->name, sizeof(s->name), "%s", name);
@@ -74,11 +78,6 @@ static void read_streams(Mixer *m) {
     s->volume = json_object_object_get_ex(in, "volume", &v) ? volume(v) : 0;
   }
   json_object_put(root);
-
-  m->selected = 0;
-  for (int i = 0; i < m->count; i++)
-    if (m->streams[i].id == selected_id)
-      m->selected = i;
 }
 
 static void add_class(GtkWidget *w, const char *class) {
@@ -156,23 +155,22 @@ static void render(Mixer *m) {
   gtk_widget_show_all(m->list);
 }
 
-static void refresh(Mixer *m) {
-  read_streams(m);
-  render(m);
-}
-
+// Shown changed at once, set by pactl after
 static void change_volume(Mixer *m, int delta) {
   Stream *s = &m->streams[m->selected];
+  s->volume = CLAMP(s->volume + delta, 0, 100);
   char id[16], vol[16];
   snprintf(id, sizeof(id), "%d", s->id);
-  snprintf(vol, sizeof(vol), "%d%%", CLAMP(s->volume + delta, 0, 100));
-  g_free(pactl("set-sink-input-volume", id, vol, NULL));
+  snprintf(vol, sizeof(vol), "%d%%", s->volume);
+  pactl_later(&m->watch, "set-sink-input-volume", id, vol, NULL);
 }
 
 static void toggle_mute(Mixer *m) {
+  Stream *s = &m->streams[m->selected];
+  s->muted = !s->muted;
   char id[16];
-  snprintf(id, sizeof(id), "%d", m->streams[m->selected].id);
-  g_free(pactl("set-sink-input-mute", id, "toggle", NULL));
+  snprintf(id, sizeof(id), "%d", s->id);
+  pactl_later(&m->watch, "set-sink-input-mute", id, s->muted ? "1" : "0", NULL);
 }
 
 static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data) {
@@ -211,7 +209,7 @@ static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data) {
   default:
     return TRUE;
   }
-  refresh(m);
+  render(m);
   return TRUE;
 }
 
@@ -242,13 +240,29 @@ static void default_sink(char *device, char *nick, size_t len) {
 
 // On the events of pactl, so that it is read before it is shown,
 // the default sink too as the output picker may have changed it
-static void on_change(gpointer data) {
+static gpointer read_all(void) {
+  Read *r = g_new0(Read, 1);
+  snprintf(r->device, sizeof(r->device), "brak wyjścia");
+  default_sink(r->device, r->nick, sizeof(r->device));
+  read_streams(r);
+  return r;
+}
+
+// The stream selected stays selected
+static void on_read(gpointer data, gpointer read) {
   Mixer *m = data;
-  char device[96] = "brak wyjścia", nick[96] = "";
-  default_sink(device, nick, sizeof(device));
-  gtk_label_set_text(GTK_LABEL(m->device), device);
-  gtk_label_set_text(GTK_LABEL(m->nick), nick);
-  refresh(m);
+  Read *r = read;
+  int selected_id = m->count ? m->streams[m->selected].id : -1;
+  memcpy(m->streams, r->streams, sizeof(r->streams));
+  m->count = r->count;
+  m->selected = 0;
+  for (int i = 0; i < m->count; i++)
+    if (m->streams[i].id == selected_id)
+      m->selected = i;
+  gtk_label_set_text(GTK_LABEL(m->device), r->device);
+  gtk_label_set_text(GTK_LABEL(m->nick), r->nick);
+  g_free(r);
+  render(m);
 }
 
 // From the first stream on each show
@@ -281,7 +295,8 @@ int main(int argc, char *argv[]) {
   gtk_container_add(GTK_CONTAINER(window), box);
   g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), &m);
 
-  m.watch = (Watch){.on_change = on_change, .data = &m};
+  m.watch =
+      (Watch){.read = read_all, .apply = on_read, .data = &m, .streams = TRUE};
   pactl_watch(&m.watch);
   modal_run(&m.modal, "pipewire-mixer", argc, argv);
   return 0;

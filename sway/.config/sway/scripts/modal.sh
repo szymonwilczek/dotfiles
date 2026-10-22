@@ -19,7 +19,13 @@ read -r pid 2>/dev/null <"$pidfile" &&
     read -r comm 2>/dev/null <"/proc/$pid/comm" &&
     [ "$comm" = "$name" ] || pid=
 
-make -s -C "$dir" RESTART= "$name" || exit 1
+# make only when a source is newer, as it takes longer than all the rest
+for src in "$dir/$name.c" "$dir/modal.h" "$dir/pactl.h"; do
+    if [ "$src" -nt "$bin" ]; then
+        make -s -C "$dir" RESTART= "$name" || exit 1
+        break
+    fi
+done
 
 # Built since it started, as it leaves its pid then
 if [ -n "$pid" ] && [ "$bin" -nt "$pidfile" ]; then

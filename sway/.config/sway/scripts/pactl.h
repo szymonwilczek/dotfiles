@@ -39,18 +39,60 @@ static const char *str(json_object *obj, const char *key) {
   return s && *s ? s : NULL;
 }
 
+// What a modal shows of pactl, read in a thread as each pactl takes a while:
+// read gives a copy of it and apply takes it over on the main thread
 typedef struct {
-  void (*on_change)(gpointer data);
+  gpointer (*read)(void);
+  void (*apply)(gpointer data, gpointer read);
   gpointer data;
+  gboolean streams; // its events too, or of sinks and the server alone
   guint pending;
+  gboolean reading, again;
+  int queued; // commands of pactl_later not run yet
 } Watch;
 
 static void pactl_watch(Watch *w);
+static void watch_read(Watch *w);
 
+static void watch_on_read(GObject *src, GAsyncResult *res, gpointer data) {
+  Watch *w = data;
+  gpointer read = g_task_propagate_pointer(G_TASK(res), NULL);
+  w->reading = FALSE;
+  // Read before the commands still queued, so it is read again after them
+  if (w->again || w->queued) {
+    w->again = FALSE;
+    g_free(read);
+    if (!w->queued)
+      watch_read(w);
+    return;
+  }
+  w->apply(w->data, read);
+}
+
+static void watch_thread(GTask *task, gpointer src, gpointer data,
+                         GCancellable *c) {
+  Watch *w = data;
+  g_task_return_pointer(task, w->read(), g_free);
+}
+
+static void watch_read(Watch *w) {
+  if (w->reading) {
+    w->again = TRUE;
+    return;
+  }
+  w->reading = TRUE;
+  GTask *task = g_task_new(NULL, NULL, watch_on_read, w);
+  g_task_set_task_data(task, w, NULL);
+  g_task_run_in_thread(task, watch_thread);
+  g_object_unref(task);
+}
+
+// Not while commands are queued, as it is read once they ran
 static gboolean watch_changed(gpointer data) {
   Watch *w = data;
   w->pending = 0;
-  w->on_change(w->data);
+  if (!w->queued)
+    watch_read(w);
   return G_SOURCE_REMOVE;
 }
 
@@ -67,7 +109,9 @@ static gboolean watch_on_line(GIOChannel *ch, GIOCondition cond,
   GIOStatus status;
   while ((status = g_io_channel_read_line(ch, &line, NULL, NULL, NULL)) ==
          G_IO_STATUS_NORMAL) {
-    if (strstr(line, "sink") || strstr(line, "server")) {
+    gboolean stream = strstr(line, "sink-input") != NULL;
+    if ((stream ? w->streams : strstr(line, "sink") != NULL) ||
+        strstr(line, "server")) {
       if (!w->pending)
         w->pending = g_timeout_add(30, watch_changed, w);
     }
@@ -89,7 +133,7 @@ static void reap(GPid pid, int status, gpointer data) {
   g_spawn_close_pid(pid);
 }
 
-// on_change on the events of sinks, streams and the default sink, as by
+// apply on the events of sinks, streams and the default sink, as by
 // pactl subscribe, which runs as long as this process
 static void pactl_watch(Watch *w) {
   const char *argv[] = {"pactl", "subscribe", NULL};
@@ -113,5 +157,44 @@ static void pactl_watch(Watch *w) {
   g_io_channel_set_flags(ch, G_IO_FLAG_NONBLOCK, NULL);
   g_io_add_watch(ch, G_IO_IN | G_IO_HUP | G_IO_ERR, watch_on_line, w);
   g_io_channel_unref(ch);
-  w->on_change(w->data);
+  watch_read(w);
+}
+
+typedef struct {
+  Watch *w;
+  char *argv[5];
+} Later;
+
+static gboolean later_done(gpointer data) {
+  Later *l = data;
+  if (--l->w->queued == 0)
+    watch_read(l->w);
+  for (int i = 0; i < 4; i++)
+    g_free(l->argv[i]);
+  g_free(l);
+  return G_SOURCE_REMOVE;
+}
+
+static void later_run(gpointer data, gpointer user_data) {
+  Later *l = data;
+  g_free(pactl(l->argv[0], l->argv[1], l->argv[2], l->argv[3]));
+  g_idle_add(later_done, l);
+}
+
+// A pactl command run in a thread, after the ones before it;
+// what w shows is read anew once none is left, as the modal shows it
+// changed at once
+static inline void pactl_later(Watch *w, const char *a, const char *b,
+                               const char *c, const char *d) {
+  static GThreadPool *queue;
+  if (!queue)
+    queue = g_thread_pool_new(later_run, NULL, 1, FALSE, NULL);
+  Later *l = g_new0(Later, 1);
+  l->w = w;
+  const char *args[] = {a, b, c, d};
+  // NULL ends them, as for pactl
+  for (int i = 0; i < 4 && args[i]; i++)
+    l->argv[i] = g_strdup(args[i]);
+  w->queued++;
+  g_thread_pool_push(queue, l, NULL);
 }

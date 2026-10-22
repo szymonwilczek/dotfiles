@@ -13,6 +13,13 @@ typedef struct {
   char nick[64];
 } Sink;
 
+// What is read of pactl, in a thread
+typedef struct {
+  Sink sinks[MAX_SINKS];
+  int count;
+  int current;
+} Read;
+
 typedef struct {
   Sink sinks[MAX_SINKS];
   int count;
@@ -24,22 +31,22 @@ typedef struct {
   Watch watch;
 } Switcher;
 
-static void read_sinks(Switcher *sw) {
-  sw->count = sw->selected = sw->current = 0;
+static gpointer read_sinks(void) {
+  Read *r = g_new0(Read, 1);
   char *def = pactl("get-default-sink", NULL, NULL, NULL);
   if (def)
     g_strstrip(def);
 
   json_object *root = pactl_json("sinks");
   size_t len = root ? json_object_array_length(root) : 0;
-  for (size_t i = 0; i < len && sw->count < MAX_SINKS; i++) {
+  for (size_t i = 0; i < len && r->count < MAX_SINKS; i++) {
     json_object *in = json_object_array_get_idx(root, i), *props = NULL;
     json_object_object_get_ex(in, "properties", &props);
     const char *name = str(in, "name");
     if (!name)
       continue;
 
-    Sink *s = &sw->sinks[sw->count];
+    Sink *s = &r->sinks[r->count];
     const char *device = str(props, "device.description");
     const char *nick = str(props, "node.nick");
     snprintf(s->name, sizeof(s->name), "%s", name);
@@ -49,16 +56,19 @@ static void read_sinks(Switcher *sw) {
                                       : name);
     snprintf(s->nick, sizeof(s->nick), "%s", nick ? nick : "");
     if (def && !strcmp(name, def))
-      sw->current = sw->selected = sw->count;
-    sw->count++;
+      r->current = r->count;
+    r->count++;
   }
   if (root)
     json_object_put(root);
   g_free(def);
+  return r;
 }
 
-static void apply(Switcher *sw) {
-  const char *name = sw->sinks[sw->selected].name;
+// In a thread, as it takes a pactl a stream
+static void move_streams(GTask *task, gpointer src, gpointer data,
+                         GCancellable *c) {
+  const char *name = data;
   g_free(pactl("set-default-sink", name, NULL, NULL));
 
   json_object *root = pactl_json("sink-inputs");
@@ -74,7 +84,24 @@ static void apply(Switcher *sw) {
   }
   if (root)
     json_object_put(root);
+  g_task_return_boolean(task, TRUE);
+}
+
+static void on_moved(GObject *src, GAsyncResult *res, gpointer data) {
+  Watch *w = data;
+  if (--w->queued == 0)
+    watch_read(w);
+}
+
+// Hidden at once, the streams moved after
+static void apply(Switcher *sw) {
   modal_hide(&sw->modal);
+  sw->current = sw->selected;
+  sw->watch.queued++;
+  GTask *task = g_task_new(NULL, NULL, on_moved, &sw->watch);
+  g_task_set_task_data(task, g_strdup(sw->sinks[sw->selected].name), g_free);
+  g_task_run_in_thread(task, move_streams);
+  g_object_unref(task);
 }
 
 static void add_class(GtkWidget *w, const char *class) {
@@ -189,12 +216,16 @@ static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data) {
 
 // On the events of pactl, so that it is read before it is shown,
 // as sinks come and go; a sink picked meanwhile stays picked
-static void on_change(gpointer data) {
+static void on_read(gpointer data, gpointer read) {
   Switcher *sw = data;
+  Read *r = read;
   char picked[256] = "";
   if (gtk_widget_get_visible(sw->modal.window) && sw->count)
     snprintf(picked, sizeof(picked), "%s", sw->sinks[sw->selected].name);
-  read_sinks(sw);
+  memcpy(sw->sinks, r->sinks, sizeof(r->sinks));
+  sw->count = r->count;
+  sw->current = sw->selected = r->current;
+  g_free(r);
   for (int i = 0; i < sw->count; i++)
     if (!strcmp(sw->sinks[i].name, picked))
       sw->selected = i;
@@ -235,7 +266,7 @@ int main(int argc, char *argv[]) {
   gtk_container_add(GTK_CONTAINER(window), box);
   g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), &sw);
 
-  sw.watch = (Watch){.on_change = on_change, .data = &sw};
+  sw.watch = (Watch){.read = read_sinks, .apply = on_read, .data = &sw};
   pactl_watch(&sw.watch);
   modal_run(&sw.modal, "audio-switcher", argc, argv);
   return 0;
