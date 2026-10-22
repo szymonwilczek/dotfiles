@@ -91,6 +91,15 @@
         org-appear-inside-latex t
         org-appear-delay 0.0))
 
+(use-package evil-org
+  :ensure t
+  :after (org evil)
+  :hook (org-mode . evil-org-mode)
+  :custom
+  (evil-org-key-theme '(navigation insert textobjects additional return))
+  :config
+  (evil-org-set-key-theme))
+
 (defun my/org-toggle-emphasis-markers ()
   "Toggle visibility of Org emphasis markers (* / _ = ~)."
   (interactive)

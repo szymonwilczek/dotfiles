@@ -40,16 +40,15 @@
    '(astro-ts-mode au-themes avy bufferline citar citar-org colorful-mode
                    company consult ef-themes emacs embark
                    embark-consult evil evil-collection evil-commentary
-                   evil-matchit evil-numbers evil-surround
+                   evil-matchit evil-numbers evil-org evil-surround
                    evil-textobj-tree-sitter general gh-radar ghostel
-                   git-gutter git-gutter-fringe jot magit
-                   marginalia markdown-mode nerd-icons
-                   nerd-icons-completion nerd-icons-dired olivetti
-                   orderless org-appear persp-projectile perspective
-                   pinentry plan-polsl projectile rainbow-mode rere
-                   treemacs treemacs-evil treemacs-nerd-icons
-                   treemacs-perspective treemacs-projectile vertico
-                   wakatime-mode))
+                   git-gutter git-gutter-fringe jot magit marginalia
+                   markdown-mode nerd-icons nerd-icons-completion
+                   nerd-icons-dired olivetti orderless org-appear
+                   persp-projectile perspective pinentry plan-polsl
+                   projectile rainbow-mode rere treemacs treemacs-evil
+                   treemacs-nerd-icons treemacs-perspective
+                   treemacs-projectile vertico wakatime-mode))
  '(package-vc-selected-packages
    '((jot :url "https://github.com/szymonwilczek/jot.el" :branch "main")
      (bufferline :url "https://github.com/szymonwilczek/bufferline.el"
