@@ -24,8 +24,6 @@
   (define-key evil-visual-state-map (kbd ";") 'evil-ex)
 
   (define-key evil-normal-state-map [escape] #'evil-ex-nohighlight)
-  (define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
-  (define-key evil-visual-state-map (kbd "C-u") 'evil-scroll-up)
   (define-key evil-normal-state-map "zc" 'hs-toggle-hiding)
   (define-key evil-normal-state-map "za" 'hs-show-block)
 
@@ -34,12 +32,6 @@
   (define-key evil-visual-state-map "s" #'evil-avy-goto-char-2)
   (define-key evil-operator-state-map "z" #'my/evil-avy-goto-char-2)
   (define-key evil-motion-state-map "gl" #'my/evil-avy-goto-line)
-
-  ;; Window navigation
-  (define-key evil-normal-state-map (kbd "C-w h") 'evil-window-left)
-  (define-key evil-normal-state-map (kbd "C-w j") 'evil-window-down)
-  (define-key evil-normal-state-map (kbd "C-w k") 'evil-window-up)
-  (define-key evil-normal-state-map (kbd "C-w l") 'evil-window-right)
 
   ;; Number increment / decrement
   (define-key evil-normal-state-map (kbd "C-c +") #'evil-numbers/inc-at-pt)
