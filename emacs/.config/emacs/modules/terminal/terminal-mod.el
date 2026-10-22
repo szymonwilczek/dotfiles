@@ -191,42 +191,62 @@
   (interactive)
   (ghostel--send-encoded "w" "ctrl"))
 
+(defconst my/ghostel-prompt-regexp "^[ \t]*[❯›>$%#][ \t]"
+  "Prompt marker of programs that don't report their prompt to the terminal.")
+
+(defun my/ghostel-input-start ()
+  "Return where input starts on the cursor row, or nil if unknown."
+  (or (evil-ghostel--input-start)
+      (save-excursion
+        (goto-char ghostel--cursor-char-pos)
+        (beginning-of-line)
+        (and (looking-at my/ghostel-prompt-regexp)
+             (<= (match-end 0) ghostel--cursor-char-pos)
+             (match-end 0)))))
+
+(defun my/ghostel-goto-input (pos)
+  "Move the terminal cursor to POS without leaving the input.
+Arrow keys outside the input are commands to the program: up and down
+walk its history, and a left arrow at the start of Claude Code's prompt
+sends the conversation to the background.  So POS off the cursor row
+only brings point back to the cursor, and a move to the left stops at
+the start of the input, or is not made when that start is unknown."
+  (let ((start (and ghostel--cursor-char-pos (my/ghostel-input-start))))
+    (cond ((not (save-excursion (goto-char pos) (ghostel-point-on-cursor-row-p)))
+           (evil-ghostel--reset-cursor-point))
+          ((or (null ghostel--cursor-char-pos) (>= pos ghostel--cursor-char-pos))
+           (evil-ghostel-goto-input-position pos))
+          (start
+           (evil-ghostel-goto-input-position (max pos start)))
+          (t
+           (evil-ghostel--reset-cursor-point)))))
+
 (defun my/ghostel-insert-dwim ()
   "Enter insert state cleanly. Jump to live prompt if reviewing scrollback."
   (interactive)
   (when (derived-mode-p 'ghostel-mode)
-    (if (ghostel-point-on-cursor-row-p)
-        (evil-ghostel-goto-input-position (point))
-      (evil-ghostel--reset-cursor-point)))
+    (my/ghostel-goto-input (point)))
   (evil-insert-state 1))
 
 (defun my/ghostel-append-dwim ()
   "Append after point cleanly. Jump to live prompt if reviewing scrollback."
   (interactive)
   (when (derived-mode-p 'ghostel-mode)
-    (if (ghostel-point-on-cursor-row-p)
-        (let ((target (save-excursion
-                        (if (eolp) (point) (min (1+ (point)) (line-end-position))))))
-          (evil-ghostel-goto-input-position target))
-      (evil-ghostel--reset-cursor-point)))
+    (my/ghostel-goto-input (if (eolp) (point) (1+ (point)))))
   (evil-insert-state 1))
 
 (defun my/ghostel-insert-line-dwim ()
   "Move to start of input and enter insert state."
   (interactive)
   (when (derived-mode-p 'ghostel-mode)
-    (if (ghostel-point-on-cursor-row-p)
-        (evil-ghostel-goto-input-position (line-beginning-position))
-      (evil-ghostel--reset-cursor-point)))
+    (my/ghostel-goto-input (line-beginning-position)))
   (evil-insert-state 1))
 
 (defun my/ghostel-append-line-dwim ()
   "Move to end of input and enter insert state."
   (interactive)
   (when (derived-mode-p 'ghostel-mode)
-    (if (ghostel-point-on-cursor-row-p)
-        (evil-ghostel-goto-input-position (line-end-position))
-      (evil-ghostel--reset-cursor-point)))
+    (my/ghostel-goto-input (line-end-position)))
   (evil-insert-state 1))
 
 ;; Shipped inside the ghostel checkout
@@ -301,7 +321,7 @@
                (bound-and-true-p ghostel--cursor-pos)
                (cdr ghostel--cursor-pos)
                (numberp (cdr ghostel--cursor-pos)))
-      (evil-ghostel-goto-input-position (point))))
+      (my/ghostel-goto-input (point))))
 
   (advice-add 'evil-ghostel--insert-state-entry :around #'my/evil-ghostel-safe-insert-state-entry))
 
