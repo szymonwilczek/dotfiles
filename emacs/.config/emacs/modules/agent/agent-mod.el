@@ -2,7 +2,7 @@
 
 (require 'cl-lib)
 
-(defvar my/agent-split-ratio 0.55
+(defvar my/agent-split-ratio 0.60
   "Ratio of the main (left) window width when opening an AI agent split.")
 
 (defvar my/agent-active-name "Antigravity"
