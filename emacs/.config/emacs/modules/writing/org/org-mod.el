@@ -224,12 +224,26 @@
         (set-frame-parameter nil 'fullscreen my/presentation-saved-fullscreen)
         (setq my/presentation-saved-window-config nil
               my/presentation-saved-fullscreen nil)
-        (when (derived-mode-p 'doc-view-mode)
-          (doc-view-fit-width-to-window))
+        (dolist (w (window-list))
+          (with-selected-window w
+            (when (derived-mode-p 'doc-view-mode)
+              (doc-view-fit-width-to-window))))
         (message "Presentation mode exited."))
     ;; Presentation mode
     (setq my/presentation-saved-window-config (current-window-configuration)
           my/presentation-saved-fullscreen (frame-parameter nil 'fullscreen))
+    (unless (derived-mode-p 'doc-view-mode)
+      (let ((win (seq-find (lambda (w)
+                             (with-current-buffer (window-buffer w)
+                               (derived-mode-p 'doc-view-mode)))
+                           (window-list)))
+            (pdf (and buffer-file-name
+                      (file-name-with-extension buffer-file-name "pdf"))))
+        (cond (win (select-window win))
+              ((and pdf (file-exists-p pdf))
+               (switch-to-buffer (find-file-noselect pdf))
+               (unless (derived-mode-p 'doc-view-mode)
+                 (doc-view-mode))))))
     (delete-other-windows)
     (set-frame-parameter nil 'fullscreen 'fullscreen)
     (when (derived-mode-p 'doc-view-mode)
