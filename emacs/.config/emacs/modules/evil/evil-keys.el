@@ -27,6 +27,12 @@
   (define-key evil-normal-state-map "zc" 'hs-toggle-hiding)
   (define-key evil-normal-state-map "za" 'hs-show-block)
 
+  ;; Window navigation without the C-w prefix
+  (define-key evil-normal-state-map (kbd "C-h") #'evil-window-left)
+  (define-key evil-normal-state-map (kbd "C-j") #'evil-window-down)
+  (define-key evil-normal-state-map (kbd "C-k") #'evil-window-up)
+  (define-key evil-normal-state-map (kbd "C-l") #'evil-window-right)
+
   ;; Avy jumps
   (define-key evil-normal-state-map "s" #'evil-avy-goto-char-2)
   (define-key evil-visual-state-map "s" #'evil-avy-goto-char-2)
@@ -66,6 +72,15 @@
     "ee" '(eval-last-sexp :which-key "Eval Expression")
     "er" '(eval-region :which-key "Eval Region")
     "ed" '(eval-defun :which-key "Eval Defun/Function")))
+
+(defun my/evil-collection-free-window-keys (mode &rest _)
+  "Give C-j and C-k back to window navigation after MODE is set up."
+  (when (eq mode 'outline)
+    (let ((map (evil-get-auxiliary-keymap outline-mode-map 'normal)))
+      (define-key map (kbd "C-j") nil t)
+      (define-key map (kbd "C-k") nil t))))
+
+(add-hook 'evil-collection-setup-hook #'my/evil-collection-free-window-keys)
 
 (defun my/evil-avy-jump-or-abort (motion count)
   "Run the avy MOTION with COUNT, signalling an error when it does not jump.
