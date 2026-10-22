@@ -18,6 +18,7 @@
 (require 'org-mod)
 (require 'markdown-mod)
 (require 'latex-mod)
+(require 'preview-mod)
 (require 'bibliography-mod)
 (require 'agent-mod)
 (require 'jot-mod)
