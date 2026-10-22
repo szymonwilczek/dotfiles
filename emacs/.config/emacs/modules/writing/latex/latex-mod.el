@@ -25,29 +25,34 @@
     (unless tex-file
       (user-error "Current buffer is not visiting a file"))
     (save-buffer)
-    (setq my/latex-error-last-pos nil)
-    (message "⏳ Compiling %s in background..." (file-name-nondirectory tex-file))
-    (let* ((default-directory (file-name-directory tex-file))
-           (out-buf (get-buffer-create "*latexmk-output*"))
-           (cb callback)
-           (proc (progn
-                   (with-current-buffer out-buf
-                     (let ((inhibit-read-only t))
-                       (erase-buffer)
-                       (compilation-mode)))
-                   (start-process "latexmk-async" out-buf
-                                  "latexmk" "-pdf" "-interaction=nonstopmode" "-file-line-error" "-synctex=1"
-                                  tex-file))))
-      (set-process-sentinel
-       proc
-       (lambda (_p event)
-         (cond
-          ((string-prefix-p "finished" event)
-           (message "✅ LaTeX compilation successful: %s" (file-name-nondirectory (my/latex-get-pdf-file)))
-           (when (and cb (functionp cb))
-             (funcall cb)))
-          ((string-prefix-p "exited abnormally" event)
-           (message "❌ LaTeX compilation failed. Press SPC m e to jump to error or SPC m l to view log."))))))))
+    (my/latex-compile-file tex-file callback)))
+
+(defun my/latex-compile-file (tex-file &optional callback)
+  "Compile TEX-FILE asynchronously via latexmk, then call CALLBACK."
+  (setq my/latex-error-last-pos nil)
+  (message "Compiling %s in background..." (file-name-nondirectory tex-file))
+  (let* ((default-directory (file-name-directory tex-file))
+         (out-buf (get-buffer-create "*latexmk-output*"))
+         (cb callback)
+         (proc (progn
+                 (with-current-buffer out-buf
+                   (let ((inhibit-read-only t))
+                     (erase-buffer)
+                     (compilation-mode)))
+                 (start-process "latexmk-async" out-buf
+                                "latexmk" "-pdf" "-interaction=nonstopmode" "-file-line-error" "-synctex=1"
+                                tex-file))))
+    (set-process-sentinel
+     proc
+     (lambda (_p event)
+       (cond
+        ((string-prefix-p "finished" event)
+         (message "LaTeX compilation successful: %s"
+                  (file-name-nondirectory (concat (file-name-sans-extension tex-file) ".pdf")))
+         (when (and cb (functionp cb))
+           (funcall cb)))
+        ((string-prefix-p "exited abnormally" event)
+         (message "LaTeX compilation failed. Press SPC m e to jump to error or SPC m l to view log.")))))))
 
 (defun my/latex-show-log ()
   "Toggle display of the compilation output log buffer."
@@ -117,19 +122,23 @@
   (interactive)
   (let ((pdf-file (my/latex-get-pdf-file)))
     (if (not (and pdf-file (file-exists-p pdf-file)))
-        (message "⚠️ No PDF found. Compile first with SPC m c")
-      (let* ((pdf-buffer (or (find-buffer-visiting pdf-file)
-                             (find-file-noselect pdf-file)))
-             (win (get-buffer-window pdf-buffer)))
-        (with-current-buffer pdf-buffer
-          (unless (derived-mode-p 'doc-view-mode)
-            (doc-view-mode))
-          (auto-revert-mode 1))
-        (if win
-            (select-window win)
-          (let ((new-win (split-window-right)))
-            (set-window-buffer new-win pdf-buffer)
-            (select-window new-win)))))))
+        (message "No PDF found. Compile first with SPC m c")
+      (my/latex-view-pdf-file pdf-file))))
+
+(defun my/latex-view-pdf-file (pdf-file)
+  "Open or focus PDF-FILE in a right split window inside Emacs."
+  (let* ((pdf-buffer (or (find-buffer-visiting pdf-file)
+                         (find-file-noselect pdf-file)))
+         (win (get-buffer-window pdf-buffer)))
+    (with-current-buffer pdf-buffer
+      (unless (derived-mode-p 'doc-view-mode)
+        (doc-view-mode))
+      (auto-revert-mode 1))
+    (if win
+        (select-window win)
+      (let ((new-win (split-window-right)))
+        (set-window-buffer new-win pdf-buffer)
+        (select-window new-win)))))
 
 (defun my/latex-compile-and-view ()
   "Compile document and open PDF in right split once compilation finishes."

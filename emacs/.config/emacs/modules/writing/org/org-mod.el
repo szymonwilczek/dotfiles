@@ -263,28 +263,18 @@ and the text before the first heading keep `org-cycle'."
           (""     "hyperref"  nil))))
 
 (defun my/org-export-and-view-pdf ()
-  "Export current Org buffer to PDF via LaTeX and view it in a right split."
+  "Export current Org buffer to PDF via LaTeX and view it in a right split.
+Only writing the .tex file blocks Emacs, latexmk runs in the background."
   (interactive)
   (unless (derived-mode-p 'org-mode)
     (user-error "Current buffer is not in Org-mode"))
   (save-buffer)
-  (message "⏳ Exporting Org to PDF...")
-  (let ((pdf-file (org-latex-export-to-pdf)))
-    (if (not (and pdf-file (file-exists-p pdf-file)))
-        (message "❌ Org PDF export failed.")
-      (message "✅ Org exported to PDF: %s" (file-name-nondirectory pdf-file))
-      (let* ((pdf-buffer (or (find-buffer-visiting pdf-file)
-                             (find-file-noselect pdf-file)))
-             (win (get-buffer-window pdf-buffer)))
-        (with-current-buffer pdf-buffer
-          (unless (derived-mode-p 'doc-view-mode)
-            (doc-view-mode))
-          (auto-revert-mode 1))
-        (if win
-            (select-window win)
-          (let ((new-win (split-window-right)))
-            (set-window-buffer new-win pdf-buffer)
-            (select-window new-win)))))))
+  (my/org-compile-and-view (expand-file-name (org-latex-export-to-latex))))
+
+(defun my/org-compile-and-view (tex-file)
+  "Compile TEX-FILE exported from Org and view its PDF in a right split."
+  (let ((pdf-file (concat (file-name-sans-extension tex-file) ".pdf")))
+    (my/latex-compile-file tex-file (lambda () (my/latex-view-pdf-file pdf-file)))))
 
 
 (use-package ox-beamer
@@ -299,28 +289,14 @@ and the text before the first heading keep `org-cycle'."
                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
 
 (defun my/org-beamer-export-and-view-pdf ()
-  "Export current Org buffer to Beamer presentation PDF and view it in a right split."
+  "Export current Org buffer to Beamer presentation PDF and view it in a right split.
+Only writing the .tex file blocks Emacs, latexmk runs in the background."
   (interactive)
   (unless (derived-mode-p 'org-mode)
     (user-error "Current buffer is not in Org-mode"))
   (save-buffer)
-  (message "⏳ Exporting Org to Beamer slides PDF...")
-  (let ((pdf-file (org-beamer-export-to-pdf)))
-    (if (not (and pdf-file (file-exists-p pdf-file)))
-        (message "❌ Beamer PDF export failed.")
-      (message "✅ Beamer slides exported to PDF: %s" (file-name-nondirectory pdf-file))
-      (let* ((pdf-buffer (or (find-buffer-visiting pdf-file)
-                             (find-file-noselect pdf-file)))
-             (win (get-buffer-window pdf-buffer)))
-        (with-current-buffer pdf-buffer
-          (unless (derived-mode-p 'doc-view-mode)
-            (doc-view-mode))
-          (auto-revert-mode 1))
-        (if win
-            (select-window win)
-          (let ((new-win (split-window-right)))
-            (set-window-buffer new-win pdf-buffer)
-            (select-window new-win)))))))
+  (require 'ox-beamer)
+  (my/org-compile-and-view (expand-file-name (org-beamer-export-to-latex))))
 
 (defvar my/presentation-saved-window-config nil
   "Saved window configuration before entering presentation fullscreen mode.")
