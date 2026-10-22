@@ -98,7 +98,10 @@
   :custom
   (evil-org-key-theme '(navigation insert textobjects additional return))
   :config
-  (evil-org-set-key-theme))
+  (evil-org-set-key-theme)
+  (evil-define-key '(normal visual) 'evil-org-mode
+    (kbd "TAB")   #'my/org-cycle-dwim
+    (kbd "<tab>") #'my/org-cycle-dwim))
 
 (defun my/org-toggle-emphasis-markers ()
   "Toggle visibility of Org emphasis markers (* / _ = ~)."
@@ -114,13 +117,43 @@
       (org-latex-preview)
     (org-latex-preview '(16))))
 
+(defun my/org-cycle-dwim ()
+  "Fold or unfold what point is in, wherever it is on the line.
+On a heading, cycle it; on a list item with children, cycle the item;
+on an item without children, cycle the item above it; anywhere else
+in a section, fold that section and go to its heading.  Tables, blocks
+and the text before the first heading keep `org-cycle'."
+  (interactive)
+  (cond
+   ((org-at-heading-p)
+    (when (invisible-p (point))
+      (beginning-of-line))
+    (org-cycle))
+   ((or (org-at-table-p)
+        (org-in-src-block-p)
+        (org-before-first-heading-p))
+    (org-cycle))
+   ((org-in-item-p)
+    (goto-char (org-in-item-p))
+    (let ((struct (org-list-struct)))
+      (unless (org-list-has-child-p (point) struct)
+        (let ((parent (org-list-get-parent (point) struct (org-list-parents-alist struct))))
+          (when parent (goto-char parent)))))
+    (if (org-list-has-child-p (point) (org-list-struct))
+        (org-cycle)
+      (org-back-to-heading t)
+      (org-fold-hide-subtree)))
+   (t
+    (org-back-to-heading t)
+    (org-fold-hide-subtree))))
+
 ;; Evil navigation
 (with-eval-after-load 'org
   (with-eval-after-load 'evil
     (evil-define-key '(normal visual motion) org-mode-map
-      (kbd "TAB")   #'org-cycle
-      (kbd "<tab>") #'org-cycle
-      "za"          #'org-cycle)))
+      (kbd "TAB")   #'my/org-cycle-dwim
+      (kbd "<tab>") #'my/org-cycle-dwim
+      "za"          #'my/org-cycle-dwim)))
 
 
 (use-package ox-latex
