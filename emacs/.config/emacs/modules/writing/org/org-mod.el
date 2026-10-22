@@ -115,6 +115,19 @@ it is enabled, so both are set up again."
     (org-appear-mode 1))
   (message "Org emphasis markers: %s" (if org-hide-emphasis-markers "hidden" "visible")))
 
+(defun my/org-insert-link-dwim ()
+  "Insert an Org link, with the URL from the clipboard already typed in.
+In normal state the link goes after the cursor, like `a'; a visual
+selection becomes its description."
+  (interactive)
+  (let ((url (ignore-errors (string-trim (current-kill 0 t)))))
+    (when (and (evil-normal-state-p) (not (eolp)))
+      (forward-char))
+    (if (and url (string-match-p "\\`[a-z][a-z0-9+.-]*:[^ \t\n]+\\'" url))
+        (minibuffer-with-setup-hook (lambda () (insert url))
+          (call-interactively #'org-insert-link))
+      (call-interactively #'org-insert-link))))
+
 (defun my/org-toggle-latex-preview ()
   "Toggle LaTeX math preview for equation at point or entire buffer."
   (interactive)

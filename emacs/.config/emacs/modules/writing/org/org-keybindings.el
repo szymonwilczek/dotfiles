@@ -18,6 +18,7 @@
      "oe"  '(org-export-dispatch :which-key "Export Dispatcher")
      "oE"  '(my/org-toggle-emphasis-markers :which-key "Toggle Emphasis Markers (* / _)")
      "ol"  '(org-toggle-link-display :which-key "Toggle Raw Links")
+     "oL"  '(my/org-insert-link-dwim :which-key "Insert Link (Clipboard URL)")
      "oi" '(:ignore t :which-key "Insert...")
      "oit" '(org-table-create-or-convert-from-region :which-key "Table"))))
 
