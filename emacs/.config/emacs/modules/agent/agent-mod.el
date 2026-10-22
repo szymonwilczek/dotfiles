@@ -105,9 +105,12 @@ Working directory is automatically set to the project root of the current buffer
   (my/agent-open "Antigravity" "agy"))
 
 (defun my/agent-shell-claude ()
-  "Start or switch to Claude Code in right split."
+  "Start or switch to Claude Code in right split.
+It runs with the inline renderer, so its output stays in the buffer's
+scrollback; the fullscreen one from the settings is left for real
+terminals."
   (interactive)
-  (my/agent-open "Claude" "claude"))
+  (my/agent-open "Claude" "claude" '("--settings" "{\"tui\":\"default\"}")))
 
 (defun my/agent-shell-select ()
   "Interactively choose from the AI agents and open in right split."
