@@ -42,7 +42,7 @@
                    embark-consult evil evil-collection evil-commentary
                    evil-matchit evil-mc evil-numbers evil-surround
                    evil-textobj-tree-sitter general gh-radar ghostel
-                   git-gutter git-gutter-fringe jot jupyter magit
+                   git-gutter git-gutter-fringe jot magit
                    marginalia markdown-mode nerd-icons
                    nerd-icons-completion nerd-icons-dired olivetti
                    orderless org-appear persp-projectile perspective
