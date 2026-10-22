@@ -20,6 +20,14 @@
         dired-omit-extensions nil
         dired-omit-verbose nil))
 
+(define-advice find-alternate-file (:around (fn &rest args) my/dired-replace-last-buffer)
+  "Let dired replace its buffer even when it is a perspective's only one."
+  (let ((kill-buffer-query-functions
+         (if (derived-mode-p 'dired-mode)
+             (remq 'persp-maybe-kill-buffer kill-buffer-query-functions)
+           kill-buffer-query-functions)))
+    (apply fn args)))
+
 (defvar my/dired-show-hidden t
   "Non-nil when dired lists dotfiles.")
 
