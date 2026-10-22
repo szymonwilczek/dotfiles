@@ -85,14 +85,6 @@
   (avy-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (avy-all-windows t))
 
-(use-package evil-mc
-  :after evil
-  :ensure t
-  :init
-  (global-evil-mc-mode 1)
-  :config
-  (add-hook 'evil-mc-after-cursors-deleted #'evil-ex-nohighlight))
-
 (require 'evil-keys)
 
 (provide 'evil-mod)

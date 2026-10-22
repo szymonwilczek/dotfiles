@@ -40,7 +40,7 @@
    '(astro-ts-mode au-themes avy bufferline citar citar-org colorful-mode
                    company consult ef-themes emacs embark
                    embark-consult evil evil-collection evil-commentary
-                   evil-matchit evil-mc evil-numbers evil-surround
+                   evil-matchit evil-numbers evil-surround
                    evil-textobj-tree-sitter general gh-radar ghostel
                    git-gutter git-gutter-fringe jot magit
                    marginalia markdown-mode nerd-icons

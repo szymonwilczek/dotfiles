@@ -23,24 +23,11 @@
   (define-key evil-normal-state-map (kbd ";") 'evil-ex)
   (define-key evil-visual-state-map (kbd ";") 'evil-ex)
 
-  (defun my/evil-escape-dwim ()
-    "Clear evil-mc cursors if active, otherwise clear search highlight."
-    (interactive)
-    (if (and (fboundp 'evil-mc-has-cursors-p) (evil-mc-has-cursors-p))
-        (evil-mc-undo-all-cursors)
-      (evil-ex-nohighlight)))
-
-  (define-key evil-normal-state-map [escape] #'my/evil-escape-dwim)
+  (define-key evil-normal-state-map [escape] #'evil-ex-nohighlight)
   (define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
   (define-key evil-visual-state-map (kbd "C-u") 'evil-scroll-up)
   (define-key evil-normal-state-map "zc" 'hs-toggle-hiding)
   (define-key evil-normal-state-map "za" 'hs-show-block)
-
-  ;; Multicursor shortcuts
-  (define-key evil-normal-state-map (kbd "M-j") #'evil-mc-make-cursor-move-next-line)
-  (define-key evil-visual-state-map (kbd "M-j") #'evil-mc-make-cursor-move-next-line)
-  (define-key evil-normal-state-map (kbd "M-k") #'evil-mc-make-cursor-move-prev-line)
-  (define-key evil-visual-state-map (kbd "M-k") #'evil-mc-make-cursor-move-prev-line)
 
   ;; Avy jumps
   (define-key evil-normal-state-map "s" #'evil-avy-goto-char-2)
