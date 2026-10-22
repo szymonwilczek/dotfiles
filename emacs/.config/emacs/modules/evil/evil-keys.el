@@ -62,6 +62,7 @@
     ;; Window splits
     "s" '(evil-window-vsplit :which-key "Split Vertical")
     "v" '(evil-window-split :which-key "Split Horizontal")
+    "m" '(my/window-maximize-toggle :which-key "Maximize Window / Restore")
 
     ;; Buffer management
     "q" '(kill-current-buffer :which-key "Close Buffer")
@@ -81,6 +82,21 @@
       (define-key map (kbd "C-k") nil t))))
 
 (add-hook 'evil-collection-setup-hook #'my/evil-collection-free-window-keys)
+
+(defun my/window-maximize-toggle ()
+  "Show the selected window alone, or bring back the layout it left.
+The layout is kept per frame, so each frame restores its own."
+  (interactive)
+  (let ((saved (frame-parameter nil 'my/maximize-layout)))
+    (cond
+     (saved
+      (set-frame-parameter nil 'my/maximize-layout nil)
+      (set-window-configuration saved))
+     ((one-window-p)
+      (message "Only one window"))
+     (t
+      (set-frame-parameter nil 'my/maximize-layout (current-window-configuration))
+      (delete-other-windows)))))
 
 (defun my/evil-avy-jump-or-abort (motion count)
   "Run the avy MOTION with COUNT, signalling an error when it does not jump.
