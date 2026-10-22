@@ -33,13 +33,10 @@
   (define-key evil-operator-state-map "z" #'my/evil-avy-goto-char-2)
   (define-key evil-motion-state-map "gl" #'my/evil-avy-goto-line)
 
-  ;; Number increment / decrement
-  (define-key evil-normal-state-map (kbd "C-c +") #'evil-numbers/inc-at-pt)
-  (define-key evil-normal-state-map (kbd "C-c =") #'evil-numbers/inc-at-pt)
-  (define-key evil-normal-state-map (kbd "C-c -") #'evil-numbers/dec-at-pt)
-  (define-key evil-visual-state-map (kbd "C-c +") #'evil-numbers/inc-at-pt)
-  (define-key evil-visual-state-map (kbd "C-c =") #'evil-numbers/inc-at-pt)
-  (define-key evil-visual-state-map (kbd "C-c -") #'evil-numbers/dec-at-pt)
+  ;; Number increment / decrement, repeating while held
+  (dolist (map (list evil-normal-state-map evil-visual-state-map))
+    (define-key map "+" #'evil-numbers/inc-at-pt)
+    (define-key map "-" #'evil-numbers/dec-at-pt))
 
   ;; Ctrl+Backspace to delete whole word backward
   (global-set-key (kbd "C-<backspace>") #'backward-kill-word)
