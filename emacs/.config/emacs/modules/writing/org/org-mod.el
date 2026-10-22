@@ -171,6 +171,35 @@ for a file, starting in the Downloads directory."
       (insert (format "[[file:%s]]" (file-relative-name file)))
       (org-link-preview-region t t beg (point)))))
 
+(defvar my/org-serif-family "Input Serif"
+  "Font family of the prose in `my/org-serif-mode'.")
+
+(defvar my/org-serif-mono-faces
+  '(org-block org-block-begin-line org-block-end-line org-code org-verbatim
+              org-table org-formula org-meta-line org-document-info-keyword
+              org-special-keyword org-property-value org-drawer org-checkbox
+              org-date org-latex-and-related org-hide org-indent
+              line-number line-number-current-line)
+  "Faces that keep the monospace font in `my/org-serif-mode'.")
+
+(defvar-local my/org-serif-cookies nil
+  "Face remappings made by `my/org-serif-mode', to undo them.")
+
+(define-minor-mode my/org-serif-mode
+  "Write the prose of this buffer in a serif font.
+Code, tables, keywords and everything else that has to line up keeps
+the monospace font."
+  :lighter nil
+  (mapc #'face-remap-remove-relative my/org-serif-cookies)
+  (setq my/org-serif-cookies nil)
+  (when my/org-serif-mode
+    (let ((mono (face-attribute 'default :family nil t)))
+      (push (face-remap-add-relative 'default :family my/org-serif-family)
+            my/org-serif-cookies)
+      (dolist (face my/org-serif-mono-faces)
+        (push (face-remap-add-relative face :family mono)
+              my/org-serif-cookies)))))
+
 (defun my/org-toggle-latex-preview ()
   "Toggle LaTeX math preview for equation at point or entire buffer."
   (interactive)
