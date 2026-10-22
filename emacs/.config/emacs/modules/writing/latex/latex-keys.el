@@ -38,4 +38,19 @@
       "r"     #'doc-view-revert-buffer
       "q"     #'my/latex-quit-pdf)))
 
+(with-eval-after-load 'pdf-view
+  (with-eval-after-load 'evil
+    (evil-define-key 'normal pdf-view-mode-map
+      "j"     #'pdf-view-next-line-or-next-page
+      "k"     #'pdf-view-previous-line-or-previous-page
+      "J"     #'pdf-view-next-page-command
+      "K"     #'pdf-view-previous-page-command
+      "d"     #'pdf-view-scroll-up-or-next-page
+      "u"     #'pdf-view-scroll-down-or-previous-page
+      "+"     #'pdf-view-enlarge
+      "="     #'pdf-view-enlarge
+      "-"     #'pdf-view-shrink
+      "r"     #'revert-buffer
+      "q"     #'my/latex-quit-pdf)))
+
 (provide 'latex-keys)

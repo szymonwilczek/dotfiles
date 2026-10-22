@@ -45,10 +45,11 @@
                    git-gutter git-gutter-fringe jot magit marginalia
                    markdown-mode nerd-icons nerd-icons-completion
                    nerd-icons-dired olivetti orderless org-appear
-                   persp-projectile perspective pinentry plan-polsl
-                   projectile rainbow-mode rere treemacs treemacs-evil
-                   treemacs-nerd-icons treemacs-perspective
-                   treemacs-projectile vertico vundo wakatime-mode))
+                   pdf-tools persp-projectile perspective pinentry
+                   plan-polsl projectile rainbow-mode rere treemacs
+                   treemacs-evil treemacs-nerd-icons
+                   treemacs-perspective treemacs-projectile vertico
+                   vundo wakatime-mode))
  '(package-vc-selected-packages
    '((jot :url "https://github.com/szymonwilczek/jot.el" :branch "main")
      (bufferline :url "https://github.com/szymonwilczek/bufferline.el"

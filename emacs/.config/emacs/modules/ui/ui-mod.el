@@ -42,6 +42,7 @@
   (display-line-numbers-mode -1))
 
 (dolist (hook '(doc-view-mode-hook
+                pdf-view-mode-hook
                 image-mode-hook
                 ghostel-mode-hook
                 treemacs-mode-hook))

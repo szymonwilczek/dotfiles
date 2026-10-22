@@ -7,6 +7,18 @@
   (setq doc-view-resolution 180)
   (setq doc-view-continuous t))
 
+(use-package pdf-tools
+  :ensure t
+  :defer t
+  :init
+  (pdf-loader-install t)
+  :config
+  (setq-default pdf-view-display-size 'fit-width)
+  (setq pdf-sync-forward-display-action
+        '((display-buffer-reuse-window display-buffer-in-direction)
+          (direction . right)
+          (window-width . 0.5))))
+
 
 (defun my/latex-get-pdf-file ()
   "Return path to the corresponding PDF file for current buffer."
@@ -131,8 +143,8 @@
                          (find-file-noselect pdf-file)))
          (win (get-buffer-window pdf-buffer)))
     (with-current-buffer pdf-buffer
-      (unless (derived-mode-p 'doc-view-mode)
-        (doc-view-mode))
+      (unless (derived-mode-p 'pdf-view-mode)
+        (pdf-view-mode))
       (auto-revert-mode 1))
     (if win
         (select-window win)
