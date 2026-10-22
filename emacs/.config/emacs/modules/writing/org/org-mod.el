@@ -316,33 +316,33 @@ Only writing the .tex file blocks Emacs, latexmk runs in the background."
               my/presentation-saved-fullscreen nil)
         (dolist (w (window-list))
           (with-selected-window w
-            (when (derived-mode-p 'doc-view-mode)
-              (doc-view-fit-width-to-window))))
+            (when (derived-mode-p 'pdf-view-mode)
+              (pdf-view-fit-width-to-window))))
         (message "Presentation mode exited."))
     ;; Presentation mode
     (setq my/presentation-saved-window-config (current-window-configuration)
           my/presentation-saved-fullscreen (frame-parameter nil 'fullscreen))
-    (unless (derived-mode-p 'doc-view-mode)
+    (unless (derived-mode-p 'pdf-view-mode)
       (let ((win (seq-find (lambda (w)
                              (with-current-buffer (window-buffer w)
-                               (derived-mode-p 'doc-view-mode)))
+                               (derived-mode-p 'pdf-view-mode)))
                            (window-list)))
             (pdf (and buffer-file-name
                       (file-name-with-extension buffer-file-name "pdf"))))
         (cond (win (select-window win))
               ((and pdf (file-exists-p pdf))
                (switch-to-buffer (find-file-noselect pdf))
-               (unless (derived-mode-p 'doc-view-mode)
-                 (doc-view-mode))))))
+               (unless (derived-mode-p 'pdf-view-mode)
+                 (pdf-view-mode))))))
     (delete-other-windows)
     (set-frame-parameter nil 'fullscreen 'fullscreen)
-    (when (derived-mode-p 'doc-view-mode)
-      (doc-view-fit-page-to-window))
+    (when (derived-mode-p 'pdf-view-mode)
+      (pdf-view-fit-page-to-window))
     (message "Presentation mode ON (Press SPC o b f or 'f' to toggle off).")))
 
-(with-eval-after-load 'doc-view
+(with-eval-after-load 'pdf-view
   (with-eval-after-load 'evil
-    (evil-define-key 'normal doc-view-mode-map
+    (evil-define-key 'normal pdf-view-mode-map
       "f" #'my/presentation-toggle-fullscreen)))
 
 (require 'org-keybindings)
