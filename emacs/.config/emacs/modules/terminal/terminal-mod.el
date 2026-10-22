@@ -119,6 +119,9 @@
 (use-package ghostel
   :vc (:url "https://github.com/dakra/ghostel" :lisp-dir "lisp" :rev :newest)
   :commands (ghostel ghostel-project ghostel-exec)
+  :custom
+  (ghostel-module-directory (expand-file-name "ghostel/" (or (getenv "XDG_DATA_HOME") "~/.local/share")))
+  (ghostel-module-auto-install 'download)
   :init
   ;; so window switching, toggle, and jot prefix work in all states
   (with-eval-after-load 'ghostel
