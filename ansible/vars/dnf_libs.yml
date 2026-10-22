@@ -78,6 +78,7 @@ dnf_libs_packages:
   - nodejs22-libs
   - notmuch-devel
   - openapv-libs
+  - poppler-glib-devel
   - qemu-user-static
   - rust-std-static
   - samba-core-libs
