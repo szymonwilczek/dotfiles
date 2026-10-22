@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# git push-prs <first> [<last>]
+# Created for managing my LOTA project
+#
+# Prints, and does not run, the one atomic push that publishes the local
+# branches behind open pull requests <first>..<last>, both inclusive:
+#
+#   git push --atomic origin \
+#     --force-with-lease=<head>:<sha GitHub has> \
+#     ... \
+#     <head> <head> ...
+#
+# Each lease is the head GitHub reports for the pull request, not the
+# remote-tracking ref, so a stale fetch cannot let the push overwrite
+# a head it has not seen.
+#
+# A pull request that is not open, has no local branch, or whose local
+# branch already matches GitHub is left out and named on stderr.
+
+set -euo pipefail
+
+usage() {
+    echo "usage: git push-prs <first-pr> [<last-pr>]" >&2
+    exit 2
+}
+
+[[ $# -ge 1 && $# -le 2 ]] || usage
+first=$1
+last=${2:-$1}
+[[ $first =~ ^[0-9]+$ && $last =~ ^[0-9]+$ ]] || usage
+((first <= last)) || usage
+
+remote=origin
+
+json=$(gh pr list --state all --limit 1000 \
+    --json number,state,headRefName,headRefOid \
+    --jq "[.[] | select(.number >= $first and .number <= $last)] | sort_by(.number)")
+
+leases=()
+heads=()
+while IFS=$'\t' read -r number state head oid; do
+    if [[ $state != OPEN ]]; then
+        echo "git push-prs: #$number ($head) is $state, skipped" >&2
+        continue
+    fi
+    if ! local_oid=$(git rev-parse -q --verify "refs/heads/$head^{commit}"); then
+        echo "git push-prs: #$number ($head) has no local branch, skipped" >&2
+        continue
+    fi
+    if [[ $local_oid == "$oid" ]]; then
+        echo "git push-prs: #$number ($head) already matches GitHub, skipped" >&2
+        continue
+    fi
+    leases+=("--force-with-lease=$head:$oid")
+    heads+=("$head")
+done < <(jq -r '.[] | [.number, .state, .headRefName, .headRefOid] | @tsv' <<<"$json")
+
+if ((${#heads[@]} == 0)); then
+    echo "git push-prs: nothing to push in #$first..#$last" >&2
+    exit 1
+fi
+
+printf 'git push --atomic %s \\\n' "$remote"
+printf '  %s \\\n' "${leases[@]}"
+printf '  %s' "${heads[0]}"
+printf ' %s' "${heads[@]:1}"
+printf '\n'
