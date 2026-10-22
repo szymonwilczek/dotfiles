@@ -116,6 +116,23 @@ The file opens in the current perspective, whatever project it is in."
   :ensure t
   :after (embark consult))
 
+;; Editable grep results
+(define-advice grep-edit-save-changes (:after () my/save-files)
+  "Save the files that the edits in this grep buffer went to."
+  (let (buffers (saved 0))
+    (save-excursion
+      (goto-char (point-min))
+      (let (match)
+        (while (setq match (text-property-search-forward 'occur-target))
+          (dolist (target (prop-match-value match))
+            (when-let* ((buffer (marker-buffer (car target))))
+              (cl-pushnew buffer buffers))))))
+    (dolist (buffer buffers)
+      (when (buffer-modified-p buffer)
+        (with-current-buffer buffer (save-buffer))
+        (setq saved (1+ saved))))
+    (message "Saved %d file(s)" saved)))
+
 ;; In-Buffer Completion
 ;; (Company with overlay frontend)
 (defcustom my-disabled-completion-modes
