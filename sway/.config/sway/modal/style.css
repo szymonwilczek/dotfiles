@@ -167,3 +167,24 @@ window.calendar {
 levelbar.muted trough block.filled {
   background: @border_inactive;
 }
+
+/* Wallpaper picker */
+
+.thumb {
+  padding: 2px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  background-color: @bg_surface;
+}
+
+.thumb.current {
+  border-color: @border_inactive;
+}
+
+.thumb.selected {
+  border-color: @border_focused;
+}
+
+.thumb-name {
+  margin: 12px 0 0 6px;
+}

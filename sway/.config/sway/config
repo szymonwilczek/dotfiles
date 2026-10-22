@@ -17,10 +17,10 @@ exec ~/.config/sway/scripts/waybar.sh
 exec ~/.config/sway/scripts/modal.sh pipewire-mixer --hidden
 exec ~/.config/sway/scripts/modal.sh audio-switcher --hidden
 exec ~/.config/sway/scripts/modal.sh powermenu --hidden
+exec ~/.config/sway/scripts/modal.sh wallpaper --hidden
 exec wl-paste --watch cliphist store
 
 # Output configuration
-output * bg ~/Dokumenty/GitHub/dotfiles/wallpapers/misc/room.png fill
 output * subpixel none
 # output * render_bit_depth 10
 output HDMI-A-1 mode 1920x1080@75Hz pos 0 0
@@ -157,6 +157,7 @@ bindsym Mod1+Tab exec ~/.config/sway/scripts/alt-tab.sh next
 bindsym Mod1+Shift+Tab exec ~/.config/sway/scripts/alt-tab.sh prev
 bindsym $mod+p exec ~/.config/sway/scripts/modal.sh audio-switcher
 bindsym $mod+Shift+p exec ~/.config/sway/scripts/modal.sh pipewire-mixer
+bindsym $mod+Shift+w exec ~/.config/sway/scripts/modal.sh wallpaper
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
 bindsym $mod+n exec ~/.config/sway/scripts/toggle-night-light.sh
 bindsym $mod+grave exec ~/.config/sway/scripts/jot-scratch.sh
@@ -233,6 +234,7 @@ for_window [app_id="sway-sys-info"] floating enable, border pixel 2, move positi
 for_window [app_id="sway-mixer"] floating enable, border pixel 2, move position center
 for_window [app_id="sway-audio-switcher"] floating enable, border pixel 2, move position center
 for_window [app_id="sway-powermenu"] floating enable, border pixel 2, move position center
+for_window [app_id="sway-wallpaper"] floating enable, border pixel 2, move position center
 
 font pango:Typus Mono 95, JetBrainsMono Nerd Font 11
 
