@@ -104,10 +104,15 @@
     (kbd "<tab>") #'my/org-cycle-dwim))
 
 (defun my/org-toggle-emphasis-markers ()
-  "Toggle visibility of Org emphasis markers (* / _ = ~)."
+  "Toggle visibility of Org emphasis markers (* / _ = ~) in this buffer.
+Org reads the option when it sets up font lock, and org-appear when
+it is enabled, so both are set up again."
   (interactive)
-  (setq org-hide-emphasis-markers (not org-hide-emphasis-markers))
-  (font-lock-flush)
+  (setq-local org-hide-emphasis-markers (not org-hide-emphasis-markers))
+  (org-restart-font-lock)
+  (when (bound-and-true-p org-appear-mode)
+    (org-appear-mode -1)
+    (org-appear-mode 1))
   (message "Org emphasis markers: %s" (if org-hide-emphasis-markers "hidden" "visible")))
 
 (defun my/org-toggle-latex-preview ()
