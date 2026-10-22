@@ -85,6 +85,10 @@
   (avy-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (avy-all-windows t))
 
+(use-package vundo
+  :ensure t
+  :commands vundo)
+
 (require 'evil-keys)
 
 (provide 'evil-mod)

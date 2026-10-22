@@ -48,7 +48,7 @@
                    persp-projectile perspective pinentry plan-polsl
                    projectile rainbow-mode rere treemacs treemacs-evil
                    treemacs-nerd-icons treemacs-perspective
-                   treemacs-projectile vertico wakatime-mode))
+                   treemacs-projectile vertico vundo wakatime-mode))
  '(package-vc-selected-packages
    '((jot :url "https://github.com/szymonwilczek/jot.el" :branch "main")
      (bufferline :url "https://github.com/szymonwilczek/bufferline.el"
