@@ -214,4 +214,138 @@ PREVIOUS searches backward instead of forward."
     "]l" #'my/next-loop
     "[l" #'my/previous-loop))
 
+;; which-key names for evil because what the fuck am I supposed to
+;; know by this cluttered dashboard
+(defvar my/which-key-evil-labels
+  '(;; g
+    ("evil-goto-first-line" . "First Line")
+    ("evil-goto-last-change" . "Last Change")
+    ("evil-goto-last-change-reverse" . "Newer Change")
+    ("evil-goto-definition" . "Definition")
+    ("xref-find-definitions" . "Definition")
+    ("xref-find-references" . "References")
+    ("eglot-find-declaration" . "Declaration")
+    ("eglot-find-implementation" . "Implementation")
+    ("evil-next-visual-line" . "Down a Screen Line")
+    ("evil-previous-visual-line" . "Up a Screen Line")
+    ("evil-beginning-of-visual-line" . "Start of Screen Line")
+    ("evil-end-of-visual-line" . "End of Screen Line")
+    ("evil-first-non-blank-of-visual-line" . "First Char of Screen Line")
+    ("evil-middle-of-visual-line" . "Middle of Screen Line")
+    ("evil-last-non-blank" . "Last Char of Line")
+    ("evil-percentage-of-line" . "Go to % of Line")
+    ("evil-goto-char" . "Go to Char Offset")
+    ("evil-backward-word-end" . "End of Previous word")
+    ("evil-backward-WORD-end" . "End of Previous WORD")
+    ("evil-search-unbounded-word-forward" . "Search Word Part Forward")
+    ("evil-search-unbounded-word-backward" . "Search Word Part Backward")
+    ("evil-next-match" . "Select Next Match")
+    ("evil-previous-match" . "Select Previous Match")
+    ("evil-visual-restore" . "Reselect Last Selection")
+    ("evil-insert-0-line" . "Insert at Column 0")
+    ("evil-join-whitespace" . "Join Without Space")
+    ("evil-paste-after-cursor-after" . "Paste After, Cursor Past It")
+    ("evil-paste-before-cursor-after" . "Paste Before, Cursor Past It")
+    ("evil-upcase" . "Uppercase")
+    ("evil-downcase" . "Lowercase")
+    ("evil-invert-case" . "Swap Case")
+    ("evil-fill" . "Rewrap")
+    ("evil-fill-and-move" . "Rewrap and Move")
+    ("evil-commentary" . "Comment")
+    ("evil-commentary-yank" . "Yank and Comment")
+    ("evil-ex-repeat-global-substitute" . "Repeat :s on Every Line")
+    ("find-file-at-point" . "Open File at Point")
+    ("evil-find-file-at-point-with-line" . "Open File at Point, at Line")
+    ("browse-url-at-point" . "Open URL at Point")
+    ("my/evil-avy-goto-line" . "Jump to Line (avy)")
+    ("evil-collection-elisp-mode-ielm-repl" . "Elisp REPL")
+    ;; z
+    ("evil-scroll-line-to-top" . "Line to Top")
+    ("evil-scroll-line-to-center" . "Line to Center")
+    ("evil-scroll-line-to-bottom" . "Line to Bottom")
+    ("hs-toggle-hiding" . "Toggle Fold")
+    ("hs-show-block" . "Unfold Block")
+    ("hs-hide-level" . "Fold Children")
+    ("evil-open-fold" . "Unfold")
+    ("evil-open-fold-rec" . "Unfold Recursively")
+    ("evil-open-folds" . "Unfold All")
+    ("evil-close-folds" . "Fold All")
+    ("ispell-word" . "Spelling of Word")
+    ;; [ and ]
+    ("bufferline-prev-tab" . "Previous Tab")
+    ("bufferline-next-tab" . "Next Tab")
+    ("bufferline-move-tab-to-window-left" . "Tab to Left Window")
+    ("bufferline-move-tab-to-window-right" . "Tab to Right Window")
+    ("my/previous-function-start" . "Previous Function")
+    ("my/next-function-start" . "Next Function")
+    ("my/previous-function-end" . "Previous Function End")
+    ("my/next-function-end" . "Next Function End")
+    ("my/previous-argument" . "Previous Argument")
+    ("my/next-argument" . "Next Argument")
+    ("my/previous-loop" . "Previous Loop")
+    ("my/next-loop" . "Next Loop")
+    ("my/goto-prev-diagnostic" . "Previous Diagnostic")
+    ("my/goto-next-diagnostic" . "Next Diagnostic")
+    ("git-gutter:previous-hunk" . "Previous Git Hunk")
+    ("git-gutter:next-hunk" . "Next Git Hunk")
+    ("my/git-conflict-prev" . "Previous Conflict")
+    ("my/git-conflict-next" . "Next Conflict")
+    ("evil-prev-flyspell-error" . "Previous Misspelling")
+    ("evil-next-flyspell-error" . "Next Misspelling")
+    ("evil-previous-mark" . "Previous Mark")
+    ("evil-next-mark" . "Next Mark")
+    ("evil-previous-open-paren" . "Enclosing (")
+    ("evil-next-close-paren" . "Enclosing )")
+    ("evil-previous-open-brace" . "Enclosing {")
+    ("evil-next-close-brace" . "Enclosing }")
+    ("evil-collection-unimpaired-insert-newline-above" . "Blank Line Above")
+    ("evil-collection-unimpaired-insert-newline-below" . "Blank Line Below")
+    ("evil-collection-unimpaired-paste-above" . "Paste Line Above")
+    ("evil-collection-unimpaired-paste-below" . "Paste Line Below")
+    ("evil-collection-unimpaired-move-text-up" . "Move Line Up")
+    ("evil-collection-unimpaired-move-text-down" . "Move Line Down")
+    ("evil-collection-unimpaired-previous-error" . "Previous Error")
+    ("evil-collection-unimpaired-next-error" . "Next Error")
+    ("evil-collection-unimpaired-first-error" . "First Error")
+    ("evil-collection-unimpaired-last-error" . "Last Error"))
+  "Short which-key names for evil commands, by command name.")
+
+(defvar my/which-key-evil-hidden
+  '(;; duplicates of keys listed under another name
+    "evil-scroll-line-to-top-first-non-blank"
+    "evil-scroll-line-to-center-first-non-blank"
+    "evil-scroll-line-to-bottom-first-non-blank"
+    "evil-collection-unimpaired-previous-SCM-conflict-marker"
+    "evil-collection-unimpaired-next-SCM-conflict-marker"
+    "evil-previous-mark-line"
+    "evil-next-mark-line"
+    ;; horizontal scrolling, wrapped lines never need it
+    "evil-scroll-column-left" "evil-scroll-column-right"
+    "evil-scroll-left" "evil-scroll-right"
+    "evil-scroll-start-column" "evil-scroll-end-column"
+    "evil-scroll-bottom-line-to-top" "evil-scroll-top-line-to-bottom"
+    ;; tab-bar and tags, unused next to bufferline and xref
+    "evil-tab-next" "tab-bar-switch-to-prev-tab" "evil-jump-to-tag"
+    "evil-backward-section-begin" "evil-backward-section-end"
+    "evil-forward-section-begin" "evil-forward-section-end"
+    "evil-rot13" "what-cursor-position"
+    "evil-collection-unimpaired-b64-encode" "evil-collection-unimpaired-b64-decode"
+    "evil-collection-unimpaired-url-encode" "evil-collection-unimpaired-url-decode")
+  "Evil commands which-key leaves out of its popup.")
+
+(with-eval-after-load 'which-key
+  (setq which-key-replacement-alist
+        (append
+         (mapcar (lambda (label)
+                   (cons (cons nil (concat "\\`" (regexp-quote (car label)) "\\'"))
+                         (cons nil (cdr label))))
+                 my/which-key-evil-labels)
+         (mapcar (lambda (command)
+                   (cons (cons nil (concat "\\`" (regexp-quote command) "\\'")) t))
+                 my/which-key-evil-hidden)
+         ;; anything left keeps its name without the package prefix
+         '(((nil . "\\`evil-collection-unimpaired-") . (nil . ""))
+           ((nil . "\\`evil-") . (nil . "")))
+         which-key-replacement-alist)))
+
 (provide 'evil-keys)
