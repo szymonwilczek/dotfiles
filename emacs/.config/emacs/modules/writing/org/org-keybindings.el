@@ -17,7 +17,8 @@
      "oo"  '(citar-open :which-key "Open Bibliography Paper / PDF")
      "oe"  '(org-export-dispatch :which-key "Export Dispatcher")
      "oE"  '(my/org-toggle-emphasis-markers :which-key "Toggle Emphasis Markers (* / _)")
-     "oi"  '(:ignore t :which-key "Insert...")
+     "ol"  '(org-toggle-link-display :which-key "Toggle Raw Links")
+     "oi" '(:ignore t :which-key "Insert...")
      "oit" '(org-table-create-or-convert-from-region :which-key "Table"))))
 
 (with-eval-after-load 'org (my/setup-org-keys))
