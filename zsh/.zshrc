@@ -72,6 +72,11 @@ tmux() {
     fi
 }
 
+topmem() {
+    ps -eo comm,rss --no-headers | awk '{a[$1]+=$2} END {for (i in a) printf "%8.1f MB  %s\n",
+  a[i]/1024, i}' | sort -hr | head -n 15
+}
+
 ################
 ### KEYBINDS ###
 ################
