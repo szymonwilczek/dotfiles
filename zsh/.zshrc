@@ -72,9 +72,46 @@ tmux() {
     fi
 }
 
+# top 15 programs by PSS + swapped-out PSS
 topmem() {
-    ps -eo comm,rss --no-headers | awk '{a[$1]+=$2} END {for (i in a) printf "%8.1f MB  %s\n",
-  a[i]/1024, i}' | sort -hr | head -n 15
+    awk '
+    BEGINFILE { if (ERRNO != "") nextfile }  # root-only smaps: skip, not fatal
+    FILENAME ~ /smaps_rollup$/ {
+        split(FILENAME, p, "/")
+        if ($1 == "Pss:") pss[p[3]] = $2
+        else if ($1 == "SwapPss:") pss[p[3]] += $2
+        next
+    }
+    FILENAME ~ /status$/ {
+        split(FILENAME, p, "/")
+        if ($1 == "Name:") { sub(/^Name:[ \t]*/, ""); name[p[3]] = $0 }
+        else if ($1 == "VmRSS:" || $1 == "VmSwap:") rss[p[3]] += $2
+        next
+    }
+    FILENAME ~ /mm_stat$/ { zram += $3 / 1024; next }
+    { mem[$1] = $2 }
+    END {
+        for (pid in name) {
+            kb = (pid in pss) ? pss[pid] : rss[pid]
+            if (kb) { prog[name[pid]] += kb; procs += kb }
+        }
+        for (n = 0; n < 15; n++) {
+            best = ""
+            for (i in prog) if (best == "" || prog[i] > prog[best]) best = i
+            if (best == "") break
+            printf "%8.1f MB  %s\n", prog[best] / 1024, best
+            delete prog[best]
+        }
+        printf "\n%8.1f MB  all processes\n", procs / 1024
+        printf "%8.1f MB  shmem / tmpfs in RAM\n", mem["Shmem:"] / 1024
+        printf "%8.1f MB  kernel (slab, stacks, page tables)\n",
+            (mem["Slab:"] + mem["KernelStack:"] + mem["PageTables:"]) / 1024
+        printf "%8.1f MB  zram pool\n", zram / 1024
+        printf "%8.1f MB  used (total - available)\n",
+            (mem["MemTotal:"] - mem["MemAvailable:"]) / 1024
+        printf "%8.1f MB  swap used\n", (mem["SwapTotal:"] - mem["SwapFree:"]) / 1024
+    }' /proc/[0-9]*/smaps_rollup(N) /proc/[0-9]*/status(N) \
+        /sys/block/zram*/mm_stat(N) /proc/meminfo 2>/dev/null
 }
 
 ################
