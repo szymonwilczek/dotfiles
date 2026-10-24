@@ -25,6 +25,7 @@ output * subpixel none
 # output * render_bit_depth 10
 output HDMI-A-1 mode 1920x1080@75Hz pos 0 0
 output DP-2 mode 1920x1080@179.821Hz pos 1920 0
+output DP-2 max_render_time 2
 output DP-1 mode 1600x900@77Hz pos 3840 0
 
 # Per-monitor workspaces to outputs
@@ -217,6 +218,8 @@ for_window [app_id="steam"] resize set 900 600, move position center
 for_window [app_id="dolphin"] resize set 1100 900, move position center
 for_window [app_id="plasma-systemmonitor"] resize set 1050 700, move position center
 for_window [app_id="org.kde.plasma-systemmonitor"] resize set 1050 700, move position center
+# Let Firefox draw late in the frame too (I type there)
+for_window [app_id="org.mozilla.firefox"] max_render_time 3
 for_window [app_id="ghostty" app_id="floating_nmtui"] floating enable, resize set 750 450, move position center
 for_window [app_id="emacs" title="^jot-scratch$"] mark "jot_scratch", move scratchpad, scratchpad show, resize set 1000 700, move position center
 
