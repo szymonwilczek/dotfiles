@@ -73,7 +73,7 @@ ansible-playbook playbook.yml --tags "flatpak"
 ansible-playbook playbook.yml --skip-tags "apps"
 ```
 
-Available tags: `repos`, `copr`, `common`, `dev`, `apps`, `sway`, `mail`, `docker`, `latex`, `system_hw`, `libs`, `kde`, `inbox`, `exclude`, `flatpak`, `laptop`.
+Available tags: `repos`, `copr`, `common`, `dev`, `apps`, `sway`, `mail`, `docker`, `latex`, `system_hw`, `libs`, `kde`, `inbox`, `exclude`, `flatpak`, `keyd`, `laptop`.
 
 ### Laptop
 

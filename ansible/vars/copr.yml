@@ -1,5 +1,6 @@
 ---
 copr_repositories:
+  - alternateved/keyd
   - atim/lazygit
   - erikreider/swayosd
   - scottames/ghostty

@@ -201,6 +201,37 @@
       tags:
         - flatpak
 
+    - name: Create the keyd config directory
+      ansible.builtin.file:
+        path: /etc/keyd
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      become: true
+      tags:
+        - keyd
+
+    - name: Link the keyd config from dotfiles
+      ansible.builtin.file:
+        src: "{{ playbook_dir | dirname }}/keyd/default.conf"
+        dest: /etc/keyd/default.conf
+        state: link
+        force: true
+      become: true
+      notify: Reload keyd
+      tags:
+        - keyd
+
+    - name: Enable keyd
+      ansible.builtin.systemd_service:
+        name: keyd
+        enabled: true
+        state: started
+      become: true
+      tags:
+        - keyd
+
     - name: Enable Wi-Fi power saving on laptops
       ansible.builtin.copy:
         dest: /etc/NetworkManager/conf.d/90-wifi-powersave.conf
@@ -258,6 +289,10 @@
   handlers:
     - name: Reload NetworkManager configuration
       ansible.builtin.command: nmcli general reload conf
+      become: true
+
+    - name: Reload keyd
+      ansible.builtin.command: keyd reload
       become: true
 
     - name: Restart journald

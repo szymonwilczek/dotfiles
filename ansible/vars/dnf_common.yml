@@ -55,6 +55,7 @@ dnf_common_packages:
   - inxi
   - isomd5sum
   - jetbrains-mono-fonts-all
+  - keyd
   - knighttime
   - lazygit
   - libappstream-glib
