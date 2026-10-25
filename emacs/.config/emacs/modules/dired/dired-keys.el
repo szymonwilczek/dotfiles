@@ -71,11 +71,24 @@ state; otherwise the marked files, or the file at point."
         (dired-goto-file (expand-file-name new (file-name-directory file)))))))
 
 (defun my/dired-move ()
-  "Move the marked files or the file at point, offering the other pane.
-Like `dired-do-rename', but the prompt says Move for a single file too."
+  "Move the selected lines, the marked files or the file at point.
+Offers the other pane as the target.  Like `dired-do-rename', but the
+prompt says Move for a single file too."
   (interactive)
-  (dired-do-create-files 'move #'dired-rename-file
-                         "Move" nil dired-keep-marker-rename "Move")
+  (if (and (fboundp 'evil-visual-state-p) (evil-visual-state-p))
+      (let* ((targets (my/dired--targets))
+             (dired-marker-char ?\a))
+        (unwind-protect
+            (progn
+              (dolist (target targets)
+                (save-excursion
+                  (goto-char (cdr target))
+                  (dired-mark 1)))
+              (dired-do-create-files 'move #'dired-rename-file
+                                     "Move" nil nil "Move"))
+          (dired-unmark-all-files dired-marker-char)))
+    (dired-do-create-files 'move #'dired-rename-file
+                           "Move" nil dired-keep-marker-rename "Move"))
   (dired-post-do-command))
 
 (defun my/dired-home ()
@@ -183,7 +196,8 @@ With two dired windows, C and R offer the other one as the target."
       "y" #'my/dired-copy
       "x" #'my/dired-cut
       "d" #'my/dired-delete
-      "D" #'my/dired-delete-permanently))
+      "D" #'my/dired-delete-permanently
+      "R" #'my/dired-move))
 
   (with-eval-after-load 'which-key
     (which-key-add-major-mode-key-based-replacements 'dired-mode
