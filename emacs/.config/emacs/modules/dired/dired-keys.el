@@ -70,26 +70,42 @@ state; otherwise the marked files, or the file at point."
         (revert-buffer)
         (dired-goto-file (expand-file-name new (file-name-directory file)))))))
 
+(defun my/dired--on-selection (fn)
+  "Call FN with the visual selection standing in for the marked files.
+The selection is marked with a private character, so the files the user
+marked with * elsewhere are left out and keep their marks."
+  (let* ((targets (my/dired--targets))
+         (dired-marker-char ?\a))
+    (unwind-protect
+        (progn
+          (dolist (target targets)
+            (save-excursion
+              (goto-char (cdr target))
+              (dired-mark 1)))
+          (funcall fn))
+      (dired-unmark-all-files dired-marker-char))))
+
 (defun my/dired-move ()
   "Move the selected lines, the marked files or the file at point.
 Offers the other pane as the target.  Like `dired-do-rename', but the
 prompt says Move for a single file too."
   (interactive)
   (if (and (fboundp 'evil-visual-state-p) (evil-visual-state-p))
-      (let* ((targets (my/dired--targets))
-             (dired-marker-char ?\a))
-        (unwind-protect
-            (progn
-              (dolist (target targets)
-                (save-excursion
-                  (goto-char (cdr target))
-                  (dired-mark 1)))
-              (dired-do-create-files 'move #'dired-rename-file
-                                     "Move" nil nil "Move"))
-          (dired-unmark-all-files dired-marker-char)))
+      (my/dired--on-selection
+       (lambda ()
+         (dired-do-create-files 'move #'dired-rename-file
+                                "Move" nil nil "Move")))
     (dired-do-create-files 'move #'dired-rename-file
                            "Move" nil dired-keep-marker-rename "Move"))
   (dired-post-do-command))
+
+(defun my/dired-copy-to-pane ()
+  "Copy the selected lines, the marked files or the file at point.
+Offers the other pane as the target, like `dired-do-copy'."
+  (interactive)
+  (if (and (fboundp 'evil-visual-state-p) (evil-visual-state-p))
+      (my/dired--on-selection #'dired-do-copy)
+    (dired-do-copy)))
 
 (defun my/dired-home ()
   "Go to the home directory in this window."
@@ -197,6 +213,7 @@ With two dired windows, C and R offer the other one as the target."
       "x" #'my/dired-cut
       "d" #'my/dired-delete
       "D" #'my/dired-delete-permanently
+      "C" #'my/dired-copy-to-pane
       "R" #'my/dired-move))
 
   (with-eval-after-load 'which-key
