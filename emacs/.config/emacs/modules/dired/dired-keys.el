@@ -70,12 +70,22 @@ state; otherwise the marked files, or the file at point."
         (revert-buffer)
         (dired-goto-file (expand-file-name new (file-name-directory file)))))))
 
+(defconst my/dired--stash-char ?+
+  "Mark that stands in for * on my own marks while a visual selection
+is being acted on.")
+
 (defun my/dired--on-selection (fn)
   "Call FN with the visual selection standing in for the marked files.
-The selection is marked with a private character, so the files the user
-marked with * elsewhere are left out and keep their marks."
+The selection is shown with * and my own * marks turn into
+`my/dired--stash-char' meanwhile, so FN leaves them out.  Afterwards my
+marks come back as *, also on selected files FN did not remove."
   (let* ((targets (my/dired--targets))
-         (dired-marker-char ?\a))
+         (marked (seq-filter
+                  (lambda (target)
+                    (eq (char-after (marker-position (cdr target)))
+                        dired-marker-char))
+                  targets)))
+    (dired-change-marks dired-marker-char my/dired--stash-char)
     (unwind-protect
         (progn
           (dolist (target targets)
@@ -83,7 +93,12 @@ marked with * elsewhere are left out and keep their marks."
               (goto-char (cdr target))
               (dired-mark 1)))
           (funcall fn))
-      (dired-unmark-all-files dired-marker-char))))
+      (dired-unmark-all-files dired-marker-char)
+      (dired-change-marks my/dired--stash-char dired-marker-char)
+      (dolist (target marked)
+        (save-excursion
+          (when (dired-goto-file (car target))
+            (dired-mark 1)))))))
 
 (defun my/dired-move ()
   "Move the selected lines, the marked files or the file at point.
