@@ -30,4 +30,4 @@ Current one is at the very top of the very bottom of that README:
 
 #### Sway (Current)
 
-<img alt="sway" src="assets/sway.png" />
+<img alt="sway" src="assets/sway-prometheus.png" />
