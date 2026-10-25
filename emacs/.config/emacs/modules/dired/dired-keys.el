@@ -85,7 +85,8 @@ marks come back as *, also on selected files FN did not remove."
                   (lambda (target)
                     (eq (char-after (marker-position (cdr target)))
                         dired-marker-char))
-                  targets)))
+                  targets))
+         cookie)
     (dired-change-marks dired-marker-char my/dired--stash-char)
     (unwind-protect
         (progn
@@ -93,7 +94,11 @@ marks come back as *, also on selected files FN did not remove."
             (save-excursion
               (goto-char (cdr target))
               (dired-mark 1)))
+          (when (eq (char-after (pos-bol)) dired-marker-char)
+            (setq cookie (face-remap-add-relative 'hl-line 'dired-marked)))
           (funcall fn))
+      (when cookie
+        (face-remap-remove-relative cookie))
       (dired-unmark-all-files dired-marker-char)
       (dired-change-marks my/dired--stash-char dired-marker-char)
       (dolist (target marked)
