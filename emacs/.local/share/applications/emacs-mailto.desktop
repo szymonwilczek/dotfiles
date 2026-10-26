@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Emacs (Mail)
+Comment=Write a message in the running Emacs
+Exec=emacs-mailto %u
+Icon=emacs
+Terminal=false
+NoDisplay=true
+MimeType=x-scheme-handler/mailto;

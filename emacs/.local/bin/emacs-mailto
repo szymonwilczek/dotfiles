@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# emacs-mailto URL
+#
+# Opens a mailto: link as a new message in a frame of the running Emacs
+# daemon, starting one if there is none.
+
+url=${1:-mailto:}
+url=${url//\\/\\\\}
+url=${url//\"/\\\"}
+exec emacsclient -c -a '' --eval "(message-mailto \"$url\")"

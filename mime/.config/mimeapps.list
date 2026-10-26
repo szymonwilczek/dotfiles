@@ -34,6 +34,7 @@ text/markdown=nvim.desktop;
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 x-scheme-handler/geo=google-maps-geo-handler.desktop;
 x-scheme-handler/jetbrains=jetbrainsd.desktop
+x-scheme-handler/mailto=emacs-mailto.desktop
 x-scheme-handler/proton-inbox=Proton Mail.desktop
 x-scheme-handler/zemu-launcher=zemu_launcher-handler.desktop
 
