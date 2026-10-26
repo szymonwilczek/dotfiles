@@ -25,6 +25,7 @@
 (require 'dired-mod)
 (require 'tramp-mod)
 (require 'chashitsu-mod)
+(require 'mail-mod)
 
 
 (provide 'init)
