@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# git release-tag [-n] <version>
+# Created for managing my LOTA project
+#
+# Bumps VERSION on lota-next and tags the bump, the way every LOTA
+# release and release candidate is cut:
+#
+#   build: <version>
+#
+#   <git release-for <version>, wrapped to 72 columns; stable releases only>
+#
+#   Signed-off-by: <user.name> <user.email>
+#
+# The commit is signed, and so is the annotated tag v<version>, whose
+# message is "LOTA <version>".
+# The push that publishes both is printed.
+#
+# -n prints the commit message and changes nothing.
+
+set -euo pipefail
+
+usage() {
+    echo "usage: git release-tag [-n] <version>" >&2
+    exit 2
+}
+
+die() {
+    echo "git release-tag: $*" >&2
+    exit 1
+}
+
+dry_run=0
+if [[ ${1-} == -n ]]; then
+    dry_run=1
+    shift
+fi
+[[ $# -eq 1 && $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]] || usage
+version=$1
+tag=v$version
+
+remote=origin
+branch=lota-next
+
+top=$(git rev-parse --show-toplevel)
+[[ $(git symbolic-ref -q --short HEAD) == "$branch" ]] || die "not on $branch"
+git rev-parse -q --verify "refs/tags/$tag" >/dev/null && die "$tag already exists"
+[[ $(sed -n 1p "$top/VERSION") != "$version" ]] || die "VERSION already says $version"
+git diff --quiet HEAD -- || die "the working tree has uncommitted changes"
+git fetch -q "$remote" "$branch"
+git merge-base --is-ancestor "$remote/$branch" HEAD || die "$branch is behind $remote/$branch"
+
+# a list item wrapped to width $1, continued under its tex
+wrap() {
+    awk -v width="$1" '
+	{
+		hang = match($0, /^- /) ? "  " : ""
+		n = split($0, words, " ")
+		line = ""
+		for (i = 1; i <= n; i++) {
+			if (line != "" && length(line) + 1 + length(words[i]) > width) {
+				print line
+				line = hang words[i]
+			} else {
+				line = line == "" ? words[i] : line " " words[i]
+			}
+		}
+		print line
+	}
+	'
+}
+
+msg=$(
+    echo "build: $version"
+    echo
+    if [[ $version != *-* ]]; then
+        git release-for "$version" | wrap 72
+        echo
+    fi
+    echo "Signed-off-by: $(git config user.name) <$(git config user.email)>"
+   )
+
+if ((dry_run)); then
+    printf '%s\n' "$msg"
+    exit 0
+fi
+
+echo "$version" >"$top/VERSION"
+git commit -q -S -F - -- "$top/VERSION" <<<"$msg"
+git tag -s -m "LOTA $version" "$tag"
+
+git log -1 --format='%h %s' "$tag"
+echo "git push --atomic $remote $branch $tag"
