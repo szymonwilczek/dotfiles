@@ -13,12 +13,14 @@
 #
 # The message opens in the Git editor first; an empty message or
 # a cancelled edit aborts.
-# The merge itself goes through GitHub, so rulesets and required checks
-# apply as for the merge button.
-# It is refused if the pull request head moved after the message was built.
+# The merge itself goes through GitHub, with administrator privileges:
+# main requires an approving review, which the author of the release
+# pull request cannot give.  Those privileges also pass over failing
+# checks, so it is refused unless every check has passed or was skipped,
+# and if the pull request head moved after the message was built.
 #
 # lota-next is then fast-forwarded to the merge, on GitHub and locally,
-# so that it and main point at the same commit.
+# so that it and main point at the same commit.  It is never deleted.
 #
 # -n prints the message and merges nothing.
 
@@ -58,6 +60,13 @@ IFS=$'\t' read -r state head base oid version title < <(gh pr view "$pr" \
     die "#$pr is from $head into $base, not from $branch into $stable"
 [[ $state == OPEN || $dry_run -eq 1 ]] || die "#$pr is $state"
 [[ -n $version ]] || die "#$pr has no milestone"
+
+if ((!dry_run)); then
+    checks=$(gh pr checks "$pr" --json name,bucket \
+                --jq '.[] | select(.bucket != "pass" and .bucket != "skipping") | "\(.name) (\(.bucket))"' &&
+                 echo ok || true)
+    [[ $checks == ok ]] || die "#$pr has checks that did not pass:"$'\n'"${checks:-unknown}"
+fi
 
 wrap() {
     awk -v width="$1" '
@@ -110,7 +119,7 @@ git stripspace --strip-comments <"$msg" >"$msg.clean"
 mv "$msg.clean" "$msg"
 [[ -s $msg ]] || die "empty message, not merging"
 
-gh pr merge "$pr" --merge --match-head-commit "$oid" \
+gh pr merge "$pr" --merge --admin --match-head-commit "$oid" \
    --subject "$(head -n 1 "$msg")" --body "$(tail -n +3 "$msg")"
 
 git fetch -q "$remote" "$stable" "$branch"
