@@ -8,29 +8,31 @@
 #   Merge lota-next updates for <version>
 #
 # labelled merge-release, in milestone <version>, with a Markdown
-# description laid out like git request-pull, with the merged pull
-# requests in place of the tag message:
+# description of what git request-pull would say:
 #
-#   `The following changes since commit` <sha of the previous release>:
+#   Pull of [`<previous release>...<end>`](<compare URL>) into `main`.
 #
-#   ```<subject> (<date>)```
-#
-#   `are available in the Git repository at`:
-#
-#   <repository URL> <tags/v<version>, or lota-next before the tag exists>
-#
-#   `for you to fetch changes up to` <sha>:
-#
-#   ```<subject> (<date>)```
+#   |           |                 Commit             |                      |
+#   |-----------|------------------------------------|----------------------|
+#   | **Since** | <sha of the previous release>      | `<subject>` · <date> |
+#   | **Up to** | <sha of the end>                   | `<subject>` · <date> |
+#   | **Fetch** | `git fetch <repository URL> <ref>` |                      |
 #
 #   ----------------------------------------------------------------
 #   Merged pull requests:
 #
-#   - #<number>                       GitHub shows each one's title
+#   - #<number>                 GitHub shows each one's title
 #
 #   ----------------------------------------------------------------
-#   <dirstat and the files changed line, in a code block>
+#   <dirstat, in a code block>
 #
+#   ```diff
+#     <n> files changed
+#   + <n> insertions(+)
+#   - <n> deletions(-)
+#   ```
+#
+# The end is the tag v<version>, or lota-next before the tag exists.
 # The previous release is the last stable v* tag before the end commit.
 # The title and the description open in the Git editor first, the title
 # as the first line, and the pull request is opened only once they are
@@ -79,19 +81,32 @@ url=$(gh repo view --json url --jq .url)
 rule=$(printf '%064d' 0 | tr 0 -)
 fence='```'
 
-subject() { git show -s --format='%s (%ci)' "$1^{commit}"; }
+row() {
+    git show -s --format="| **$1** | %H | \`%s\` · %cs |" "$2^{commit}"
+}
+
+stat() {
+    git diff -M --shortstat "$base" "$end" | tr ',' '\n' | sed -E \
+                                                               -e 's/^ *//' \
+                                                               -e 's/^([0-9]+ insertion)/+ \1/' \
+                                                               -e 's/^([0-9]+ deletion)/- \1/' \
+                                                               -e 's/^([0-9]+ file)/  \1/'
+}
+
+compare=${end#"$remote/"}
 
 desc=$(
-    printf '`The following changes since commit` %s:\n\n' "$(git rev-parse "$base^{commit}")"
-    printf '%s%s%s\n\n' "$fence" "$(subject "$base")" "$fence"
-    printf '`are available in the Git repository at`:\n\n'
-    printf '%s %s\n\n' "$url" "$ref"
-    printf '`for you to fetch changes up to` %s:\n\n' "$(git rev-parse "$end^{commit}")"
-    printf '%s%s%s\n\n' "$fence" "$(subject "$end")" "$fence"
+    printf 'Pull of [`%s...%s`](%s/compare/%s...%s) into `main`.\n\n' \
+           "$base" "$compare" "$url" "$base" "$compare"
+    printf '| | Commit | |\n|---|---|---|\n'
+    row Since "$base"
+    row 'Up to' "$end"
+    printf '| **Fetch** | `git fetch %s %s` | |\n\n' "$url" "$ref"
     printf '%s\n%s\n\n' "$rule" "$notes"
     printf '%s\n%s\n' "$rule" "$fence"
     git diff -M --dirstat "$base" "$end"
-    git diff -M --shortstat "$base" "$end"
+    printf '%s\n\n%sdiff\n' "$fence" "$fence"
+    stat
     printf '%s\n' "$fence"
     )
 
