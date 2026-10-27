@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# git range-diff-pr [--send] <number>
+# Created for managing my LOTA project
+#
+# Prints what the local branch of open pull request <number> changes
+# against the head GitHub has, as the comment that announces a new
+# version of a patch series:
+#
+#   v<n>: range-diff against v<n-1> (<GitHub head>..<local head>)
+#
+#   ```patch
+#   <git range-diff of the two series, each taken from the base branch>
+#   ```
+#
+# v1 is the series the pull request was opened with; <n> is one more
+# than the last version announced in a comment, so the first rework is v2.
+#
+# --send also posts the comment to the pull request.  Send before
+# git push-prs pushes: once GitHub has the local branch there is no
+# difference left to show.
+#
+# A pull request that is not open, has no local branch, or whose local
+# branch already matches GitHub is refused, as git push-prs skips it.
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+usage() {
+    echo "usage: git range-diff-pr [--send] <pr-number>" >&2
+    exit 2
+}
+
+die() {
+    echo "git range-diff-pr: $*" >&2
+    exit 1
+}
+
+send=0
+if [[ ${1-} == --send ]]; then
+    send=1
+    shift
+fi
+[[ $# -eq 1 && $1 =~ ^[0-9]+$ ]] || usage
+number=$1
+
+remote=origin
+# A GitHub comment holds at most 65536 characters
+limit=65536
+
+IFS=$'\t' read -r state head oid base < <(gh pr view "$number" \
+    --json state,headRefName,headRefOid,baseRefName \
+    --jq '[.state, .headRefName, .headRefOid, .baseRefName] | @tsv')
+
+[[ $state == OPEN ]] || die "#$number ($head) is $state"
+local_oid=$(git rev-parse -q --verify "refs/heads/$head^{commit}") ||
+    die "#$number ($head) has no local branch"
+[[ $local_oid != "$oid" ]] || die "#$number ($head) already matches GitHub"
+
+git fetch -q "$remote" "$base"
+git cat-file -e "$oid^{commit}" 2>/dev/null || git fetch -q "$remote" "refs/pull/$number/head"
+
+prev=$(gh api --paginate "repos/{owner}/{repo}/issues/$number/comments" \
+    --jq '.[].body | capture("^v(?<n>[0-9]+): range-diff").n' |
+    sort -n | tail -n 1)
+prev=${prev:-1}
+
+body=$(
+    printf 'v%d: range-diff against v%d (%s..%s)\n\n' \
+        $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}"
+    echo '```patch'
+    git range-diff --no-color \
+        "$(git merge-base "$oid" "$remote/$base")..$oid" \
+        "$(git merge-base "$local_oid" "$remote/$base")..$local_oid"
+    echo '```'
+)
+
+printf '%s\n' "$body"
+
+if ((send)); then
+    ((${#body} <= limit)) || die "#$number: comment exceeds $limit characters, not sent"
+    gh pr comment "$number" --body "$body" >/dev/null
+    echo "git range-diff-pr: #$number: v$((prev + 1)) sent" >&2
+fi
