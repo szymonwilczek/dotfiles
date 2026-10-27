@@ -3,7 +3,8 @@
 # Created for managing my LOTA project
 #
 # Prints the release notes body listing every merged pull request whose
-# milestone is <version>, oldest first:
+# milestone is <version>, oldest first, leaving out the pull requests
+# into main that carry a release there:
 #
 #   Merged pull requests:
 #
@@ -24,8 +25,8 @@ version=$1
 
 lines=$(gh pr list --state merged --limit 1000 \
            --search "milestone:\"$version\"" \
-           --json number,title,milestone \
-           --jq "[.[] | select(.milestone.title == \"$version\")] | sort_by(.number)
+           --json number,title,milestone,baseRefName \
+           --jq "[.[] | select(.milestone.title == \"$version\" and .baseRefName != \"main\")] | sort_by(.number)
           | .[] | \"- #\(.number) \(.title)\"")
 
 if [[ -z $lines ]]; then
