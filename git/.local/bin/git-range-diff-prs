@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# git range-diff-prs [--send] <first> [<last>]
+# Created for managing my LOTA project
+#
+# Prints, for each open pull request <first>..<last>, both inclusive,
+# what the local branch changes against the head GitHub has, as the
+# comment that announces a new version of a patch series:
+#
+#   v<n>: range-diff against v<n-1> (<GitHub head>..<local head>)
+#
+#   ```patch
+#   <git range-diff of the two series, each taken from the base branch>
+#   ```
+#
+# v1 is the series the pull request was opened with; <n> is one more
+# than the last version announced in a comment, so the first rework is v2.
+#
+# --send also posts each comment to its pull request.  Send before
+# git push-prs pushes: once GitHub has the local branch there is no
+# difference left to show.
+#
+# A pull request that is not open, has no local branch, or whose local
+# branch already matches GitHub is left out and named on stderr, as by
+# git push-prs.
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+usage() {
+    echo "usage: git range-diff-prs [--send] <first-pr> [<last-pr>]" >&2
+    exit 2
+}
+
+send=0
+if [[ ${1-} == --send ]]; then
+    send=1
+    shift
+fi
+[[ $# -ge 1 && $# -le 2 ]] || usage
+first=$1
+last=${2:-$1}
+[[ $first =~ ^[0-9]+$ && $last =~ ^[0-9]+$ ]] || usage
+((first <= last)) || usage
+
+remote=origin
+limit=65536
+
+json=$(gh pr list --state all --limit 1000 \
+          --json number,state,headRefName,headRefOid,baseRefName \
+          --jq "[.[] | select(.number >= $first and .number <= $last)] | sort_by(.number)")
+
+found=0
+while IFS=$'\t' read -r number state head oid base; do
+    if [[ $state != OPEN ]]; then
+        echo "git range-diff-prs: #$number ($head) is $state, skipped" >&2
+        continue
+    fi
+    if ! local_oid=$(git rev-parse -q --verify "refs/heads/$head^{commit}"); then
+        echo "git range-diff-prs: #$number ($head) has no local branch, skipped" >&2
+        continue
+    fi
+    if [[ $local_oid == "$oid" ]]; then
+        echo "git range-diff-prs: #$number ($head) already matches GitHub, skipped" >&2
+        continue
+    fi
+    found=1
+
+    git fetch -q "$remote" "$base"
+    git cat-file -e "$oid^{commit}" 2>/dev/null || git fetch -q "$remote" "refs/pull/$number/head"
+
+    prev=$(gh api --paginate "repos/{owner}/{repo}/issues/$number/comments" \
+              --jq '.[].body | capture("^v(?<n>[0-9]+): range-diff").n' |
+               sort -n | tail -n 1)
+    prev=${prev:-1}
+
+    body=$(
+        printf 'v%d: range-diff against v%d (%s..%s)\n\n' \
+               $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}"
+        echo '```patch'
+        git range-diff --no-color \
+            "$(git merge-base "$oid" "$remote/$base")..$oid" \
+            "$(git merge-base "$local_oid" "$remote/$base")..$local_oid"
+        echo '```'
+        )
+
+    printf '#%s\n\n%s\n\n' "$number" "$body"
+
+    if ((send)); then
+        if ((${#body} > limit)); then
+            echo "git range-diff-prs: #$number: comment exceeds $limit characters, not sent" >&2
+            continue
+        fi
+        gh pr comment "$number" --body "$body" >/dev/null
+        echo "git range-diff-prs: #$number: v$((prev + 1)) sent" >&2
+    fi
+done < <(jq -r '.[] | [.number, .state, .headRefName, .headRefOid, .baseRefName] | @tsv' <<<"$json")
+
+if ((!found)); then
+    echo "git range-diff-prs: nothing to compare in #$first..#$last" >&2
+    exit 1
+fi
