@@ -55,7 +55,7 @@ git diff --quiet HEAD -- || die "the working tree has uncommitted changes"
 git fetch -q "$remote" "$branch"
 git merge-base --is-ancestor "$remote/$branch" HEAD || die "$branch is behind $remote/$branch"
 
-# a list item wrapped to width $1, continued under its tex
+# a list item wrapped to width $1, continued under its text
 wrap() {
     awk -v width="$1" '
 	{
