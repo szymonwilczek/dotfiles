@@ -7,27 +7,29 @@
 #
 #   Merge lota-next updates for <version>
 #
-# labelled merge-release, in milestone <version>, with a description laid
-# out like git request-pull, with the release notes from git release-for
-# in place of the tag message:
+# labelled merge-release, in milestone <version>, with a Markdown
+# description laid out like git request-pull, with the merged pull
+# requests in place of the tag message:
 #
-#   The following changes since commit <sha of the previous release>:
+#   `The following changes since commit` <sha of the previous release>:
 #
-#     <subject> (<date>)
+#   ```<subject> (<date>)```
 #
-#   are available in the Git repository at:
+#   `are available in the Git repository at`:
 #
-#     <repository URL> <tags/v<version>, or lota-next before the tag exists>
+#   <repository URL> <tags/v<version>, or lota-next before the tag exists>
 #
-#   for you to fetch changes up to <sha>:
+#   `for you to fetch changes up to` <sha>:
 #
-#     <subject> (<date>)
-#
-#   ----------------------------------------------------------------
-#   <git release-for <version>>
+#   ```<subject> (<date>)```
 #
 #   ----------------------------------------------------------------
-#   <dirstat and the files changed line>
+#   Merged pull requests:
+#
+#   - #<number>                       GitHub shows each one's title
+#
+#   ----------------------------------------------------------------
+#   <dirstat and the files changed line, in a code block>
 #
 # The previous release is the last stable v* tag before the end commit.
 # The title and the description open in the Git editor first, the title
@@ -72,29 +74,25 @@ if ! base=$(git describe --tags --abbrev=0 --match 'v*' --exclude 'v*-*' "$end^"
     exit 1
 fi
 
-notes=$(git release-for "$version")
+notes=$(git release-for "$version" | sed -E 's/^- (#[0-9]+) .*/- \1/')
 url=$(gh repo view --json url --jq .url)
 rule=$(printf '%064d' 0 | tr 0 -)
+fence='```'
 
-commit() { git show -s --format='%H:%n%n  %s (%ci)' "$1^{commit}"; }
+subject() { git show -s --format='%s (%ci)' "$1^{commit}"; }
 
 desc=$(
-    cat <<EOF
-The following changes since commit $(commit "$base")
-
-are available in the Git repository at:
-
-  $url $ref
-
-for you to fetch changes up to $(commit "$end")
-
-$rule
-$notes
-
-$rule
-$(git diff -M --dirstat "$base" "$end")
-$(git diff -M --shortstat "$base" "$end")
-EOF
+    printf '`The following changes since commit` %s:\n\n' "$(git rev-parse "$base^{commit}")"
+    printf '%s%s%s\n\n' "$fence" "$(subject "$base")" "$fence"
+    printf '`are available in the Git repository at`:\n\n'
+    printf '%s %s\n\n' "$url" "$ref"
+    printf '`for you to fetch changes up to` %s:\n\n' "$(git rev-parse "$end^{commit}")"
+    printf '%s%s%s\n\n' "$fence" "$(subject "$end")" "$fence"
+    printf '%s\n%s\n\n' "$rule" "$notes"
+    printf '%s\n%s\n' "$rule" "$fence"
+    git diff -M --dirstat "$base" "$end"
+    git diff -M --shortstat "$base" "$end"
+    printf '%s\n' "$fence"
     )
 
 if ((dry_run)); then
