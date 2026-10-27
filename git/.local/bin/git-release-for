@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# git release-for <version>
+# Created for managing my LOTA project
+#
+# Prints the release notes body listing every merged pull request whose
+# milestone is <version>, oldest first:
+#
+#   Merged pull requests:
+#
+#   - #<number> <title>
+#   ...
+#
+# Nothing is published; the output is meant to be pasted into the release.
+
+set -euo pipefail
+
+usage() {
+    echo "usage: git release-for <version>" >&2
+    exit 2
+}
+
+[[ $# -eq 1 && -n $1 ]] || usage
+version=$1
+
+lines=$(gh pr list --state merged --limit 1000 \
+           --search "milestone:\"$version\"" \
+           --json number,title,milestone \
+           --jq "[.[] | select(.milestone.title == \"$version\")] | sort_by(.number)
+          | .[] | \"- #\(.number) \(.title)\"")
+
+if [[ -z $lines ]]; then
+    echo "git release-for: no merged pull requests in milestone $version" >&2
+    exit 1
+fi
+
+printf 'Merged pull requests:\n\n%s\n' "$lines"
