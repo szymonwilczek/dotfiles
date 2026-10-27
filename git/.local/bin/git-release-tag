@@ -20,6 +20,7 @@
 # -n prints the commit message and changes nothing.
 
 set -euo pipefail
+shopt -s inherit_errexit
 
 if [[ ${TERM-} == dumb ]]; then
     export NO_COLOR=1 GH_SPINNER_DISABLED=1
