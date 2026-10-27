@@ -13,11 +13,17 @@
 #
 # The commit is signed, and so is the annotated tag v<version>, whose
 # message is "LOTA <version>".
+# Both messages open in the Git editor, the commit's first, and nothing is
+# changed until both are accepted; an empty message or a cancelled edit aborts.
 # The push that publishes both is printed.
 #
 # -n prints the commit message and changes nothing.
 
 set -euo pipefail
+
+if [[ ${TERM-} == dumb ]]; then
+    export NO_COLOR=1 GH_SPINNER_DISABLED=1
+fi
 
 usage() {
     echo "usage: git release-tag [-n] <version>" >&2
@@ -84,9 +90,30 @@ if ((dry_run)); then
     exit 0
 fi
 
+dir=$(mktemp -d "${TMPDIR:-/tmp}/release-tag.XXXXXX")
+trap 'rm -rf "$dir"' EXIT
+editor=$(git var GIT_EDITOR)
+
+# Opens $1, holding $2 and the comment $3, in the Git editor and leaves
+# it with the comments dropped; named COMMIT_EDITMSG or TAG_EDITMSG,
+# Magit's with-editor opens it as that kind of message
+edit() {
+    {
+        printf '%s\n\n' "$2"
+        printf '# %s\n' "$3" "Lines starting with '#' are dropped; an empty message aborts."
+    } >"$1"
+    sh -c "$editor \"\$@\"" "$editor" "$1" || die "editor cancelled, nothing changed"
+    git stripspace --strip-comments <"$1" >"$1.clean"
+    mv "$1.clean" "$1"
+    [[ -s $1 ]] || die "empty message, nothing changed"
+}
+
+edit "$dir/COMMIT_EDITMSG" "$msg" "The commit bumping VERSION to $version on $branch."
+edit "$dir/TAG_EDITMSG" "LOTA $version" "The message of tag $tag."
+
 echo "$version" >"$top/VERSION"
-git commit -q -S -F - -- "$top/VERSION" <<<"$msg"
-git tag -s -m "LOTA $version" "$tag"
+git commit -q -S -F "$dir/COMMIT_EDITMSG" -- "$top/VERSION"
+git tag -s -F "$dir/TAG_EDITMSG" "$tag"
 
 git log -1 --format='%h %s' "$tag"
 echo "git push --atomic $remote $branch $tag"
