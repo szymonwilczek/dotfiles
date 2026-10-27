@@ -3,13 +3,22 @@
 # Created for managing my LOTA project
 #
 # Prints the release notes body listing every merged pull request whose
-# milestone is <version>, oldest first, leaving out the pull requests
-# into main that carry a release there:
+# milestone is <version>, leaving out the pull requests into main that
+# carry a release there:
 #
 #   Merged pull requests:
 #
 #   - #<number> <title>
 #   ...
+#
+#   ---
+#
+#   - #<number> <title>
+#   ...
+#
+# A rule closes the pull requests each release candidate v<version>-rc<n>
+# took in, those first released by a candidate tag that contains their
+# merge; within a candidate they are listed by number.
 #
 # Nothing is published; the output is meant to be pasted into the release.
 
@@ -23,15 +32,41 @@ usage() {
 [[ $# -eq 1 && -n $1 ]] || usage
 version=$1
 
-lines=$(gh pr list --state merged --limit 1000 \
-           --search "milestone:\"$version\"" \
-           --json number,title,milestone,baseRefName \
-           --jq "[.[] | select(.milestone.title == \"$version\" and .baseRefName != \"main\")] | sort_by(.number)
-          | .[] | \"- #\(.number) \(.title)\"")
+prs=$(gh pr list --state merged --limit 1000 \
+         --search "milestone:\"$version\"" \
+         --json number,title,milestone,baseRefName,mergeCommit \
+         --jq "[.[] | select(.milestone.title == \"$version\" and .baseRefName != \"main\")] | sort_by(.number)
+          | .[] | [.number, .mergeCommit.oid, .title] | @tsv")
 
-if [[ -z $lines ]]; then
+if [[ -z $prs ]]; then
     echo "git release-for: no merged pull requests in milestone $version" >&2
     exit 1
 fi
 
-printf 'Merged pull requests:\n\n%s\n' "$lines"
+mapfile -t rcs < <(git tag -l "v$version-rc*" --sort=v:refname)
+
+# index into rcs of the first candidate that released a merge,
+# or the number of candidates when none did yet
+candidate() {
+    local i
+    for i in "${!rcs[@]}"; do
+        if git merge-base --is-ancestor "$1" "${rcs[i]}" 2>/dev/null; then
+            echo "$i"
+            return
+        fi
+    done
+    echo "${#rcs[@]}"
+}
+
+echo 'Merged pull requests:'
+group=
+while IFS=$'\t' read -r rc number title; do
+    [[ -z $group || $rc == "$group" ]] || printf '\n---\n'
+    [[ $rc == "$group" ]] || echo
+    group=$rc
+    echo "- #$number $title"
+done < <(
+    while IFS=$'\t' read -r number merge title; do
+        printf '%s\t%s\t%s\n' "$(candidate "$merge")" "$number" "$title"
+    done <<<"$prs" | sort -t $'\t' -k1,1n -k2,2n
+     )
