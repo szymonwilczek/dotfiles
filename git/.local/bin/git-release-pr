@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# git release-pr <version>
+# Created for managing my LOTA project
+#
+# Prints the description of the pull request that brings release <version>
+# to main, laid out like git request-pull, with the release notes from
+# git release-for in place of the tag message:
+#
+#   The following changes since commit <sha of the previous release>:
+#
+#     <subject> (<date>)
+#
+#   are available in the Git repository at:
+#
+#     <repository URL> <tags/v<version>, or lota-next before the tag exists>
+#
+#   for you to fetch changes up to <sha>:
+#
+#     <subject> (<date>)
+#
+#   ----------------------------------------------------------------
+#   <git release-for <version>>
+#
+#   ----------------------------------------------------------------
+#   <dirstat and the files changed line>
+#
+# The previous release is the last stable v* tag before the end commit.
+# The output is meant to be pasted into the pull request.
+
+set -euo pipefail
+
+usage() {
+    echo "usage: git release-pr <version>" >&2
+    exit 2
+}
+
+[[ $# -eq 1 && -n $1 ]] || usage
+version=$1
+
+remote=origin
+branch=lota-next
+
+if git rev-parse -q --verify "refs/tags/v$version^{commit}" >/dev/null; then
+    end=v$version
+    ref=tags/v$version
+else
+    end=$remote/$branch
+    ref=$branch
+fi
+
+if ! base=$(git describe --tags --abbrev=0 --match 'v*' --exclude 'v*-*' "$end^" 2>/dev/null); then
+    echo "git release-pr: no stable release before $end" >&2
+    exit 1
+fi
+
+notes=$(git release-for "$version")
+url=$(gh repo view --json url --jq .url)
+rule=$(printf '%064d' 0 | tr 0 -)
+
+commit() { git show -s --format='%H:%n%n  %s (%ci)' "$1^{commit}"; }
+
+cat <<EOF
+The following changes since commit $(commit "$base")
+
+are available in the Git repository at:
+
+  $url $ref
+
+for you to fetch changes up to $(commit "$end")
+
+$rule
+$notes
+
+$rule
+$(git diff -M --dirstat "$base" "$end")
+$(git diff -M --shortstat "$base" "$end")
+EOF
