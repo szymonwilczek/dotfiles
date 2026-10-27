@@ -36,13 +36,21 @@
 (with-eval-after-load 'ghostel
   (setq ghostel-buffer-name-function #'my/agent--ghostel-buffer-name-fn))
 
+(defun my/agent-buffer-name (name)
+  "Return the buffer name of agent NAME for the current perspective.
+Each perspective gets its own agent; without `persp-mode' there is one."
+  (let ((base (downcase (replace-regexp-in-string "[^a-zA-Z0-9]" "-" name))))
+    (if (bound-and-true-p persp-mode)
+        (format "*agent-%s<%s>*" base (persp-current-name))
+      (format "*agent-%s*" base))))
+
 (defun my/agent-open (name command-name &optional args)
   "Open or switch to an agent buffer with NAME running COMMAND-NAME with ARGS.
 Working directory is automatically set to the project root of the current buffer."
   (require 'ghostel)
   (setq my/agent-active-name name)
   (let* ((target-dir (my/project-root-dwim default-directory))
-         (buf-name (format "*agent-%s*" (downcase (replace-regexp-in-string "[^a-zA-Z0-9]" "-" name))))
+         (buf-name (my/agent-buffer-name name))
          (cmd (or (executable-find command-name)
                   (executable-find (expand-file-name command-name "~/.local/bin"))
                   (executable-find (expand-file-name command-name "~/.npm-global/bin"))
