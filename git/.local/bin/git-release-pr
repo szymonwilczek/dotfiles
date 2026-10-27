@@ -24,9 +24,9 @@
 #   - #<number>                 GitHub shows each one's title
 #
 #   ----------------------------------------------------------------
-#   <dirstat, in a code block>
-#
 #   ```diff
+#   <dirstat>
+#
 #     <n> files changed
 #   + <n> insertions(+)
 #   - <n> deletions(-)
@@ -103,9 +103,9 @@ desc=$(
     row 'Up to' "$end"
     printf '| **Fetch** | `git fetch %s %s` | |\n\n' "$url" "$ref"
     printf '%s\n%s\n\n' "$rule" "$notes"
-    printf '%s\n%s\n' "$rule" "$fence"
+    printf '%s\n%sdiff\n' "$rule" "$fence"
     git diff -M --dirstat "$base" "$end"
-    printf '%s\n\n%sdiff\n' "$fence" "$fence"
+    echo
     stat
     printf '%s\n' "$fence"
     )
