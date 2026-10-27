@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# git whats-cooking
+# Created for managing my LOTA project
+#
+# Prints the state of lota-next and of every open pull request,
+# after Junio Hamano's "What's cooking in git.git":
+#
+#   What's cooking in lota (<date>)
+#   --------------------------------------------------
+#   lota-next is at <describe> (<n> pull requests merged since <last tag>).
+#
+#   [Ready to merge]                acked, checks passed
+#   [Waiting for review]            checks passed, not acked
+#   [Checks running]
+#   [Checks failing]
+#   [Drafts]
+#
+#   * #<number> <title> (<date opened>) <n> commits
+#    <head branch>
+#    Milestone <version>, or "No milestone."
+#
+# A pull request is acked by a review of mine whose text starts with
+# "Acked".  Sections with nothing in them are left out.
+
+set -euo pipefail
+
+[[ $# -eq 0 ]] || {
+    echo "usage: git whats-cooking" >&2
+    exit 2
+}
+
+remote=origin
+branch=lota-next
+
+git fetch -q --tags "$remote" "$branch"
+me=$(gh api user --jq .login)
+last=$(git describe --tags --abbrev=0 --match 'v*' "$remote/$branch")
+merged=$(git rev-list --count --first-parent --merges "$last..$remote/$branch")
+
+declare -A section
+open=0
+order=("Ready to merge" "Waiting for review" "Checks running" "Checks failing" "Drafts")
+
+while IFS=$'\t' read -r number draft acked created head milestone title; do
+    # the commit count is asked per pull request: listing commits for all
+    # of them at once exceeds what GitHub lets one query traverse
+    commits=$(gh api "repos/{owner}/{repo}/pulls/$number" --jq .commits)
+    if [[ $draft == true ]]; then
+        state="Drafts"
+    else
+        # gh pr checks keeps only the latest run of each check,
+        # and exits non-zero while any is failing or pending
+        buckets=$(gh pr checks "$number" --json bucket --jq '[.[].bucket] | unique | join(" ")' || true)
+        if [[ $buckets == *fail* || $buckets == *cancel* ]]; then
+            state="Checks failing"
+        elif [[ $buckets == *pending* ]]; then
+            state="Checks running"
+        elif [[ $acked == true ]]; then
+            state="Ready to merge"
+        else
+            state="Waiting for review"
+        fi
+    fi
+    open=$((open + 1))
+    section[$state]+="* #$number $title (${created%%T*}) $commits commit$( ((commits == 1)) || echo s)"$'\n'
+    section[$state]+=" $head"$'\n'
+    if [[ -n $milestone ]]; then
+        section[$state]+=" Milestone $milestone."$'\n\n'
+    else
+        section[$state]+=" No milestone."$'\n\n'
+    fi
+done < <(gh pr list --state open --base "$branch" --limit 100 \
+            --json number,title,isDraft,createdAt,headRefName,milestone,reviews \
+            --jq "sort_by(.number) | .[] | [.number, .isDraft,
+          any(.reviews[]; .author.login == \"$me\" and (.body | test(\"^\\\\s*Acked\"))),
+          .createdAt, .headRefName, (.milestone.title // \"\"), .title] | @tsv")
+
+title="What's cooking in lota ($(LC_ALL=C date '+%a, %d %b %Y'))"
+printf '%s\n%s\n' "$title" "$(printf '%*s' ${#title} '' | tr ' ' -)"
+printf '%s is at %s (%d pull request%s merged since %s).\n' \
+       "$branch" "$(git describe --tags "$remote/$branch")" \
+       "$merged" "$( ((merged == 1)) || echo s)" "$last"
+
+for state in "${order[@]}"; do
+    [[ -n ${section[$state]-} ]] || continue
+    printf '\n[%s]\n\n%s' "$state" "${section[$state]%$'\n'}"
+done
+((open > 0)) || printf '\nNo open pull requests.\n'
