@@ -30,11 +30,18 @@
 #   <dirstat and the files changed line>
 #
 # The previous release is the last stable v* tag before the end commit.
+# The title and the description open in the Git editor first, the title
+# as the first line, and the pull request is opened only once they are
+# accepted; an empty message or a cancelled edit aborts.
 # It is refused while a pull request from lota-next to main is open.
 #
 # -n prints the description and opens nothing.
 
 set -euo pipefail
+
+if [[ ${TERM-} == dumb ]]; then
+    export NO_COLOR=1 GH_SPINNER_DISABLED=1
+fi
 
 usage() {
     echo "usage: git release-pr [-n] <version>" >&2
@@ -101,7 +108,34 @@ if [[ -n $open ]]; then
     exit 1
 fi
 
+# Named PULLREQ_EDITMSG so Magit's with-editor opens it as a message
+dir=$(mktemp -d "${TMPDIR:-/tmp}/release-pr.XXXXXX")
+trap 'rm -rf "$dir"' EXIT
+msg=$dir/PULLREQ_EDITMSG
+
+cat >"$msg" <<-EOF
+	Merge $branch updates for $version
+
+	$desc
+
+	# Opening the pull request from $branch to main; the first line is its title.
+	# Lines starting with '#' are dropped; an empty message aborts.
+EOF
+
+editor=$(git var GIT_EDITOR)
+if ! sh -c "$editor \"\$@\"" "$editor" "$msg"; then
+    echo "git release-pr: editor cancelled, not opening" >&2
+    exit 1
+fi
+
+git stripspace --strip-comments <"$msg" >"$msg.clean"
+mv "$msg.clean" "$msg"
+if [[ ! -s $msg ]]; then
+    echo "git release-pr: empty message, not opening" >&2
+    exit 1
+fi
+
 gh pr create --base main --head "$branch" \
-   --title "Merge $branch updates for $version" \
+   --title "$(head -n 1 "$msg")" \
    --label merge-release --milestone "$version" \
-   --body "$desc"
+   --body "$(tail -n +3 "$msg")"
