@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# git merge-release [-n] <number>
+# Created for managing my LOTA project
+#
+# Merges release pull request <number>, from lota-next into main,
+# the way git merge-pr merges any other, with the message:
+#
+#   <pull request title> (#<number>)
+#
+#   <git release-for <milestone>, wrapped to 72 columns>
+#
+#   Signed-off-by: <user.name> <user.email>
+#
+# The message opens in the Git editor first; an empty message or
+# a cancelled edit aborts.
+# The merge itself goes through GitHub, so rulesets and required checks
+# apply as for the merge button.
+# It is refused if the pull request head moved after the message was built.
+#
+# lota-next is then fast-forwarded to the merge, on GitHub and locally,
+# so that it and main point at the same commit.
+#
+# -n prints the message and merges nothing.
+
+set -euo pipefail
+
+if [[ ${TERM-} == dumb ]]; then
+    export NO_COLOR=1 GH_SPINNER_DISABLED=1
+fi
+
+usage() {
+    echo "usage: git merge-release [-n] <pr-number>" >&2
+    exit 2
+}
+
+die() {
+    echo "git merge-release: $*" >&2
+    exit 1
+}
+
+dry_run=0
+if [[ ${1-} == -n ]]; then
+    dry_run=1
+    shift
+fi
+[[ $# -eq 1 && $1 =~ ^[0-9]+$ ]] || usage
+pr=$1
+
+remote=origin
+branch=lota-next
+stable=main
+
+IFS=$'\t' read -r state head base oid version title < <(gh pr view "$pr" \
+                                                           --json state,headRefName,baseRefName,headRefOid,milestone,title \
+                                                           --jq '[.state, .headRefName, .baseRefName, .headRefOid, (.milestone.title // ""), .title] | @tsv')
+
+[[ $head == "$branch" && $base == "$stable" ]] ||
+    die "#$pr is from $head into $base, not from $branch into $stable"
+[[ $state == OPEN || $dry_run -eq 1 ]] || die "#$pr is $state"
+[[ -n $version ]] || die "#$pr has no milestone"
+
+wrap() {
+    awk -v width="$1" '
+	{
+		hang = match($0, /^- /) ? "  " : ""
+		n = split($0, words, " ")
+		line = ""
+		for (i = 1; i <= n; i++) {
+			if (line != "" && length(line) + 1 + length(words[i]) > width) {
+				print line
+				line = hang words[i]
+			} else {
+				line = line == "" ? words[i] : line " " words[i]
+			}
+		}
+		print line
+	}
+	'
+}
+
+# Named MERGE_MSG so Magit's with-editor opens it as a commit message
+dir=$(mktemp -d "${TMPDIR:-/tmp}/merge-release.XXXXXX")
+trap 'rm -rf "$dir"' EXIT
+msg=$dir/MERGE_MSG
+
+{
+    echo "$title (#$pr)"
+    echo
+    git release-for "$version" | wrap 72
+    echo
+    echo "Signed-off-by: $(git config user.name) <$(git config user.email)>"
+} >"$msg"
+
+if ((dry_run)); then
+    cat "$msg"
+    exit 0
+fi
+
+cat >>"$msg" <<-EOF
+
+	# Merging release pull request #$pr at ${oid:0:12} through GitHub,
+	# then fast-forwarding $branch to the merge.
+	# Lines starting with '#' are dropped; an empty message aborts.
+EOF
+
+editor=$(git var GIT_EDITOR)
+sh -c "$editor \"\$@\"" "$editor" "$msg" || die "editor cancelled, not merging"
+
+git stripspace --strip-comments <"$msg" >"$msg.clean"
+mv "$msg.clean" "$msg"
+[[ -s $msg ]] || die "empty message, not merging"
+
+gh pr merge "$pr" --merge --match-head-commit "$oid" \
+   --subject "$(head -n 1 "$msg")" --body "$(tail -n +3 "$msg")"
+
+git fetch -q "$remote" "$stable" "$branch"
+merge=$(git rev-parse "$remote/$stable")
+
+# merge's second parent is the head that was merged
+[[ $(git rev-parse "$merge^2" 2>/dev/null) == "$oid" ]] ||
+    die "$remote/$stable is not the merge of #$pr, $branch left alone"
+git merge-base --is-ancestor "$remote/$branch" "$merge" ||
+    die "$remote/$branch moved past #$pr, not fast-forwarded"
+
+git push -q "$remote" "$merge:refs/heads/$branch"
+
+# local branch follows, by a merge when it is checked out
+if [[ $(git symbolic-ref -q --short HEAD) == "$branch" ]]; then
+    git merge -q --ff-only "$merge"
+elif git rev-parse -q --verify "refs/heads/$branch" >/dev/null; then
+    git fetch -q . "$merge:refs/heads/$branch"
+fi
+
+git log -1 --format="$branch and $stable are at %h %s" "$merge"
