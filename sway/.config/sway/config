@@ -258,4 +258,15 @@ exec swayidle -w timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "outp
 exec ~/.config/sway/scripts/workspace-init.sh
 exec_always ~/.config/sway/scripts/autotiling.sh
 
+# Cursor lock
+for_window [class="steam_app_.*"] {
+    floating enable
+    border none
+    inhibit_idle focus
+}
+
+no_focus [app_id="swaync-control-center"]
+no_focus [app_id="swaync-notification-window"]
+no_focus [class="steam" instance="steamwebhelper"]
+
 include /etc/sway/config.d/*
