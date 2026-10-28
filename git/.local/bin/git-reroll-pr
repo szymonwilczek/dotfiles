@@ -17,10 +17,16 @@
 # git push-prs pushes: once GitHub has the local branch there is no
 # difference left to show.
 #
-# The comment opens in the Git editor first, to add notes to;
-# everything from the scissors line down is dropped, and an empty
-# comment or a cancelled edit aborts.  Lines starting with '#' are
-# kept, as range-diff prints its own "## ... ##" headers.
+# The comment opens in the Git editor first, with a commented-out
+# changelog under its first line:
+#
+#   Changes in v<n>:
+#   - <one line per commit range-diff does not show as unchanged>
+#   - Link to v<n-1>: <the comment that announced it, or the PR>
+#
+# Lines starting with '#' outside a code block are dropped, so the
+# changelog is sent only where it is uncommented, and range-diff's own
+# "## ... ##" headers stay.  An empty comment or a cancelled edit aborts.
 #
 # A pull request that is not open, has no local branch, or whose local
 # branch already matches GitHub is refused, as git push-prs skips it.
@@ -54,9 +60,9 @@ remote=origin
 # A GitHub comment holds at most 65536 characters
 limit=65536
 
-IFS=$'\t' read -r state head oid base < <(gh pr view "$number" \
-                                             --json state,headRefName,headRefOid,baseRefName \
-                                             --jq '[.state, .headRefName, .headRefOid, .baseRefName] | @tsv')
+IFS=$'\t' read -r state head oid base url < <(gh pr view "$number" \
+                                                 --json state,headRefName,headRefOid,baseRefName,url \
+                                                 --jq '[.state, .headRefName, .headRefOid, .baseRefName, .url] | @tsv')
 
 [[ $state == OPEN ]] || die "#$number ($head) is $state"
 local_oid=$(git rev-parse -q --verify "refs/heads/$head^{commit}") ||
@@ -88,15 +94,22 @@ fork_of() {
 old_fork=$(fork_of "$oid")
 new_fork=$(fork_of "$local_oid")
 
-prev=$(gh api --paginate "repos/{owner}/{repo}/issues/$number/comments" \
-          --jq '.[].body | capture("^v(?<n>[0-9]+): range-diff").n' |
-           sort -n | tail -n 1)
+# last version announced and its comment; v1 is the pull request itself
+IFS=$'\t' read -r prev prev_url < <(
+    gh api --paginate "repos/{owner}/{repo}/issues/$number/comments" \
+       --jq '.[] | (.body | capture("^v(?<n>[0-9]+): range-diff").n) as $n | [$n, .html_url] | @tsv' |
+        sort -n | tail -n 1
+   ) || true
 prev=${prev:-1}
+prev_url=${prev_url:-$url}
 
-body=$(
-    printf 'v%d: range-diff against v%d (%s -> %s)\n\n' \
-           $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}"
-    git range-diff --no-color "$old_fork..$oid" "$new_fork..$local_oid" |
+rd=$(git range-diff --no-color "$old_fork..$oid" "$new_fork..$local_oid")
+
+subject=$(printf 'v%d: range-diff against v%d (%s -> %s)' \
+                 $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}")
+
+blocks=$(
+    printf '%s\n' "$rd" |
         awk '
             /^ *(-+|[0-9]+): +(-+|[0-9a-f]+) [=!<>] / { kind = "" }
             !/^ *(-+|[0-9]+): +(-+|[0-9a-f]+) [=!<>] / {
@@ -113,10 +126,10 @@ body=$(
             { print }
             END { if (open) print "```" }
         '
-    )
+      )
 
 if ((!send)); then
-    printf '%s\n' "$body"
+    printf '%s\n\n%s\n' "$subject" "$blocks"
     exit 0
 fi
 
@@ -124,13 +137,29 @@ fi
 dir=$(mktemp -d "${TMPDIR:-/tmp}/reroll-pr.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 msg=$dir/PULLREQ_EDITMSG
-scissors='# ------------------------ >8 ------------------------'
 
 {
-    printf '%s\n\n' "$body"
-    echo "$scissors"
+    printf '%s\n\n' "$subject"
+    echo "# Changes in v$((prev + 1)):"
+    printf '%s\n' "$rd" |
+        awk '
+            match($0, /^ *(-+|[0-9]+): +(-+|[0-9a-f]+) [=!<>] +(-+|[0-9]+): +(-+|[0-9a-f]+) /) {
+                op = $3
+                title = substr($0, RLENGTH + 1)
+                if (op == "<")
+                    print "# - Dropped \"" title "\": "
+                else if (op == ">")
+                    print "# - New \"" title "\": "
+                else if (op == "!")
+                    print "# - \"" title "\": "
+            }
+        '
+    echo "# - Link to v$prev: $prev_url"
+    echo
+    printf '%s\n\n' "$blocks"
     echo "# Sending v$((prev + 1)) to pull request #$number ($head) as a comment."
-    echo "# Everything from the line above down is dropped; an empty comment aborts."
+    echo "# Lines starting with '#' outside a code block are dropped;"
+    echo "# an empty comment aborts."
 } >"$msg"
 
 editor=$(git var GIT_EDITOR)
@@ -138,7 +167,7 @@ if ! sh -c "$editor \"\$@\"" "$editor" "$msg"; then
     die "editor cancelled, not sending"
 fi
 
-body=$(awk -v cut="$scissors" '$0 == cut { exit } { print }' "$msg" | git stripspace)
+body=$(awk '/^```/ { fence = !fence } fence || !/^#/' "$msg" | git stripspace)
 [[ -n $body ]] || die "empty comment, not sending"
 
 ((${#body} <= limit)) || die "#$number: comment exceeds $limit characters, not sent"
