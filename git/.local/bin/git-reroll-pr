@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git range-diff-pr <number> [--send]
+# git reroll-pr <number> [--send]
 # Created for managing my LOTA project
 #
 # Prints what the local branch of open pull request <number> changes
@@ -26,12 +26,12 @@ set -euo pipefail
 shopt -s inherit_errexit
 
 usage() {
-    echo "usage: git range-diff-pr <pr-number> [--send]" >&2
+    echo "usage: git reroll-pr <pr-number> [--send]" >&2
     exit 2
 }
 
 die() {
-    echo "git range-diff-pr: $*" >&2
+    echo "git reroll-pr: $*" >&2
     exit 1
 }
 
@@ -90,5 +90,5 @@ printf '%s\n' "$body"
 if ((send)); then
     ((${#body} <= limit)) || die "#$number: comment exceeds $limit characters, not sent"
     gh pr comment "$number" --body "$body" >/dev/null
-    echo "git range-diff-pr: #$number: v$((prev + 1)) sent" >&2
+    echo "git reroll-pr: #$number: v$((prev + 1)) sent" >&2
 fi
