@@ -17,11 +17,20 @@
 # git push-prs pushes: once GitHub has the local branch there is no
 # difference left to show.
 #
+# The comment opens in the Git editor first, to add notes to;
+# everything from the scissors line down is dropped, and an empty
+# comment or a cancelled edit aborts.  Lines starting with '#' are
+# kept, as range-diff prints its own "## ... ##" headers.
+#
 # A pull request that is not open, has no local branch, or whose local
 # branch already matches GitHub is refused, as git push-prs skips it.
 
 set -euo pipefail
 shopt -s inherit_errexit
+
+if [[ ${TERM-} == dumb ]]; then
+    export NO_COLOR=1 GH_SPINNER_DISABLED=1
+fi
 
 usage() {
     echo "usage: git reroll-pr <pr-number> [--send]" >&2
@@ -106,10 +115,32 @@ body=$(
         '
     )
 
-printf '%s\n' "$body"
-
-if ((send)); then
-    ((${#body} <= limit)) || die "#$number: comment exceeds $limit characters, not sent"
-    gh pr comment "$number" --body "$body" >/dev/null
-    echo "git reroll-pr: #$number: v$((prev + 1)) sent" >&2
+if ((!send)); then
+    printf '%s\n' "$body"
+    exit 0
 fi
+
+# Named PULLREQ_EDITMSG so Magit's with-editor opens it as a message
+dir=$(mktemp -d "${TMPDIR:-/tmp}/reroll-pr.XXXXXX")
+trap 'rm -rf "$dir"' EXIT
+msg=$dir/PULLREQ_EDITMSG
+scissors='# ------------------------ >8 ------------------------'
+
+{
+    printf '%s\n\n' "$body"
+    echo "$scissors"
+    echo "# Sending v$((prev + 1)) to pull request #$number ($head) as a comment."
+    echo "# Everything from the line above down is dropped; an empty comment aborts."
+} >"$msg"
+
+editor=$(git var GIT_EDITOR)
+if ! sh -c "$editor \"\$@\"" "$editor" "$msg"; then
+    die "editor cancelled, not sending"
+fi
+
+body=$(awk -v cut="$scissors" '$0 == cut { exit } { print }' "$msg" | git stripspace)
+[[ -n $body ]] || die "empty comment, not sending"
+
+((${#body} <= limit)) || die "#$number: comment exceeds $limit characters, not sent"
+gh pr comment "$number" --body "$body" >/dev/null
+echo "git reroll-pr: #$number: v$((prev + 1)) sent" >&2
