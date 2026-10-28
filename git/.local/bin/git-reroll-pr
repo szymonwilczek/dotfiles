@@ -6,7 +6,7 @@
 # against the head GitHub has, as the comment that announces a new
 # version of a patch series:
 #
-#   v<n>: range-diff against v<n-1> (<GitHub head> -> <local head>)
+#   v<n>: range-diff against v<n-1> (<GitHub head>) | <count> changed, ...
 #
 #   <git range-diff of the two series, each taken from the base branch>
 #
@@ -22,7 +22,6 @@
 #
 #   Changes in v<n>:
 #   - <one line per commit range-diff does not show as unchanged>
-#   - Link to v<n-1>: <the comment that announced it, or the PR>
 #
 # Lines starting with '#' outside a code block are dropped, so the
 # changelog is sent only where it is uncommented, and range-diff's own
@@ -60,9 +59,9 @@ remote=origin
 # A GitHub comment holds at most 65536 characters
 limit=65536
 
-IFS=$'\t' read -r state head oid base url < <(gh pr view "$number" \
-                                                 --json state,headRefName,headRefOid,baseRefName,url \
-                                                 --jq '[.state, .headRefName, .headRefOid, .baseRefName, .url] | @tsv')
+IFS=$'\t' read -r state head oid base < <(gh pr view "$number" \
+                                             --json state,headRefName,headRefOid,baseRefName \
+                                             --jq '[.state, .headRefName, .headRefOid, .baseRefName] | @tsv')
 
 [[ $state == OPEN ]] || die "#$number ($head) is $state"
 local_oid=$(git rev-parse -q --verify "refs/heads/$head^{commit}") ||
@@ -94,19 +93,30 @@ fork_of() {
 old_fork=$(fork_of "$oid")
 new_fork=$(fork_of "$local_oid")
 
-# last version announced and its comment; v1 is the pull request itself
-IFS=$'\t' read -r prev prev_url < <(
-    gh api --paginate "repos/{owner}/{repo}/issues/$number/comments" \
-       --jq '.[] | (.body | capture("^v(?<n>[0-9]+): range-diff").n) as $n | [$n, .html_url] | @tsv' |
-        sort -n | tail -n 1
-   ) || true
+prev=$(gh api --paginate "repos/{owner}/{repo}/issues/$number/comments" \
+          --jq '.[].body | capture("^v(?<n>[0-9]+): range-diff").n' |
+           sort -n | tail -n 1)
 prev=${prev:-1}
-prev_url=${prev_url:-$url}
 
 rd=$(git range-diff --no-color "$old_fork..$oid" "$new_fork..$local_oid")
 
-subject=$(printf 'v%d: range-diff against v%d (%s -> %s)' \
-                 $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}")
+counts=$(
+    printf '%s\n' "$rd" |
+        awk '
+            /^ *(-+|[0-9]+): +(-+|[0-9a-f]+) [=!<>] / { n[$3]++ }
+            END {
+                split("< > ! =", op, " ")
+                split("dropped new changed unchanged", name, " ")
+                for (i = 1; i <= 4; i++)
+                    if (n[op[i]])
+                        out = out (out == "" ? "" : ", ") n[op[i]] " " name[i]
+                print out
+            }
+        '
+      )
+
+subject=$(printf 'v%d: range-diff against v%d (%s) | %s' \
+                 $((prev + 1)) "$prev" "${oid:0:12}" "$counts")
 
 blocks=$(
     printf '%s\n' "$rd" |
@@ -154,7 +164,6 @@ msg=$dir/PULLREQ_EDITMSG
                     print "# - \"" title "\": "
             }
         '
-    echo "# - Link to v$prev: $prev_url"
     echo
     printf '%s\n\n' "$blocks"
     echo "# Sending v$((prev + 1)) to pull request #$number ($head) as a comment."
