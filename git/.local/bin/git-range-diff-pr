@@ -48,8 +48,8 @@ remote=origin
 limit=65536
 
 IFS=$'\t' read -r state head oid base < <(gh pr view "$number" \
-    --json state,headRefName,headRefOid,baseRefName \
-    --jq '[.state, .headRefName, .headRefOid, .baseRefName] | @tsv')
+                                             --json state,headRefName,headRefOid,baseRefName \
+                                             --jq '[.state, .headRefName, .headRefOid, .baseRefName] | @tsv')
 
 [[ $state == OPEN ]] || die "#$number ($head) is $state"
 local_oid=$(git rev-parse -q --verify "refs/heads/$head^{commit}") ||
@@ -59,20 +59,27 @@ local_oid=$(git rev-parse -q --verify "refs/heads/$head^{commit}") ||
 git fetch -q "$remote" "$base"
 git cat-file -e "$oid^{commit}" 2>/dev/null || git fetch -q "$remote" "refs/pull/$number/head"
 
+old_fork=$(git merge-base "$oid" "$remote/$base")
+new_fork=$(git merge-base "$local_oid" "$remote/$base")
+if local_base=$(git rev-parse -q --verify "refs/heads/$base^{commit}"); then
+    fork=$(git merge-base "$local_oid" "$local_base")
+    if git merge-base --is-ancestor "$new_fork" "$fork"; then
+        new_fork=$fork
+    fi
+fi
+
 prev=$(gh api --paginate "repos/{owner}/{repo}/issues/$number/comments" \
-    --jq '.[].body | capture("^v(?<n>[0-9]+): range-diff").n' |
-    sort -n | tail -n 1)
+          --jq '.[].body | capture("^v(?<n>[0-9]+): range-diff").n' |
+           sort -n | tail -n 1)
 prev=${prev:-1}
 
 body=$(
     printf 'v%d: range-diff against v%d (%s..%s)\n\n' \
-        $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}"
+           $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}"
     echo '```patch'
-    git range-diff --no-color \
-        "$(git merge-base "$oid" "$remote/$base")..$oid" \
-        "$(git merge-base "$local_oid" "$remote/$base")..$local_oid"
+    git range-diff --no-color "$old_fork..$oid" "$new_fork..$local_oid"
     echo '```'
-)
+    )
 
 printf '%s\n' "$body"
 
