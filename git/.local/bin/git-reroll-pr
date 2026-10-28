@@ -6,7 +6,7 @@
 # against the head GitHub has, as the comment that announces a new
 # version of a patch series:
 #
-#   v<n>: range-diff against v<n-1> ([<GitHub head>..<local head>](compare))
+#   v<n>: range-diff against v<n-1> (<GitHub head> -> <local head>)
 #
 #   <git range-diff of the two series, each taken from the base branch>
 #
@@ -79,17 +79,14 @@ fork_of() {
 old_fork=$(fork_of "$oid")
 new_fork=$(fork_of "$local_oid")
 
-url=$(gh repo view --json url --jq .url)
-
 prev=$(gh api --paginate "repos/{owner}/{repo}/issues/$number/comments" \
           --jq '.[].body | capture("^v(?<n>[0-9]+): range-diff").n' |
            sort -n | tail -n 1)
 prev=${prev:-1}
 
 body=$(
-    printf 'v%d: range-diff against v%d ([%s..%s](%s/compare/%s..%s))\n\n' \
-           $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}" \
-           "$url" "$oid" "$local_oid"
+    printf 'v%d: range-diff against v%d (%s -> %s)\n\n' \
+           $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}"
     git range-diff --no-color "$old_fork..$oid" "$new_fork..$local_oid" |
         awk '
             /^ *(-+|[0-9]+): +(-+|[0-9a-f]+) [=!<>] / { kind = "" }
