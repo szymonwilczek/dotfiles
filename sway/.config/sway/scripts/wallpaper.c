@@ -280,6 +280,8 @@ static void apply(Picker *p) {
 
 // Scrolled no further than it takes to show the selected one whole
 static void scroll_to_selected(Picker *p) {
+  if (p->items->len == 0)
+    return;
   GtkAdjustment *adj =
       gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(p->scroll));
   GtkAllocation a;
