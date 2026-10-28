@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git range-diff-pr [--send] <number>
+# git range-diff-pr <number> [--send]
 # Created for managing my LOTA project
 #
 # Prints what the local branch of open pull request <number> changes
@@ -26,7 +26,7 @@ set -euo pipefail
 shopt -s inherit_errexit
 
 usage() {
-    echo "usage: git range-diff-pr [--send] <pr-number>" >&2
+    echo "usage: git range-diff-pr <pr-number> [--send]" >&2
     exit 2
 }
 
@@ -35,13 +35,13 @@ die() {
     exit 1
 }
 
-send=0
-if [[ ${1-} == --send ]]; then
-    send=1
-    shift
-fi
-[[ $# -eq 1 && $1 =~ ^[0-9]+$ ]] || usage
+[[ $# -ge 1 && $# -le 2 && $1 =~ ^[0-9]+$ ]] || usage
 number=$1
+send=0
+if [[ $# -eq 2 ]]; then
+    [[ $2 == --send ]] || usage
+    send=1
+fi
 
 remote=origin
 # A GitHub comment holds at most 65536 characters
