@@ -8,9 +8,7 @@
 #
 #   v<n>: range-diff against v<n-1> ([<GitHub head>..<local head>](compare))
 #
-#   ```patch
 #   <git range-diff of the two series, each taken from the base branch>
-#   ```
 #
 # v1 is the series the pull request was opened with; <n> is one more
 # than the last version announced in a comment, so the first rework is v2.
@@ -79,10 +77,23 @@ body=$(
     printf 'v%d: range-diff against v%d ([%s..%s](%s/compare/%s..%s))\n\n' \
            $((prev + 1)) "$prev" "${oid:0:12}" "${local_oid:0:12}" \
            "$url" "$oid" "$local_oid"
-    echo '```patch'
     git range-diff --no-color "$old_fork..$oid" "$new_fork..$local_oid" |
-        sed 's/^    //'
-    echo '```'
+        awk '
+            /^ *(-+|[0-9]+): +(-+|[0-9a-f]+) [=!<>] / { kind = "" }
+            !/^ *(-+|[0-9]+): +(-+|[0-9a-f]+) [=!<>] / {
+                kind = "patch"
+                sub(/^    /, "")
+            }
+            !open || kind != cur {
+                if (open)
+                    print "```\n"
+                print "```" kind
+                cur = kind
+                open = 1
+            }
+            { print }
+            END { if (open) print "```" }
+        '
     )
 
 printf '%s\n' "$body"
