@@ -13,6 +13,7 @@
                '(astro "https://github.com/virchau13/tree-sitter-astro"))
 
   (add-to-list 'auto-mode-alist '("\\.astro\\'" . astro-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.[cm]js\\'" . javascript-mode))
   (add-to-list 'auto-mode-alist '("\\.\\(?:s\\|S\\|asm\\|inc\\)\\'" . asm-mode)))
 
 ;; Code folding via Hideshow
