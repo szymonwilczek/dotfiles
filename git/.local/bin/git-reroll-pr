@@ -182,3 +182,5 @@ body=$(awk '/^```/ { fence = !fence } fence || !/^#/' "$msg" | git stripspace)
 ((${#body} <= limit)) || die "#$number: comment exceeds $limit characters, not sent"
 gh pr comment "$number" --body "$body" >/dev/null
 echo "git reroll-pr: #$number: v$((prev + 1)) sent" >&2
+
+git push-prs "$number"
