@@ -164,7 +164,19 @@ already show their own buffer and are left alone."
           (treemacs--change-buffer-on-scope-change)
           (treemacs--rerender-after-workspace-change)))))
 
-  (add-hook 'persp-switch-hook #'my/treemacs-ensure-perspective-project 90))
+  (add-hook 'persp-switch-hook #'my/treemacs-ensure-perspective-project 90)
+
+  (defun my/treemacs-rename-perspective-workspace (orig-fn)
+    "Call ORIG-FN only for a perspective that already owns a workspace.
+persp-projectile renames the initial perspective of every new frame
+before treemacs has seen it.  ORIG-FN would then fall back to the first
+workspace and rename that one, so frames would end up sharing it."
+    (if (treemacs-current-scope-shelf)
+        (funcall orig-fn)
+      (treemacs-perspective--ensure-workspace-exists)))
+
+  (advice-add 'treemacs-perspective--on-perspective-rename :around
+              #'my/treemacs-rename-perspective-workspace))
 
 (use-package treemacs-projectile
   :ensure t
