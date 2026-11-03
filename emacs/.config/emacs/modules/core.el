@@ -250,4 +250,15 @@ Checks Projectile, project.el, VC root, and fallbacks."
   (advice-add 'make-frame-on-display :around #'my/pgtk-normalize-display)
   (advice-add 'server-select-display :around #'my/pgtk-normalize-display))
 
+(defun my/reload-config ()
+  "Reload the entire Emacs configuration from disk without restarting."
+  (interactive)
+  (let* ((modules-dir (expand-file-name "modules" user-emacs-directory))
+         (module-files (directory-files-recursively modules-dir "\\.el\\'")))
+    (dolist (file module-files)
+      (let ((feat (intern (file-name-base file))))
+        (setq features (delq feat features))))
+    (load user-init-file nil nil t)
+    (message "Emacs configuration reloaded successfully!")))
+
 (provide 'core)

@@ -70,6 +70,7 @@
     ;; Elisp Eval
     "e" '(:ignore t :which-key "Eval/Reload")
     "eb" '(eval-buffer :which-key "Eval Buffer (Live Reload)")
+    "ec" '(my/reload-config :which-key "Reload Config (Full)")
     "ee" '(eval-last-sexp :which-key "Eval Expression")
     "er" '(eval-region :which-key "Eval Region")
     "ed" '(eval-defun :which-key "Eval Defun/Function")))
