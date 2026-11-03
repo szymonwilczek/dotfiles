@@ -24,8 +24,8 @@
   (define-key evil-visual-state-map (kbd ";") 'evil-ex)
 
   (define-key evil-normal-state-map [escape] #'evil-ex-nohighlight)
-  (define-key evil-normal-state-map "zc" 'hs-toggle-hiding)
-  (define-key evil-normal-state-map "za" 'hs-show-block)
+  (define-key evil-normal-state-map "zc" 'evil-close-fold)
+  (define-key evil-normal-state-map "za" 'evil-toggle-fold)
 
   ;; Window navigation without the C-w prefix
   (define-key evil-normal-state-map (kbd "C-h") #'evil-window-left)
