@@ -79,8 +79,8 @@ Projectile known project of the same name."
 (defun my/open-directory-anywhere (dir)
   "Switch to a perspective named after DIR, starting the prompt in home.
 DIR need not be a Projectile project and is not added to the known
-projects; treemacs shows it as the perspective's only root.  A new
-perspective opens DIR in dired, an existing one is just switched to."
+projects.  A new perspective opens DIR in dired, an existing one is just
+switched to."
   (interactive
    (list (read-directory-name "Open directory: " (expand-file-name "~/") nil t)))
   (let* ((dir (file-name-as-directory (expand-file-name dir)))
@@ -125,62 +125,6 @@ already show their own buffer and are left alone."
 (add-hook 'server-after-make-frame-hook
           (lambda ()
             (run-at-time 0 nil #'my/new-frame-switch-project (selected-frame))))
-
-(use-package treemacs-perspective
-  :ensure t
-  :after (treemacs perspective)
-  :config
-  (treemacs-set-scope-type 'Perspectives)
-
-  (defun my/treemacs-perspective-project-root ()
-    "Derive project root for current perspective from Projectile known projects."
-    (when (and (bound-and-true-p persp-mode) (persp-curr))
-      (let ((name (persp-current-name)))
-        (when-let* ((proj (or (my/persp-directory name)
-                              (projectile-project-root))))
-          (treemacs-canonical-path (expand-file-name proj))))))
-
-  (add-to-list 'treemacs--find-user-project-functions #'my/treemacs-perspective-project-root)
-
-  (defun my/treemacs-ensure-perspective-project (&rest _)
-    "Ensure the active perspective workspace contains its project or directory."
-    (when (and (featurep 'treemacs) (bound-and-true-p persp-mode) (persp-curr))
-      (when-let* ((name (persp-current-name))
-                  (proj (my/persp-directory name))
-                  (canonical (treemacs-canonical-path (expand-file-name proj)))
-                  (ws-name (treemacs-perspective--format-workspace-name name))
-                  (ws (or (treemacs--find-workspace-by-name ws-name)
-                          (cadr (treemacs-do-create-workspace ws-name)))))
-        (let ((current-projects (mapcar #'treemacs-project->path (treemacs-workspace->projects ws))))
-          (unless (member canonical current-projects)
-            (setf (treemacs-workspace->projects ws)
-                  (list (treemacs-project->create!
-                         :name name
-                         :path canonical
-                         :path-status (treemacs--get-path-status canonical))))))
-        (setf (treemacs-current-workspace) ws)
-        (treemacs--invalidate-buffer-project-cache)
-        (when (treemacs-get-local-window)
-          (treemacs--change-buffer-on-scope-change)
-          (treemacs--rerender-after-workspace-change)))))
-
-  (add-hook 'persp-switch-hook #'my/treemacs-ensure-perspective-project 90)
-
-  (defun my/treemacs-rename-perspective-workspace (orig-fn)
-    "Call ORIG-FN only for a perspective that already owns a workspace.
-persp-projectile renames the initial perspective of every new frame
-before treemacs has seen it.  ORIG-FN would then fall back to the first
-workspace and rename that one, so frames would end up sharing it."
-    (if (treemacs-current-scope-shelf)
-        (funcall orig-fn)
-      (treemacs-perspective--ensure-workspace-exists)))
-
-  (advice-add 'treemacs-perspective--on-perspective-rename :around
-              #'my/treemacs-rename-perspective-workspace))
-
-(use-package treemacs-projectile
-  :ensure t
-  :after (treemacs projectile))
 
 (require 'projectile-keys)
 

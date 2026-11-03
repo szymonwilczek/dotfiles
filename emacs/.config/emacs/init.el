@@ -10,7 +10,6 @@
 (require 'ui-mod)
 (require 'completion-mod)
 (require 'lsp-mod)
-(require 'treemacs-mod)
 (require 'projectile-mod)
 (require 'git-mod)
 (require 'terminal-mod)

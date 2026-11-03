@@ -167,7 +167,6 @@ With two dired windows, C and R offer the other one as the target."
     ("U" "Unmark all" dired-unmark-all-marks :transient t)
     ("t" "Invert" dired-toggle-marks :transient t)]
    ["Open"
-    ("of" "File manager" my/show-in-file-manager)
     ("oa" "Default application" dired-do-open)
     ("ow" "Other window" dired-find-file-other-window)
     ("ot" "Terminal here" my/dired-terminal)]]
@@ -221,7 +220,6 @@ With two dired windows, C and R offer the other one as the target."
       "p"  #'my/dired-paste
       "ya" #'my/dired-copy-path
       "yn" #'my/dired-copy-name
-      "of" #'my/show-in-file-manager
       "oa" #'dired-do-open
       "ow" #'dired-find-file-other-window
       "ot" #'my/dired-terminal
@@ -243,6 +241,16 @@ With two dired windows, C and R offer the other one as the target."
       "d" "delete"
       "o" "open"
       "y" "yank")))
+
+(defun my/dired-project-root ()
+  "Open Dired in the root directory of the current project or perspective."
+  (interactive)
+  (dired (my/project-root)))
+
+(with-eval-after-load 'evil
+  (general-define-key
+   :states '(normal motion visual insert)
+   "C-n" #'my/dired-project-root))
 
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)

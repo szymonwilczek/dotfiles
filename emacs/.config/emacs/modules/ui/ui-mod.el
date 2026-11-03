@@ -44,8 +44,7 @@
 (dolist (hook '(doc-view-mode-hook
                 pdf-view-mode-hook
                 image-mode-hook
-                ghostel-mode-hook
-                treemacs-mode-hook))
+                ghostel-mode-hook))
   (add-hook hook #'my/disable-line-numbers))
 
 (add-hook 'display-line-numbers-mode-hook
