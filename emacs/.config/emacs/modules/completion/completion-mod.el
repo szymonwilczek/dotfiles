@@ -91,10 +91,85 @@
 
   (setq consult-project-function #'my/project-root))
 
-(defun my/project-find-file ()
-  "Search for files in the project root with `fd', including hidden files."
+(defvar my/find-file-show-ignored nil
+  "When non-nil, `my/project-find-file' includes gitignored files.")
+
+(defvar my/find-file--restart nil
+  "Non-nil when the prompt is restarting after a toggle.")
+
+(defvar my/find-file--input ""
+  "Minibuffer input preserved across a toggle restart.")
+
+(defun my/find-file-toggle-ignored ()
+  "Toggle showing ignored files and restart the prompt."
   (interactive)
-  (consult-fd (my/project-root)))
+  (setq my/find-file-show-ignored (not my/find-file-show-ignored)
+        my/find-file--restart t
+        my/find-file--input (minibuffer-contents))
+  (abort-recursive-edit))
+
+(defun my/project-find-file ()
+  "Find a file in the project with orderless completion.
+Pressing \\`C-h' toggles showing gitignored files."
+  (interactive)
+  (let ((root (my/project-root)))
+    (catch 'my/find-file-done
+      (while t
+        (setq my/find-file--restart nil)
+        (condition-case nil
+            (let* ((default-directory root)
+                   (git-p (= 0 (process-file "git" nil nil nil
+                                             "rev-parse" "--is-inside-work-tree")))
+                   (tracked
+                    (split-string
+                     (shell-command-to-string
+                      (if git-p "git ls-files -z"
+                        (format "fd --type f --color=never %s --exclude .git ."
+                                (if my/find-file-show-ignored "--hidden --no-ignore" ""))))
+                     (if git-p "\0" "\n") t))
+                   (ignored
+                    (when (and my/find-file-show-ignored git-p)
+                      (split-string
+                       (shell-command-to-string
+                        "git ls-files -z --others --ignored --exclude-standard")
+                       "\0" t)))
+                   (ignored-set
+                    (let ((ht (make-hash-table :test #'equal
+                                               :size (max 1 (length ignored)))))
+                      (dolist (f ignored) (puthash f t ht))
+                      ht))
+                   (candidates (append tracked (or ignored '())))
+                   (file
+                    (minibuffer-with-setup-hook
+                        (lambda ()
+                          (let ((map (make-sparse-keymap)))
+                            (set-keymap-parent map (current-local-map))
+                            (define-key map (kbd "C-h") #'my/find-file-toggle-ignored)
+                            (use-local-map map))
+                          (when (and my/find-file--input
+                                     (not (string-empty-p my/find-file--input)))
+                            (insert my/find-file--input)))
+                      (completing-read
+                       (format "Find file%s [%s]: "
+                               (if my/find-file-show-ignored " +ignored" "")
+                               (abbreviate-file-name root))
+                       (lambda (str pred action)
+                         (if (eq action 'metadata)
+                             `(metadata
+                               (category . project-file)
+                               (annotation-function
+                                . ,(lambda (cand)
+                                     (when (gethash cand ignored-set)
+                                       (propertize " [ignored]" 'face 'shadow)))))
+                           (complete-with-action action candidates str pred)))
+                       nil t))))
+              (setq my/find-file--input nil)
+              (find-file (expand-file-name file root))
+              (throw 'my/find-file-done nil))
+          (quit
+           (unless my/find-file--restart
+             (setq my/find-file--input nil)
+             (throw 'my/find-file-done nil))))))))
 
 (defun my/open-file-anywhere (file)
   "Open FILE from anywhere, starting the prompt in the home directory.
