@@ -37,6 +37,13 @@ x-scheme-handler/jetbrains=jetbrainsd.desktop
 x-scheme-handler/mailto=emacs-mailto.desktop
 x-scheme-handler/proton-inbox=Proton Mail.desktop
 x-scheme-handler/zemu-launcher=zemu_launcher-handler.desktop
+text/html=org.mozilla.firefox.desktop
+x-scheme-handler/http=org.mozilla.firefox.desktop
+x-scheme-handler/https=org.mozilla.firefox.desktop
+x-scheme-handler/about=org.mozilla.firefox.desktop
+x-scheme-handler/unknown=org.mozilla.firefox.desktop
+application/xhtml+xml=org.mozilla.firefox.desktop
+text/xml=org.mozilla.firefox.desktop
 
 [Added Associations]
 application/x-docbook+xml=nvim.desktop;
