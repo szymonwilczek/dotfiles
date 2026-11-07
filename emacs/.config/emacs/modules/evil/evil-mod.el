@@ -79,12 +79,6 @@
 (use-package evil-textobj-tree-sitter
   :after evil)
 
-(use-package avy
-  :defer t
-  :custom
-  (avy-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-  (avy-all-windows t))
-
 (use-package vundo
   :ensure t
   :commands vundo)

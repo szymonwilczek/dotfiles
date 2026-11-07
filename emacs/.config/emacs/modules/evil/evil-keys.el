@@ -35,12 +35,6 @@
   (define-key evil-normal-state-map (kbd "C-S-<") #'my/window-swap-left)
   (define-key evil-normal-state-map (kbd "C-S->") #'my/window-swap-right)
 
-  ;; Avy jumps
-  (define-key evil-normal-state-map "s" #'evil-avy-goto-char-2)
-  (define-key evil-visual-state-map "s" #'evil-avy-goto-char-2)
-  (define-key evil-operator-state-map "z" #'my/evil-avy-goto-char-2)
-  (define-key evil-motion-state-map "gl" #'my/evil-avy-goto-line)
-
   ;; Number increment / decrement, repeating while held
   (dolist (map (list evil-normal-state-map evil-visual-state-map))
     (define-key map "+" #'evil-numbers/inc-at-pt)
@@ -131,30 +125,6 @@ The layout is kept per frame, so each frame restores its own."
 (defun my/window-swap-right ()
   (interactive)
   (my/window-swap 'right))
-
-(defun my/evil-avy-jump-or-abort (motion count)
-  "Run the avy MOTION with COUNT, signalling an error when it does not jump.
-Otherwise an operator would act on the text at point when there is no
-match or the labels are dismissed."
-  (let ((start (point))
-        (window (selected-window)))
-    (funcall motion count)
-    (when (and (= (point) start) (eq (selected-window) window))
-      (user-error "No jump"))))
-
-(evil-define-motion my/evil-avy-goto-char-2 (count)
-  "Like `evil-avy-goto-char-2', but abort when avy does not jump."
-  :type inclusive
-  :jump t
-  :repeat abort
-  (my/evil-avy-jump-or-abort #'evil-avy-goto-char-2 count))
-
-(evil-define-motion my/evil-avy-goto-line (count)
-  "Like `evil-avy-goto-line', but abort when avy does not jump."
-  :type line
-  :jump t
-  :repeat abort
-  (my/evil-avy-jump-or-abort #'evil-avy-goto-line count))
 
 (defun my/indent-or-insert-tab ()
   "Indent the current line, or insert a tab when it is already indented."
@@ -291,7 +261,6 @@ PREVIOUS searches backward instead of forward."
     ("find-file-at-point" . "Open File at Point")
     ("evil-find-file-at-point-with-line" . "Open File at Point, at Line")
     ("browse-url-at-point" . "Open URL at Point")
-    ("my/evil-avy-goto-line" . "Jump to Line (avy)")
     ("evil-collection-elisp-mode-ielm-repl" . "Elisp REPL")
     ;; z
     ("evil-scroll-line-to-top" . "Line to Top")
