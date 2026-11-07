@@ -118,6 +118,11 @@ bindsym $mod+Shift+Down move down
 bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Right move right
 
+bindsym $mod+Ctrl+$left mark --add --replace _swap; focus left; swap container with mark _swap; [con_mark="^_swap$"] focus; unmark _swap
+bindsym $mod+Ctrl+$down mark --add --replace _swap; focus down; swap container with mark _swap; [con_mark="^_swap$"] focus; unmark _swap
+bindsym $mod+Ctrl+$up mark --add --replace _swap; focus up; swap container with mark _swap; [con_mark="^_swap$"] focus; unmark _swap
+bindsym $mod+Ctrl+$right mark --add --replace _swap; focus right; swap container with mark _swap; [con_mark="^_swap$"] focus; unmark _swap
+
 bindsym $mod+bracketleft focus output left
 bindsym $mod+bracketright focus output right
 bindsym $mod+Shift+bracketleft move container to output left; focus output left
