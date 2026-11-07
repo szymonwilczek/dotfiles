@@ -32,6 +32,8 @@
   (define-key evil-normal-state-map (kbd "C-j") #'evil-window-down)
   (define-key evil-normal-state-map (kbd "C-k") #'evil-window-up)
   (define-key evil-normal-state-map (kbd "C-l") #'evil-window-right)
+  (define-key evil-normal-state-map (kbd "C-S-<") #'my/window-swap-left)
+  (define-key evil-normal-state-map (kbd "C-S->") #'my/window-swap-right)
 
   ;; Avy jumps
   (define-key evil-normal-state-map "s" #'evil-avy-goto-char-2)
@@ -98,6 +100,37 @@ The layout is kept per frame, so each frame restores its own."
      (t
       (set-frame-parameter nil 'my/maximize-layout (current-window-configuration))
       (delete-other-windows)))))
+
+(defun my/window-swap (&optional direction)
+  (interactive)
+  (let* ((cur (selected-window))
+         (dir (or direction 'right)))
+    (if (window-dedicated-p cur)
+        (user-error "Cannot swap dedicated window")
+      (let* ((ordinary-wins (seq-filter (lambda (w) (not (window-dedicated-p w)))
+                                        (window-list nil 'no-minibuf))))
+        (if (<= (length ordinary-wins) 1)
+            (user-error "No other split to swap with")
+          (let* ((target (window-in-direction dir))
+                 (valid-target (when (and target (not (window-dedicated-p target)))
+                                 target))
+                 (other (or valid-target
+                            (if (eq dir 'left)
+                                (car (last ordinary-wins))
+                              (car ordinary-wins)))))
+            (when (eq other cur)
+              (setq other (car (delq cur (copy-sequence ordinary-wins)))))
+            (when (and other (window-live-p other) (not (eq other cur)))
+              (window-swap-states cur other)
+              (select-window other))))))))
+
+(defun my/window-swap-left ()
+  (interactive)
+  (my/window-swap 'left))
+
+(defun my/window-swap-right ()
+  (interactive)
+  (my/window-swap 'right))
 
 (defun my/evil-avy-jump-or-abort (motion count)
   "Run the avy MOTION with COUNT, signalling an error when it does not jump.
