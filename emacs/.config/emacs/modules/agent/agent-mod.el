@@ -377,6 +377,14 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
 
 (advice-add 'delete-other-windows :before #'my/agent-prevent-dedicated-delete-other-windows)
 
+(defun my/agent-unfocus-before-persp-switch ()
+  (when (window-dedicated-p (selected-window))
+    (when-let* ((ord-win (cl-find-if (lambda (w) (not (window-dedicated-p w)))
+                                     (window-list nil 'no-minibuf))))
+      (select-window ord-win))))
+
+(add-hook 'persp-before-switch-hook #'my/agent-unfocus-before-persp-switch)
+
 (defun my/agent-skip-in-ordinary-windows (window buffer _bury-or-kill)
   (and (not (window-dedicated-p window))
        (or (buffer-local-value 'my/agent-buffer-p buffer)
