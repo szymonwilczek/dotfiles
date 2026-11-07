@@ -91,7 +91,6 @@ input type:pointer {
 ### Key bindings
 bindsym $mod+Return exec $term
 bindsym $mod+Shift+Return exec env GDK_BACKEND=wayland emacsclient -c -a ''
-bindsym $mod+Shift+q kill
 bindsym $mod+a kill
 bindsym $mod+s exec $menu
 bindsym $mod+e exec $explorer
@@ -184,9 +183,6 @@ for_window [class="Gromit-mpx"] floating enable, border none, sticky enable
 
 # Window marks
 include marks.conf
-
-bindsym $mod+Shift+minus move scratchpad
-bindsym $mod+minus scratchpad show
 
 bindsym $mod+r mode "resize"
 mode "resize" {
