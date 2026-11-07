@@ -49,11 +49,11 @@ static const char *get_qalc(void) {
 static void copy_to_clipboard(const char *text) {
   if (!text || !*text)
     return;
-  char *argv[] = {"wl-copy", "--", (char *)text, NULL};
-  g_spawn_async(NULL, argv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
-  GtkClipboard *cb = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-  gtk_clipboard_set_text(cb, text, -1);
-  gtk_clipboard_store(cb);
+  char *escaped = g_shell_quote(text);
+  char *cmd = g_strdup_printf("wl-copy -- %s", escaped);
+  g_spawn_command_line_async(cmd, NULL);
+  g_free(cmd);
+  g_free(escaped);
 }
 
 static void evaluate(Calc *c) {
@@ -150,6 +150,11 @@ static gboolean on_key_press(GtkWidget *w, GdkEventKey *ev, gpointer data) {
   return FALSE;
 }
 
+static gboolean grab_focus_idle(gpointer data) {
+  gtk_widget_grab_focus(GTK_WIDGET(data));
+  return G_SOURCE_REMOVE;
+}
+
 static void on_show(gpointer data) {
   Calc *c = data;
   if (c->debounce_tag > 0) {
@@ -160,7 +165,7 @@ static void on_show(gpointer data) {
   gtk_label_set_text(GTK_LABEL(c->result_label), "");
   c->has_result = FALSE;
   c->last_result[0] = '\0';
-  gtk_widget_grab_focus(c->entry);
+  g_idle_add(grab_focus_idle, c->entry);
 }
 
 static void on_hide(gpointer data) {
@@ -169,6 +174,10 @@ static void on_hide(gpointer data) {
     g_source_remove(c->debounce_tag);
     c->debounce_tag = 0;
   }
+  gtk_entry_set_text(GTK_ENTRY(c->entry), "");
+  gtk_label_set_text(GTK_LABEL(c->result_label), "");
+  c->has_result = FALSE;
+  c->last_result[0] = '\0';
 }
 
 int main(int argc, char *argv[]) {
