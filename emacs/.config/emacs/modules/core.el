@@ -184,7 +184,7 @@
 (setq mwheel-scroll-up-function #'my/mwheel-scroll-up
       mwheel-scroll-down-function #'my/mwheel-scroll-down
       mouse-wheel-scroll-amount '(1 ((shift) . 1))
-      mouse-wheel-progressive-speed t)
+      mouse-wheel-progressive-speed nil)
 
 ;; Smarter paren pairing
 (setq show-paren-not-in-comments-or-strings t)
