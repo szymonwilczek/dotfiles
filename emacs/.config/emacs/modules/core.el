@@ -83,8 +83,7 @@
 ;; Short confirmations
 (setq use-short-answers t)
 
-;; Context-aware M-x
-(setq read-extended-command-predicate #'command-completion-default-include-p)
+(setq read-extended-command-predicate nil)
 
 ;; Automatically kill *scratch* buffer as soon as a real file is opened
 (defun my/kill-scratch-on-find-file ()
