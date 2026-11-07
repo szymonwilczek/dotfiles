@@ -7,8 +7,7 @@
      :states '(normal visual motion)
      :keymaps '(LaTeX-mode-map latex-mode-map TeX-mode-map tex-mode-map)
      :prefix "SPC"
-     "l"  '(:ignore t :which-key "LaTeX / Lazygit")
-     "lg" '(my/open-lazygit :which-key "Lazygit")
+     "l"  '(:ignore t :which-key "LaTeX")
      "la" '(my/latex-compile-and-view :which-key "Compile & View in Split")
      "lc" '(citar-insert-citation :which-key "Insert Citation (\\cite)")
      "lo" '(citar-open :which-key "Open Bibliography Paper / PDF")
