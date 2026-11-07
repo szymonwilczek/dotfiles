@@ -19,6 +19,7 @@ exec ~/.config/sway/scripts/modal.sh audio-switcher --hidden
 exec ~/.config/sway/scripts/modal.sh powermenu --hidden
 exec ~/.config/sway/scripts/modal.sh wallpaper --hidden
 exec wl-paste --watch cliphist store
+exec ~/.cargo/bin/wl-clip-persist --clipboard regular
 
 # Output configuration
 output * subpixel none
