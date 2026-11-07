@@ -323,7 +323,16 @@ the start of the input, or is not made when that start is unknown."
                (numberp (cdr ghostel--cursor-pos)))
       (my/ghostel-goto-input (point))))
 
-  (advice-add 'evil-ghostel--insert-state-entry :around #'my/evil-ghostel-safe-insert-state-entry))
+  (advice-add 'evil-ghostel--insert-state-entry :around #'my/evil-ghostel-safe-insert-state-entry)
+
+  (defun my/ghostel-inhibit-anchor-in-normal-state (window &optional force)
+    (unless force
+      (when (window-live-p window)
+        (with-current-buffer (window-buffer window)
+          (and (bound-and-true-p evil-state)
+               (memq evil-state '(normal visual motion operator)))))))
+
+  (add-hook 'ghostel-inhibit-anchor-functions #'my/ghostel-inhibit-anchor-in-normal-state))
 
 ;; Dedicated bottom popup terminal
 (defvar my/ghostel-bottom-buffer-name "*ghostel-bottom*"
