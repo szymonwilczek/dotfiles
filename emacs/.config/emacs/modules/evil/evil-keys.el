@@ -61,7 +61,7 @@
     "m" '(my/window-maximize-toggle :which-key "Maximize Window / Restore")
 
     ;; Buffer management
-    "q" '(my/tab-close :which-key "Close Buffer / Split")
+    "q" '(kill-current-buffer :which-key "Close Buffer")
 
     ;; Elisp Eval
     "e" '(:ignore t :which-key "Eval/Reload")
