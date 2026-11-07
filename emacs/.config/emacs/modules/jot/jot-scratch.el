@@ -25,7 +25,8 @@ Called by sway/.config/sway/scripts/jot-scratch.sh in a new client frame."
     (set-frame-parameter nil 'my/jot-scratch t)
     (switch-to-buffer
      (jot--get-or-create-buffer file my/jot-scratch-note my/jot-scratch-note))
-    (delete-other-windows)))
+    (delete-other-windows)
+    (set-window-dedicated-p nil t)))
 
 (defun my/jot-scratch-save ()
   "Save the SCRATCH note if it has unsaved changes."
