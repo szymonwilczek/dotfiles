@@ -231,11 +231,6 @@ int main(int argc, char *argv[]) {
   gtk_box_pack_start(GTK_BOX(c.result_box), c.result_label, TRUE, TRUE, 0);
   gtk_box_pack_start(GTK_BOX(box), c.result_box, FALSE, FALSE, 0);
 
-  GtkWidget *hint =
-      label("Enter: kopiuj  •  Tab: wstaw  •  Esc: zamknij", "calc-help");
-  gtk_label_set_xalign(GTK_LABEL(hint), 0.5);
-  gtk_box_pack_start(GTK_BOX(box), hint, FALSE, FALSE, 0);
-
   gtk_container_add(GTK_CONTAINER(window), box);
   gtk_window_set_focus(GTK_WINDOW(window), c.entry);
 
