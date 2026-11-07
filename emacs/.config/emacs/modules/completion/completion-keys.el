@@ -17,17 +17,19 @@
   (define-key company-active-map (kbd "<return>") #'company-complete-selection)
   (define-key company-active-map (kbd "<escape>") #'company-abort)
   (define-key company-active-map (kbd "C-g") #'company-abort)
-  (define-key company-mode-map [remap indent-for-tab-command] #'my/indent-or-insert-tab))
+  (define-key company-mode-map [remap indent-for-tab-command] #'my/indent-or-insert-tab)
+  (define-key company-mode-map (kbd "C-SPC") #'company-complete)
+  (define-key company-mode-map (kbd "C-@") #'company-complete))
 
-;; Global manual completion trigger
 (global-set-key (kbd "C-SPC") #'company-complete)
 (global-set-key (kbd "C-@") #'company-complete)
 (global-set-key (kbd "M-x") #'execute-extended-command)
 (global-set-key (kbd "A-x") #'execute-extended-command)
 
-;; Embark actions
 (global-set-key (kbd "C-.") #'embark-act)
 (with-eval-after-load 'evil
+  (define-key evil-insert-state-map (kbd "C-SPC") #'company-complete)
+  (define-key evil-insert-state-map (kbd "C-@") #'company-complete)
   (define-key evil-normal-state-map (kbd "C-.") #'embark-act))
 
 ;; Leader search keybindings

@@ -228,8 +228,8 @@ The file opens in the current perspective, whatever project it is in."
                           (company-mode 1))))
          (conf-mode . company-mode))
   :config
-  (setq company-minimum-prefix-length 2
-        company-idle-delay 0.2
+  (setq company-minimum-prefix-length 1
+        company-idle-delay nil
         company-selection-wrap-around t
         company-tooltip-limit 10
         company-tooltip-align-annotations t
