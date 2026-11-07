@@ -107,7 +107,9 @@ Working directory is automatically set to the project root of the current buffer
           (setq-local my/agent-type (downcase name))
           (setq-local display-line-numbers nil)
           (display-line-numbers-mode -1))
-        (let ((process-environment (append '("TERM=xterm-256color") process-environment))
+        (let ((process-environment (append '("TERM=xterm-256color"
+                                             "CLAUDE_AX_SCREEN_READER=1")
+                                           process-environment))
               (exec-path (append (list (expand-file-name "~/.local/bin")
                                        (expand-file-name "~/.npm-global/bin"))
                                  exec-path)))
@@ -145,12 +147,8 @@ Working directory is automatically set to the project root of the current buffer
   (my/agent-open "Antigravity" "agy"))
 
 (defun my/agent-shell-claude ()
-  "Start or switch to Claude Code in right split.
-It runs with the inline renderer, so its output stays in the buffer's
-scrollback; the fullscreen one from the settings is left for real
-terminals."
   (interactive)
-  (my/agent-open "Claude" "claude" '("--settings" "{\"tui\":\"default\"}")))
+  (my/agent-open "Claude" "claude" '("--ax-screen-reader")))
 
 (defun my/agent-shell-select ()
   "Interactively choose from the AI agents and open in right split."
