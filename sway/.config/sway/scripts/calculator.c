@@ -55,11 +55,10 @@ static const char *get_qalc(void) {
 static void copy_to_clipboard(const char *text) {
   if (!text || !*text)
     return;
-  char *escaped = g_shell_quote(text);
-  char *cmd = g_strdup_printf("wl-copy -- %s", escaped);
-  g_spawn_command_line_async(cmd, NULL);
-  g_free(cmd);
-  g_free(escaped);
+  char *argv1[] = {"wl-copy", "--", (char *)text, NULL};
+  g_spawn_async(NULL, argv1, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
+  char *argv2[] = {"wl-copy", "-p", "--", (char *)text, NULL};
+  g_spawn_async(NULL, argv2, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, NULL);
 }
 
 static void evaluate(Calc *c) {
@@ -83,13 +82,11 @@ static void evaluate(Calc *c) {
     return;
   }
 
-  if (strcmp(trimmed, c->last_expr) == 0) {
+  if (strcmp(trimmed, c->last_expr) == 0 && c->has_result) {
     g_free(trimmed);
-    if (c->has_result) {
-      char *display = g_strdup_printf("= %s", c->last_result);
-      gtk_label_set_text(GTK_LABEL(c->result_label), display);
-      g_free(display);
-    }
+    char *display = g_strdup_printf("= %s", c->last_result);
+    gtk_label_set_text(GTK_LABEL(c->result_label), display);
+    g_free(display);
     return;
   }
 
@@ -153,8 +150,8 @@ static gboolean on_key_press(GtkWidget *w, GdkEventKey *ev, gpointer data) {
     if (c->debounce_tag > 0) {
       g_source_remove(c->debounce_tag);
       c->debounce_tag = 0;
-      evaluate(c);
     }
+    evaluate(c);
     if (c->has_result && c->last_result[0])
       copy_to_clipboard(c->last_result);
     modal_hide(&c->modal);
