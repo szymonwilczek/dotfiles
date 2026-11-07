@@ -47,8 +47,7 @@
         (delete-window win))
        ((my/split-window-p win)
         (delete-window win)
-        (unless (or (my/last-tab-p buf)
-                    (get-buffer-window buf))
+        (unless (my/last-tab-p buf)
           (kill-buffer buf)))
        ((my/last-tab-p buf)
         (user-error "Cannot close the last tab%s"
