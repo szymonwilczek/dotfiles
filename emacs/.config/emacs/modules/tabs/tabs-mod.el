@@ -57,21 +57,14 @@ for a window dedicated to the buffer."
   (add-hook 'kill-buffer-query-functions #'my/refuse-closing-last-tab -90)
 
   (defun my/drop-perspective-scratch (frame)
-    "Kill the perspective's scratch once FRAME's selected window shows a real tab."
+    "Kill the perspective's scratch once FRAME's selected window shows a tab."
     (when (bound-and-true-p persp-mode)
       (with-selected-frame frame
-        (let ((buffer (window-buffer (selected-window))))
-          (when (and (not (my/scratch-buffer-p buffer))
-                     (memq buffer (bufferline-buffers-all)))
-            (when-let* ((scratch (get-buffer (persp-scratch-buffer))))
-              (when (and (not (buffer-modified-p scratch))
-                         (not (get-buffer-window scratch t)))
-                (run-at-time 0 nil
-                             (lambda ()
-                               (when (and (buffer-live-p scratch)
-                                          (not (buffer-modified-p scratch))
-                                          (not (get-buffer-window scratch t)))
-                                 (kill-buffer scratch)))))))))))
+        (when-let* ((scratch (get-buffer (persp-scratch-buffer))))
+          (when (and (memq (window-buffer) (bufferline-buffers-all))
+                     (not (buffer-modified-p scratch))
+                     (not (get-buffer-window scratch frame)))
+            (kill-buffer scratch))))))
 
   (add-hook 'window-buffer-change-functions #'my/drop-perspective-scratch))
 
