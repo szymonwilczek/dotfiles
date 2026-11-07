@@ -86,11 +86,20 @@
 (setq read-extended-command-predicate nil)
 
 ;; Automatically kill *scratch* buffer as soon as a real file is opened
-(defun my/kill-scratch-on-find-file ()
-  "Kill *scratch* if unmodified once a file buffer is loaded."
+(defun my/kill-hidden-scratch ()
+  "Kill *scratch* if it is unmodified and no window shows it."
   (let ((scratch (get-buffer "*scratch*")))
-    (when (and scratch (buffer-file-name) (not (buffer-modified-p scratch)))
+    (when (and scratch
+               (not (buffer-modified-p scratch))
+               (not (get-buffer-window scratch t)))
       (kill-buffer scratch))))
+
+;; Deferred, because `find-file-hook' runs before the file is displayed and
+;; killing *scratch* there would leave its window without a buffer to show.
+(defun my/kill-scratch-on-find-file ()
+  "Kill *scratch* once a file buffer has been loaded and displayed."
+  (when (buffer-file-name)
+    (run-at-time 0 nil #'my/kill-hidden-scratch)))
 
 (add-hook 'find-file-hook #'my/kill-scratch-on-find-file)
 

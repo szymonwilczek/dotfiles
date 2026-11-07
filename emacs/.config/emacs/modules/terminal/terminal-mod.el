@@ -159,32 +159,49 @@
                 (set-process-query-on-exit-flag proc nil))))
 
   ;; Auto-close window when shell process terminates
+  (defun my/ghostel-vacate-window (window buffer)
+    "Make WINDOW stop relying on BUFFER, whose shell has exited.
+A window with other tabs is left for `kill-buffer' to switch to one of them."
+    (let ((no-tabs (null (remq buffer (my/window-tabs window)))))
+      (cond
+       ((and (not (frame-root-window-p window))
+             (or (not (my/primary-window-p window))
+                 (and no-tabs (my/split-window-p window))))
+        (delete-window window))
+       (no-tabs
+        (my/window-show-scratch window)))))
+
   (defun my/ghostel-auto-close-on-exit (buf _event)
-    "Close terminal buffer and split window when process exits."
+    "Close terminal buffer and split window when process exits.
+Windows are handled here and not later in a timer, because ghostel kills
+BUF right after this hook, by which time they show something else."
     (when (and buf (buffer-live-p buf))
       (unless (or (buffer-local-value 'my/agent-buffer-p buf)
                   (string-match-p "\\*agent-" (buffer-name buf)))
-        (let ((win (get-buffer-window buf t)))
-          (run-at-time 0 nil
-                       (lambda ()
-                         (when (and win (window-live-p win) (not (one-window-p t)))
-                           (delete-window win))
-                         (when (and buf (buffer-live-p buf))
-                           (kill-buffer buf))))))))
+        (dolist (win (get-buffer-window-list buf nil t))
+          (my/ghostel-vacate-window win buf))
+        (run-at-time 0 nil
+                     (lambda ()
+                       (when (buffer-live-p buf)
+                         (kill-buffer buf)))))))
 
   (add-hook 'ghostel-exit-functions #'my/ghostel-auto-close-on-exit))
 
 ;; Evil integration for Ghostel
 (defun my/ghostel-visual-yank ()
-  "Copy visual selection to kill ring and system clipboard."
+  "Copy the visual selection to the kill ring and system clipboard."
   (interactive)
-  (let ((beg (min (point) (mark)))
-        (end (max (point) (mark))))
-    (copy-region-as-kill beg end)
-    (when (fboundp 'gui-set-selection)
-      (gui-set-selection 'CLIPBOARD (buffer-substring-no-properties beg end)))
-    (evil-exit-visual-state)
-    (message "Copied selection to clipboard")))
+  (let ((beg evil-visual-beginning)
+        (end evil-visual-end)
+        (type (evil-visual-type)))
+    (when (and (eq type 'line) (fboundp 'ghostel--soft-wrap-line-end))
+      (setq beg (ghostel--soft-wrap-line-beginning beg most-positive-fixnum)
+            end (ghostel--soft-wrap-line-end (max beg (1- end)) most-positive-fixnum))
+      (when (< end (point-max))
+        (setq end (1+ end))))
+    (evil-yank beg end type))
+  (evil-exit-visual-state)
+  (message "Copied selection to clipboard"))
 
 (defun my/ghostel-kill-word-backward ()
   "Send Ctrl-W to terminal process to instantly delete previous word."
