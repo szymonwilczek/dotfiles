@@ -106,19 +106,15 @@ Working directory is automatically set to the project root of the current buffer
 
 ;; Auto-close split window on agent exit
 (defun my/agent-cleanup-on-exit (buf _event)
-  "Close the agent split window when process exits."
+  "Close the agent split window when process exits.
+This runs before ghostel kills BUF, which then shows another buffer in
+any window left showing it."
   (when (and buf (buffer-live-p buf))
     (when (or (buffer-local-value 'my/agent-buffer-p buf)
               (string-match-p "\\*agent-" (buffer-name buf)))
-      (let ((win (get-buffer-window buf t)))
-        (run-at-time 0 nil
-                     (lambda ()
-                       ;; Delete window
-                       (when (and win (window-live-p win) (not (one-window-p t)))
-                         (delete-window win))
-                       ;; Kill the agent buffer cleanly
-                       (when (and buf (buffer-live-p buf))
-                         (kill-buffer buf))))))))
+      (dolist (win (get-buffer-window-list buf nil t))
+        (when (eq (window-deletable-p win) t)
+          (delete-window win))))))
 
 (with-eval-after-load 'ghostel
   (add-hook 'ghostel-exit-functions #'my/agent-cleanup-on-exit))
