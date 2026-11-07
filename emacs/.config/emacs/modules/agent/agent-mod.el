@@ -41,6 +41,27 @@ This runs on `window-deletable-functions'."
           (set-window-parameter new-win 'no-delete-other-windows t)
           new-win))))
 
+(defun my/agent--show (window buffer)
+  "Show BUFFER in the agent WINDOW and dedicate WINDOW to it."
+  (set-window-dedicated-p window nil)
+  (set-window-buffer window buffer)
+  (set-window-dedicated-p window t)
+  (set-window-prev-buffers window nil)
+  (set-window-next-buffers window nil))
+
+(setq tab-line-exclude-buffers "\\`\\*agent-")
+
+(defun my/agent-window-selected-p (&rest _)
+  "Non-nil when the selected window is an agent split.
+A `display-buffer-alist' condition."
+  (my/agent-window-p (selected-window)))
+
+;; What is opened from the agent split goes to the window beside it
+(add-to-list 'display-buffer-alist
+             '(my/agent-window-selected-p
+               (display-buffer-reuse-window display-buffer-use-some-window)
+               (inhibit-same-window . t)))
+
 (defun my/agent--ghostel-buffer-name-fn (title)
   "Prevent ghostel from renaming agent buffers (*agent-*) on terminal TITLE updates."
   (if (or (bound-and-true-p my/agent-buffer-p)
@@ -79,9 +100,9 @@ Working directory is automatically set to the project root of the current buffer
              (or (get-buffer-process existing)
                  (with-current-buffer existing
                    (and (boundp 'ghostel--process) (process-live-p ghostel--process)))))
-        (switch-to-buffer existing)
+        (my/agent--show right-win existing)
       (let ((buf (get-buffer-create buf-name)))
-        (switch-to-buffer buf)
+        (my/agent--show right-win buf)
         (with-current-buffer buf
           (setq default-directory target-dir)
           (setq-local ghostel-buffer-name-function nil)
