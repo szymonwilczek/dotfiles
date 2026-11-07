@@ -11,18 +11,34 @@
 (defvar-local my/agent-buffer-p nil
   "Non-nil when current buffer is an AI agent terminal.")
 
+(defun my/agent-window-p (window)
+  "Return non-nil if WINDOW shows an AI agent terminal."
+  (let ((buf (window-buffer window)))
+    (or (buffer-local-value 'my/agent-buffer-p buf)
+        (string-match-p "\\*agent-" (buffer-name buf)))))
+
+(defun my/agent-keep-companion (window frame-too)
+  "Return nil if deleting WINDOW would leave only agent windows behind.
+FRAME-TOO non-nil means WINDOW goes with its whole frame, which is fine.
+This runs on `window-deletable-functions'."
+  (or frame-too
+      (my/agent-window-p window)
+      (seq-some (lambda (other)
+                  (and (not (eq other window))
+                       (not (my/agent-window-p other))))
+                (window-list (window-frame window) 'nomini))))
+
+(add-hook 'window-deletable-functions #'my/agent-keep-companion)
+
 (defun my/agent-get-or-create-window ()
-  "Get or create a dedicated right-hand split window."
-  (let* ((all-wins (window-list))
-         (agent-win (cl-find-if (lambda (w)
-                                  (let ((b (window-buffer w)))
-                                    (or (buffer-local-value 'my/agent-buffer-p b)
-                                        (string-match-p "\\*agent-" (buffer-name b)))))
-                                all-wins)))
+  "Get or create a dedicated right-hand split window.
+`delete-other-windows' leaves a new one in place."
+  (let ((agent-win (cl-find-if #'my/agent-window-p (window-list))))
     (or agent-win
         (let* ((root (frame-root-window))
                (target-width (max 20 (floor (* (window-total-width root) my/agent-split-ratio))))
                (new-win (split-window root target-width 'right)))
+          (set-window-parameter new-win 'no-delete-other-windows t)
           new-win))))
 
 (defun my/agent--ghostel-buffer-name-fn (title)
