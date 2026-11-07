@@ -8,10 +8,20 @@
   (setq bufferline-show-special-buffers t)
   (global-bufferline-mode 1)
 
+  (setq bufferline-exclude-modes
+        (append '(jsonrpc-events-mode special-mode) bufferline-exclude-modes))
+
+  (defun my/scratch-buffer-p (buffer)
+    "Non-nil when BUFFER is a global or perspective scratch buffer."
+    (string-match-p "\\`\\*scratch\\*" (buffer-name buffer)))
+
   (defun my/bufferline-persp-filter (buffer)
-    "Give BUFFER a tab only when it belongs to the current perspective."
-    (or (not (bound-and-true-p persp-mode))
-        (persp-is-current-buffer buffer)))
+    "Give BUFFER a tab only when it belongs to the current perspective.
+Scratch buffers and eglot's server buffers never get one."
+    (and (not (my/scratch-buffer-p buffer))
+         (not (string-prefix-p "*EGLOT " (buffer-name buffer)))
+         (or (not (bound-and-true-p persp-mode))
+             (persp-is-current-buffer buffer))))
 
   (setq bufferline-custom-filter #'my/bufferline-persp-filter)
 
@@ -45,10 +55,6 @@ for a window dedicated to the buffer."
     t)
 
   (add-hook 'kill-buffer-query-functions #'my/refuse-closing-last-tab -90)
-
-  (defun my/scratch-buffer-p (buffer)
-    "Non-nil when BUFFER is a global or perspective scratch buffer."
-    (string-match-p "\\`\\*scratch\\*" (buffer-name buffer)))
 
   (defun my/drop-perspective-scratch (frame)
     "Kill the perspective's scratch once FRAME's selected window shows a real tab."
