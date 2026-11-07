@@ -118,6 +118,11 @@ bindsym $mod+Shift+Down move down
 bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Right move right
 
+bindsym $mod+bracketleft focus output left
+bindsym $mod+bracketright focus output right
+bindsym $mod+Shift+bracketleft move container to output left; focus output left
+bindsym $mod+Shift+bracketright move container to output right; focus output right
+
 set $ws ~/.config/sway/scripts/workspace.sh
 bindsym $mod+1 exec $ws switch 1
 bindsym $mod+2 exec $ws switch 2
