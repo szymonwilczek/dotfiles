@@ -51,6 +51,14 @@ This runs on `window-deletable-functions'."
 
 (setq tab-line-exclude-buffers "\\`\\*agent-")
 
+(defun my/agent-skip-buffer-p (_window buffer _bury-or-kill)
+  "Non-nil for an agent BUFFER, which lives only in its own split.
+The `switch-to-prev-buffer-skip' function: a window whose buffer goes
+away never falls back to an agent."
+  (string-prefix-p "*agent-" (buffer-name buffer)))
+
+(setq switch-to-prev-buffer-skip #'my/agent-skip-buffer-p)
+
 (defun my/agent-window-selected-p (&rest _)
   "Non-nil when the selected window is an agent split.
 A `display-buffer-alist' condition."
