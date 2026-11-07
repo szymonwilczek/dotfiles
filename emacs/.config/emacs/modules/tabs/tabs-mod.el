@@ -82,28 +82,27 @@
   (advice-add 'bufferline-close-tab :before #'my/refuse-closing-last-tab)
 
   (defun my/scratch-buffer-p (buffer)
+    "Non-nil when BUFFER is a global or perspective scratch buffer."
     (string-match-p "\\`\\*scratch\\*" (buffer-name buffer)))
 
-  (defun my/drop-perspective-scratch (&rest _)
+  (defun my/drop-perspective-scratch (frame)
+    "Kill the perspective's scratch once FRAME's selected window shows a real tab."
     (when (bound-and-true-p persp-mode)
-      (run-at-time 0 nil
-                   (lambda ()
-                     (when (bound-and-true-p persp-mode)
-                       (when-let* ((persp (persp-curr))
-                                   (scratch (get-buffer (persp-scratch-buffer)))
-                                   (bufs (persp-buffers persp)))
-                         (when (and (buffer-live-p scratch)
-                                    (not (buffer-modified-p scratch))
-                                    (seq-some (lambda (b)
-                                                (and (not (eq b scratch))
-                                                     (not (my/scratch-buffer-p b))
-                                                     (my/bufferline-filter b)))
-                                              bufs))
-                           (kill-buffer scratch))))))))
+      (with-selected-frame frame
+        (let ((buffer (window-buffer (selected-window))))
+          (when (and (not (my/scratch-buffer-p buffer))
+                     (memq buffer (bufferline-buffers-all)))
+            (when-let* ((scratch (get-buffer (persp-scratch-buffer))))
+              (when (and (not (buffer-modified-p scratch))
+                         (not (get-buffer-window scratch t)))
+                (run-at-time 0 nil
+                             (lambda ()
+                               (when (and (buffer-live-p scratch)
+                                          (not (buffer-modified-p scratch))
+                                          (not (get-buffer-window scratch t)))
+                                 (kill-buffer scratch)))))))))))
 
-  (advice-add 'persp-add-buffer :after #'my/drop-perspective-scratch)
-  (add-hook 'persp-switch-hook #'my/drop-perspective-scratch)
-  (add-hook 'find-file-hook #'my/drop-perspective-scratch))
+  (add-hook 'window-buffer-change-functions #'my/drop-perspective-scratch))
 
 (require 'tabs-keys)
 

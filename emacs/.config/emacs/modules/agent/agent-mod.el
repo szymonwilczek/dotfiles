@@ -11,47 +11,19 @@
 (defvar-local my/agent-buffer-p nil
   "Non-nil when current buffer is an AI agent terminal.")
 
-(defun my/agent--display-buffer-condition (buf-name action)
-  (and (not (string-prefix-p " " buf-name))
-       (not (string-match-p "\\`\\*agent" buf-name))
-       (not (assq 'side (cdr action)))
-       (with-current-buffer (window-buffer (selected-window))
-         (or (bound-and-true-p my/agent-buffer-p)
-             (string-match-p "\\`\\*agent-" (buffer-name))))))
-
-(add-to-list 'display-buffer-alist
-             '(my/agent--display-buffer-condition
-               (display-buffer-reuse-window display-buffer-use-some-window display-buffer-pop-up-window)
-               (inhibit-same-window . t)))
-
 (defun my/agent-get-or-create-window ()
-  (let* ((all-wins (window-list nil 'no-minibuf))
+  "Get or create a dedicated right-hand split window."
+  (let* ((all-wins (window-list))
          (agent-win (cl-find-if (lambda (w)
-                                  (and (window-dedicated-p w)
-                                       (let ((b (window-buffer w)))
-                                         (or (buffer-local-value 'my/agent-buffer-p b)
-                                             (string-match-p "\\`\\*agent-" (buffer-name b))))))
+                                  (let ((b (window-buffer w)))
+                                    (or (buffer-local-value 'my/agent-buffer-p b)
+                                        (string-match-p "\\*agent-" (buffer-name b)))))
                                 all-wins)))
-    (if (and agent-win (not (one-window-p nil 'no-minibuf)))
-        agent-win
-      (when (one-window-p nil 'no-minibuf)
-        (let ((sole-win (car all-wins)))
-          (when (or (buffer-local-value 'my/agent-buffer-p (window-buffer sole-win))
-                    (string-match-p "\\`\\*agent-" (buffer-name (window-buffer sole-win))))
-            (set-window-dedicated-p sole-win nil)
-            (set-window-parameter sole-win 'tab-line-format nil)
-            (let ((fallback (or (cl-find-if (lambda (b)
-                                              (and (not (string-prefix-p " " (buffer-name b)))
-                                                   (not (string-match-p "\\`\\*agent-" (buffer-name b)))
-                                                   (not (string-match-p "\\`\\*ghostel-bottom" (buffer-name b)))))
-                                            (buffer-list))
-                                (get-buffer-create "*scratch*"))))
-              (set-window-buffer sole-win fallback)))))
-      (let* ((root (frame-root-window))
-             (target-width (max 20 (floor (* (window-total-width root) my/agent-split-ratio))))
-             (new-win (split-window root target-width 'right)))
-        (set-window-parameter new-win 'tab-line-format 'none)
-        new-win))))
+    (or agent-win
+        (let* ((root (frame-root-window))
+               (target-width (max 20 (floor (* (window-total-width root) my/agent-split-ratio))))
+               (new-win (split-window root target-width 'right)))
+          new-win))))
 
 (defun my/agent--ghostel-buffer-name-fn (title)
   "Prevent ghostel from renaming agent buffers (*agent-*) on terminal TITLE updates."
@@ -85,19 +57,17 @@ Working directory is automatically set to the project root of the current buffer
                   command-name))
          (existing (get-buffer buf-name))
          (right-win (my/agent-get-or-create-window)))
-    (set-window-parameter right-win 'tab-line-format 'none)
-    (set-window-dedicated-p right-win nil)
     (select-window right-win)
+    (set-window-dedicated-p right-win t)
+    (set-window-parameter right-win 'tab-line-format 'none)
     (if (and existing
              (buffer-live-p existing)
              (or (get-buffer-process existing)
                  (with-current-buffer existing
                    (and (boundp 'ghostel--process) (process-live-p ghostel--process)))))
-        (progn
-          (set-window-buffer right-win existing)
-          (set-window-dedicated-p right-win t))
+        (switch-to-buffer existing)
       (let ((buf (get-buffer-create buf-name)))
-        (set-window-buffer right-win buf)
+        (switch-to-buffer buf)
         (with-current-buffer buf
           (setq default-directory target-dir)
           (setq-local ghostel-buffer-name-function nil)
@@ -117,8 +87,7 @@ Working directory is automatically set to the project root of the current buffer
           (setq-local display-line-numbers nil)
           (display-line-numbers-mode -1)
           (unless (string= (buffer-name) buf-name)
-            (rename-buffer buf-name t)))
-        (set-window-dedicated-p right-win t)))
+            (rename-buffer buf-name t)))))
     (my/agent-update-usage-async)))
 
 (defun my/agent-cleanup-on-exit (buf _event)
@@ -157,31 +126,19 @@ Working directory is automatically set to the project root of the current buffer
 
 (defun my/agent-shell-toggle ()
   (interactive)
-  (let* ((all-wins (window-list nil 'no-minibuf))
+  (let* ((all-wins (window-list))
          (agent-win (cl-find-if (lambda (w)
-                                  (and (window-dedicated-p w)
-                                       (let ((b (window-buffer w)))
-                                         (or (buffer-local-value 'my/agent-buffer-p b)
-                                             (string-match-p "\\`\\*agent-" (buffer-name b))))))
+                                  (let ((b (window-buffer w)))
+                                    (or (buffer-local-value 'my/agent-buffer-p b)
+                                        (string-match-p "\\*agent-" (buffer-name b)))))
                                 all-wins)))
-    (cond
-     ((and agent-win (one-window-p nil 'no-minibuf))
-      (set-window-dedicated-p agent-win nil)
-      (set-window-parameter agent-win 'tab-line-format nil)
-      (let ((fallback (or (cl-find-if (lambda (b)
-                                        (and (not (string-prefix-p " " (buffer-name b)))
-                                             (not (string-match-p "\\`\\*agent-" (buffer-name b)))
-                                             (not (string-match-p "\\`\\*ghostel-bottom" (buffer-name b)))))
-                                      (buffer-list))
-                          (get-buffer-create "*scratch*"))))
-        (set-window-buffer agent-win fallback)))
-     (agent-win
-      (set-window-dedicated-p agent-win nil)
-      (delete-window agent-win))
-     (t
+    (if agent-win
+        (progn
+          (set-window-dedicated-p agent-win nil)
+          (delete-window agent-win))
       (pcase my/agent-active-name
         ("Claude" (my/agent-shell-claude))
-        (_        (my/agent-shell-gemini)))))))
+        (_        (my/agent-shell-gemini))))))
 
 (defun my/agent-edit-prompt ()
   "Draft a prompt in a dedicated bottom split under the agent chat window.
@@ -350,15 +307,10 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
 
 (defun my/agent-prevent-sole-ordinary-window-deletion (&optional window)
   (let ((win (or window (selected-window))))
-    (unless (window-dedicated-p win)
-      (let* ((all-wins (window-list nil 'no-minibuf))
-             (has-dedicated (cl-some #'window-dedicated-p all-wins)))
-        (when has-dedicated
-          (let ((ordinary-wins (seq-filter (lambda (w) (not (window-dedicated-p w)))
-                                           all-wins)))
-            (when (and (memq win ordinary-wins)
-                       (null (cdr ordinary-wins)))
-              (user-error "Cannot delete sole ordinary window"))))))))
+    (when (and (not (window-dedicated-p win))
+               (null (cdr (seq-filter (lambda (w) (not (window-dedicated-p w)))
+                                      (window-list nil 'no-minibuf)))))
+      (user-error "Cannot delete sole ordinary window"))))
 
 (advice-add 'delete-window :before #'my/agent-prevent-sole-ordinary-window-deletion)
 
@@ -372,8 +324,7 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
 (defun my/agent-skip-in-ordinary-windows (window buffer _bury-or-kill)
   (and (not (window-dedicated-p window))
        (or (buffer-local-value 'my/agent-buffer-p buffer)
-           (string-match-p "\\`\\*agent-" (buffer-name buffer))
-           (string-match-p "\\`\\*ghostel-bottom" (buffer-name buffer)))))
+           (string-prefix-p "*agent-" (buffer-name buffer)))))
 
 (setq switch-to-prev-buffer-skip #'my/agent-skip-in-ordinary-windows)
 
