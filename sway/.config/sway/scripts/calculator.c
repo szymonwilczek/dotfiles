@@ -15,6 +15,7 @@ typedef struct {
   Modal modal;
   guint debounce_tag;
   char last_result[512];
+  char last_expr[512];
   gboolean has_result;
 } Calc;
 
@@ -38,12 +39,17 @@ static GtkWidget *heading(const char *title, const char *subtitle) {
 }
 
 static const char *get_qalc(void) {
+  static const char *resolved = NULL;
   static char path[512];
+  if (resolved)
+    return resolved;
   const char *home = g_get_home_dir();
   snprintf(path, sizeof(path), "%s/.local/bin/qalc", home);
   if (access(path, X_OK) == 0)
-    return path;
-  return "qalc";
+    resolved = path;
+  else
+    resolved = "qalc";
+  return resolved;
 }
 
 static void copy_to_clipboard(const char *text) {
@@ -62,6 +68,7 @@ static void evaluate(Calc *c) {
     gtk_label_set_text(GTK_LABEL(c->result_label), "");
     c->has_result = FALSE;
     c->last_result[0] = '\0';
+    c->last_expr[0] = '\0';
     return;
   }
 
@@ -72,8 +79,21 @@ static void evaluate(Calc *c) {
     gtk_label_set_text(GTK_LABEL(c->result_label), "");
     c->has_result = FALSE;
     c->last_result[0] = '\0';
+    c->last_expr[0] = '\0';
     return;
   }
+
+  if (strcmp(trimmed, c->last_expr) == 0) {
+    g_free(trimmed);
+    if (c->has_result) {
+      char *display = g_strdup_printf("= %s", c->last_result);
+      gtk_label_set_text(GTK_LABEL(c->result_label), display);
+      g_free(display);
+    }
+    return;
+  }
+
+  g_strlcpy(c->last_expr, trimmed, sizeof(c->last_expr));
 
   char *argv[] = {(char *)get_qalc(), "-m", "200", "-t", trimmed, NULL};
   char *out = NULL;
@@ -165,6 +185,7 @@ static void on_show(gpointer data) {
   gtk_label_set_text(GTK_LABEL(c->result_label), "");
   c->has_result = FALSE;
   c->last_result[0] = '\0';
+  c->last_expr[0] = '\0';
   g_idle_add(grab_focus_idle, c->entry);
 }
 
@@ -178,6 +199,7 @@ static void on_hide(gpointer data) {
   gtk_label_set_text(GTK_LABEL(c->result_label), "");
   c->has_result = FALSE;
   c->last_result[0] = '\0';
+  c->last_expr[0] = '\0';
 }
 
 int main(int argc, char *argv[]) {
