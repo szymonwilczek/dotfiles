@@ -51,7 +51,6 @@
              (target-width (max 20 (floor (* (window-total-width root) my/agent-split-ratio))))
              (new-win (split-window root target-width 'right)))
         (set-window-parameter new-win 'tab-line-format 'none)
-        (set-window-parameter new-win 'no-delete-other-windows t)
         new-win))))
 
 (defun my/agent--ghostel-buffer-name-fn (title)
@@ -87,7 +86,6 @@ Working directory is automatically set to the project root of the current buffer
          (existing (get-buffer buf-name))
          (right-win (my/agent-get-or-create-window)))
     (set-window-parameter right-win 'tab-line-format 'none)
-    (set-window-parameter right-win 'no-delete-other-windows t)
     (set-window-dedicated-p right-win nil)
     (select-window right-win)
     (if (and existing
@@ -350,7 +348,7 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
 
 (add-hook 'window-selection-change-functions #'my/agent--on-focus-change)
 
-(defun my/agent-prevent-sole-ordinary-window-deletion (&optional window &rest _)
+(defun my/agent-prevent-sole-ordinary-window-deletion (&optional window)
   (let ((win (or window (selected-window))))
     (unless (window-dedicated-p win)
       (let* ((all-wins (window-list nil 'no-minibuf))
@@ -362,28 +360,14 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
                        (null (cdr ordinary-wins)))
               (user-error "Cannot delete sole ordinary window"))))))))
 
-(defun my/agent-prevent-sole-ordinary-window-deletion-interactive (&optional window &rest _)
-  (when (called-interactively-p 'interactive)
-    (my/agent-prevent-sole-ordinary-window-deletion window)))
+(advice-add 'delete-window :before #'my/agent-prevent-sole-ordinary-window-deletion)
 
-(advice-add 'delete-window :before #'my/agent-prevent-sole-ordinary-window-deletion-interactive)
-(advice-add 'evil-window-delete :before #'my/agent-prevent-sole-ordinary-window-deletion)
-
-(defun my/agent-prevent-dedicated-delete-other-windows (&optional window &rest _)
-  (when (called-interactively-p 'interactive)
-    (let ((win (or window (selected-window))))
-      (when (window-dedicated-p win)
-        (user-error "Cannot delete other windows from a dedicated window")))))
+(defun my/agent-prevent-dedicated-delete-other-windows (&optional window)
+  (let ((win (or window (selected-window))))
+    (when (window-dedicated-p win)
+      (user-error "Cannot delete other windows from a dedicated window"))))
 
 (advice-add 'delete-other-windows :before #'my/agent-prevent-dedicated-delete-other-windows)
-
-(defun my/agent-unfocus-before-persp-switch ()
-  (when (window-dedicated-p (selected-window))
-    (when-let* ((ord-win (cl-find-if (lambda (w) (not (window-dedicated-p w)))
-                                     (window-list nil 'no-minibuf))))
-      (select-window ord-win))))
-
-(add-hook 'persp-before-switch-hook #'my/agent-unfocus-before-persp-switch)
 
 (defun my/agent-skip-in-ordinary-windows (window buffer _bury-or-kill)
   (and (not (window-dedicated-p window))
