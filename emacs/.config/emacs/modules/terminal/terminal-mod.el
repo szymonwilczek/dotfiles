@@ -176,15 +176,19 @@
 
 ;; Evil integration for Ghostel
 (defun my/ghostel-visual-yank ()
-  "Copy visual selection to kill ring and system clipboard."
+  "Copy the visual selection to the kill ring and system clipboard."
   (interactive)
-  (let ((beg (min (point) (mark)))
-        (end (max (point) (mark))))
-    (copy-region-as-kill beg end)
-    (when (fboundp 'gui-set-selection)
-      (gui-set-selection 'CLIPBOARD (buffer-substring-no-properties beg end)))
-    (evil-exit-visual-state)
-    (message "Copied selection to clipboard")))
+  (let ((beg evil-visual-beginning)
+        (end evil-visual-end)
+        (type (evil-visual-type)))
+    (when (and (eq type 'line) (fboundp 'ghostel--soft-wrap-line-end))
+      (setq beg (ghostel--soft-wrap-line-beginning beg most-positive-fixnum)
+            end (ghostel--soft-wrap-line-end (max beg (1- end)) most-positive-fixnum))
+      (when (< end (point-max))
+        (setq end (1+ end))))
+    (evil-yank beg end type))
+  (evil-exit-visual-state)
+  (message "Copied selection to clipboard"))
 
 (defun my/ghostel-kill-word-backward ()
   "Send Ctrl-W to terminal process to instantly delete previous word."
