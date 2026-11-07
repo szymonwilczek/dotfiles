@@ -24,31 +24,6 @@
                (display-buffer-reuse-window display-buffer-use-some-window display-buffer-pop-up-window)
                (inhibit-same-window . t)))
 
-(defun my/agent-window-p (window)
-  "Return non-nil if WINDOW is the dedicated window of an agent."
-  (and (window-dedicated-p window)
-       (let ((buf (window-buffer window)))
-         (or (buffer-local-value 'my/agent-buffer-p buf)
-             (string-match-p "\\`\\*agent-" (buffer-name buf))))))
-
-(defun my/agent--fallback-buffer ()
-  "Return the buffer to show when an agent gives its window back.
-That is the latest file or directory of the perspective, else its scratch."
-  (or (seq-find (lambda (buf)
-                  (and (bufferline-buffers-candidate-p buf)
-                       (not (string-prefix-p "*" (buffer-name buf)))
-                       (or (not (bound-and-true-p persp-mode))
-                           (persp-is-current-buffer buf))))
-                (buffer-list))
-      (my/perspective-scratch)))
-
-(defun my/agent-restore-ordinary-window (window)
-  "Turn the agent WINDOW into a regular one showing a buffer of the perspective."
-  (set-window-dedicated-p window nil)
-  (set-window-parameter window 'tab-line-format nil)
-  (set-window-parameter window 'no-delete-other-windows nil)
-  (set-window-buffer window (my/agent--fallback-buffer)))
-
 (defun my/agent-get-or-create-window ()
   (let* ((all-wins (window-list nil 'no-minibuf))
          (agent-win (cl-find-if (lambda (w)
@@ -63,7 +38,15 @@ That is the latest file or directory of the perspective, else its scratch."
         (let ((sole-win (car all-wins)))
           (when (or (buffer-local-value 'my/agent-buffer-p (window-buffer sole-win))
                     (string-match-p "\\`\\*agent-" (buffer-name (window-buffer sole-win))))
-            (my/agent-restore-ordinary-window sole-win))))
+            (set-window-dedicated-p sole-win nil)
+            (set-window-parameter sole-win 'tab-line-format nil)
+            (let ((fallback (or (cl-find-if (lambda (b)
+                                              (and (not (string-prefix-p " " (buffer-name b)))
+                                                   (not (string-match-p "\\`\\*agent-" (buffer-name b)))
+                                                   (not (string-match-p "\\`\\*ghostel-bottom" (buffer-name b)))))
+                                            (buffer-list))
+                                (get-buffer-create "*scratch*"))))
+              (set-window-buffer sole-win fallback)))))
       (let* ((root (frame-root-window))
              (target-width (max 20 (floor (* (window-total-width root) my/agent-split-ratio))))
              (new-win (split-window root target-width 'right)))
@@ -141,20 +124,17 @@ Working directory is automatically set to the project root of the current buffer
     (my/agent-update-usage-async)))
 
 (defun my/agent-cleanup-on-exit (buf _event)
-  "Close the windows of the exited agent BUF before ghostel kills it.
-Killing it first would delete the frame of an agent that is alone on it."
   (when (and buf (buffer-live-p buf))
     (when (or (buffer-local-value 'my/agent-buffer-p buf)
               (string-match-p "\\*agent-" (buffer-name buf)))
-      (dolist (win (get-buffer-window-list buf nil t))
-        (if (frame-root-window-p win)
-            (my/agent-restore-ordinary-window win)
-          (set-window-dedicated-p win nil)
-          (delete-window win)))
-      (run-at-time 0 nil
-                   (lambda ()
-                     (when (buffer-live-p buf)
-                       (kill-buffer buf)))))))
+      (let ((win (get-buffer-window buf t)))
+        (run-at-time 0 nil
+                     (lambda ()
+                       (when (and win (window-live-p win) (not (one-window-p t)))
+                         (set-window-dedicated-p win nil)
+                         (delete-window win))
+                       (when (and buf (buffer-live-p buf))
+                         (kill-buffer buf))))))))
 
 (with-eval-after-load 'ghostel
   (add-hook 'ghostel-exit-functions #'my/agent-cleanup-on-exit))
@@ -188,7 +168,15 @@ Killing it first would delete the frame of an agent that is alone on it."
                                 all-wins)))
     (cond
      ((and agent-win (one-window-p nil 'no-minibuf))
-      (my/agent-restore-ordinary-window agent-win))
+      (set-window-dedicated-p agent-win nil)
+      (set-window-parameter agent-win 'tab-line-format nil)
+      (let ((fallback (or (cl-find-if (lambda (b)
+                                        (and (not (string-prefix-p " " (buffer-name b)))
+                                             (not (string-match-p "\\`\\*agent-" (buffer-name b)))
+                                             (not (string-match-p "\\`\\*ghostel-bottom" (buffer-name b)))))
+                                      (buffer-list))
+                          (get-buffer-create "*scratch*"))))
+        (set-window-buffer agent-win fallback)))
      (agent-win
       (set-window-dedicated-p agent-win nil)
       (delete-window agent-win))
@@ -363,20 +351,22 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
 (add-hook 'window-selection-change-functions #'my/agent--on-focus-change)
 
 (defun my/agent-prevent-sole-ordinary-window-deletion (&optional window &rest _)
-  "Refuse to delete WINDOW if it would leave an agent without a primary window."
   (let ((win (or window (selected-window))))
-    (when (and (my/primary-window-p win)
-               (not (my/split-window-p win))
-               (seq-some #'my/agent-window-p
-                         (window-list (window-frame win) 'no-minibuf)))
-      (user-error "Cannot delete sole ordinary window"))))
+    (unless (window-dedicated-p win)
+      (let* ((all-wins (window-list nil 'no-minibuf))
+             (has-dedicated (cl-some #'window-dedicated-p all-wins)))
+        (when has-dedicated
+          (let ((ordinary-wins (seq-filter (lambda (w) (not (window-dedicated-p w)))
+                                           all-wins)))
+            (when (and (memq win ordinary-wins)
+                       (null (cdr ordinary-wins)))
+              (user-error "Cannot delete sole ordinary window"))))))))
 
-(defun my/agent-guard-delete-window (&optional window)
-  "Guard the deletion of WINDOW, unless a layout is being rebuilt."
-  (unless ignore-window-parameters
+(defun my/agent-prevent-sole-ordinary-window-deletion-interactive (&optional window &rest _)
+  (when (called-interactively-p 'interactive)
     (my/agent-prevent-sole-ordinary-window-deletion window)))
 
-(advice-add 'delete-window :before #'my/agent-guard-delete-window)
+(advice-add 'delete-window :before #'my/agent-prevent-sole-ordinary-window-deletion-interactive)
 (advice-add 'evil-window-delete :before #'my/agent-prevent-sole-ordinary-window-deletion)
 
 (defun my/agent-prevent-dedicated-delete-other-windows (&optional window &rest _)
@@ -386,6 +376,14 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
         (user-error "Cannot delete other windows from a dedicated window")))))
 
 (advice-add 'delete-other-windows :before #'my/agent-prevent-dedicated-delete-other-windows)
+
+(defun my/agent-skip-in-ordinary-windows (window buffer _bury-or-kill)
+  (and (not (window-dedicated-p window))
+       (or (buffer-local-value 'my/agent-buffer-p buffer)
+           (string-match-p "\\`\\*agent-" (buffer-name buffer))
+           (string-match-p "\\`\\*ghostel-bottom" (buffer-name buffer)))))
+
+(setq switch-to-prev-buffer-skip #'my/agent-skip-in-ordinary-windows)
 
 (require 'agent-keys)
 
