@@ -29,12 +29,10 @@ static GtkWidget *label(const char *text, const char *class) {
   return l;
 }
 
-static GtkWidget *heading(const char *title, const char *subtitle) {
+static GtkWidget *heading(const char *title) {
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
   add_class(box, "heading");
   gtk_box_pack_start(GTK_BOX(box), label(title, "title"), FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), label(subtitle, "subtitle"), FALSE, FALSE,
-                     0);
   return box;
 }
 
@@ -211,7 +209,7 @@ int main(int argc, char *argv[]) {
   add_class(box, "modal");
   add_class(box, "calc-box");
 
-  GtkWidget *head = heading("Kalkulator", "qalc");
+  GtkWidget *head = heading("Kalkulator");
   gtk_box_pack_start(GTK_BOX(box), head, FALSE, FALSE, 0);
 
   c.entry = gtk_entry_new();
