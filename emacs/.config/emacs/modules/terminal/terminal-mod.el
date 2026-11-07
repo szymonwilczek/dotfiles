@@ -160,17 +160,15 @@
 
   ;; Auto-close window when shell process terminates
   (defun my/ghostel-auto-close-on-exit (buf _event)
-    "Close terminal buffer and split window when process exits."
+    "Close the split window of the terminal BUF when its process exits.
+This runs before ghostel kills BUF, which then shows another buffer in
+any window left showing it."
     (when (and buf (buffer-live-p buf))
       (unless (or (buffer-local-value 'my/agent-buffer-p buf)
                   (string-match-p "\\*agent-" (buffer-name buf)))
-        (let ((win (get-buffer-window buf t)))
-          (run-at-time 0 nil
-                       (lambda ()
-                         (when (and win (window-live-p win) (not (one-window-p t)))
-                           (delete-window win))
-                         (when (and buf (buffer-live-p buf))
-                           (kill-buffer buf))))))))
+        (dolist (win (get-buffer-window-list buf nil t))
+          (when (eq (window-deletable-p win) t)
+            (delete-window win))))))
 
   (add-hook 'ghostel-exit-functions #'my/ghostel-auto-close-on-exit))
 
