@@ -58,8 +58,6 @@ Working directory is automatically set to the project root of the current buffer
          (existing (get-buffer buf-name))
          (right-win (my/agent-get-or-create-window)))
     (select-window right-win)
-    (set-window-dedicated-p right-win t)
-    (set-window-parameter right-win 'tab-line-format 'none)
     (if (and existing
              (buffer-live-p existing)
              (or (get-buffer-process existing)
@@ -90,16 +88,19 @@ Working directory is automatically set to the project root of the current buffer
             (rename-buffer buf-name t)))))
     (my/agent-update-usage-async)))
 
+;; Auto-close split window on agent exit
 (defun my/agent-cleanup-on-exit (buf _event)
+  "Close the agent split window when process exits."
   (when (and buf (buffer-live-p buf))
     (when (or (buffer-local-value 'my/agent-buffer-p buf)
               (string-match-p "\\*agent-" (buffer-name buf)))
       (let ((win (get-buffer-window buf t)))
         (run-at-time 0 nil
                      (lambda ()
+                       ;; Delete window
                        (when (and win (window-live-p win) (not (one-window-p t)))
-                         (set-window-dedicated-p win nil)
                          (delete-window win))
+                       ;; Kill the agent buffer cleanly
                        (when (and buf (buffer-live-p buf))
                          (kill-buffer buf))))))))
 
@@ -125,6 +126,7 @@ Working directory is automatically set to the project root of the current buffer
       ("Claude Code" (my/agent-shell-claude)))))
 
 (defun my/agent-shell-toggle ()
+  "Toggle visibility of active agent split."
   (interactive)
   (let* ((all-wins (window-list))
          (agent-win (cl-find-if (lambda (w)
@@ -133,9 +135,7 @@ Working directory is automatically set to the project root of the current buffer
                                         (string-match-p "\\*agent-" (buffer-name b)))))
                                 all-wins)))
     (if agent-win
-        (progn
-          (set-window-dedicated-p agent-win nil)
-          (delete-window agent-win))
+        (delete-window agent-win)
       (pcase my/agent-active-name
         ("Claude" (my/agent-shell-claude))
         (_        (my/agent-shell-gemini))))))
@@ -304,29 +304,6 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
       (my/agent-claude-update-usage-async))))
 
 (add-hook 'window-selection-change-functions #'my/agent--on-focus-change)
-
-(defun my/agent-prevent-sole-ordinary-window-deletion (&optional window)
-  (let ((win (or window (selected-window))))
-    (when (and (not (window-dedicated-p win))
-               (null (cdr (seq-filter (lambda (w) (not (window-dedicated-p w)))
-                                      (window-list nil 'no-minibuf)))))
-      (user-error "Cannot delete sole ordinary window"))))
-
-(advice-add 'delete-window :before #'my/agent-prevent-sole-ordinary-window-deletion)
-
-(defun my/agent-prevent-dedicated-delete-other-windows (&optional window)
-  (let ((win (or window (selected-window))))
-    (when (window-dedicated-p win)
-      (user-error "Cannot delete other windows from a dedicated window"))))
-
-(advice-add 'delete-other-windows :before #'my/agent-prevent-dedicated-delete-other-windows)
-
-(defun my/agent-skip-in-ordinary-windows (window buffer _bury-or-kill)
-  (and (not (window-dedicated-p window))
-       (or (buffer-local-value 'my/agent-buffer-p buffer)
-           (string-prefix-p "*agent-" (buffer-name buffer)))))
-
-(setq switch-to-prev-buffer-skip #'my/agent-skip-in-ordinary-windows)
 
 (require 'agent-keys)
 
