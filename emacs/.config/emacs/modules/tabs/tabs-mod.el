@@ -16,6 +16,15 @@
 
   (advice-add 'bufferline-buffers-all :filter-return #'my/bufferline-persp-filter)
 
+  (defun my/bufferline-filter (buffer)
+    (let ((name (buffer-name buffer)))
+      (not (or (buffer-local-value 'my/agent-buffer-p buffer)
+               (buffer-local-value 'my/ghostel-bottom-buffer-p buffer)
+               (string-prefix-p "*agent-" name)
+               (string-prefix-p "*ghostel-bottom" name)))))
+
+  (setq bufferline-custom-filter #'my/bufferline-filter)
+
   (defvar my/tab-close-commands
     '(kill-current-buffer kill-buffer kill-this-buffer evil-delete-buffer
                           bufferline-close-tab bufferline-pick-close))
@@ -40,8 +49,8 @@
 
   (defun my/tab-close ()
     (interactive)
-    (let ((buf (current-buffer))
-          (win (selected-window)))
+    (let* ((win (selected-window))
+           (buf (window-buffer win)))
       (cond
        ((window-dedicated-p win)
         (delete-window win))
