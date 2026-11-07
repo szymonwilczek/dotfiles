@@ -168,18 +168,8 @@ bindsym $mod+grave exec ~/.config/sway/scripts/jot-scratch.sh
 bindsym $mod+c exec ~/.config/sway/scripts/clipboard.sh
 bindsym $mod+b exec ~/.config/sway/scripts/window-picker.sh
 
-# Screen recording & Drawing
+# Screen recording
 bindsym $mod+Shift+r exec ~/.config/sway/scripts/record-screen.sh
-bindsym $mod+Shift+t exec ~/.config/sway/scripts/toggle-drawing.sh
-
-# Gromit-MPX
-bindsym F9 exec gromit-mpx --toggle
-bindsym Shift+F9 exec gromit-mpx --clear
-bindsym Ctrl+F9 exec gromit-mpx --visibility
-bindsym Alt+F9 exec gromit-mpx --quit
-
-for_window [app_id="Gromit-mpx"] floating enable, border none, sticky enable
-for_window [class="Gromit-mpx"] floating enable, border none, sticky enable
 
 # Window marks
 include marks.conf
