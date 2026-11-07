@@ -74,7 +74,7 @@
 (use-package consult
   :ensure t
   :config
-  (setq consult-preview-key '(:debounce 0.2 any)
+  (setq consult-preview-key "M-."
         consult-async-min-input 2
         consult-buffer-filter
         '("\\` "
