@@ -16,23 +16,52 @@
 
   (advice-add 'bufferline-buffers-all :filter-return #'my/bufferline-persp-filter)
 
-  ;; Every perspective keeps at least one tab: closing the last one is
-  ;; refused, and the perspective's scratch goes once a real tab exists
   (defvar my/tab-close-commands
     '(kill-current-buffer kill-buffer kill-this-buffer evil-delete-buffer
-      bufferline-close-tab bufferline-pick-close)
-    "Commands that close a tab and must leave the perspective one.")
+                          bufferline-close-tab bufferline-pick-close))
 
-  (defun my/last-tab-p (buffer)
-    "Non-nil when BUFFER is the only tab of the selected window."
-    (let ((tabs (bufferline-buffers-all)))
-      (and (memq buffer tabs) (null (cdr tabs)))))
+  (defun my/last-tab-p (&optional buffer)
+    (let* ((buf (or buffer (current-buffer)))
+           (tabs (seq-filter (lambda (b)
+                               (and (if (bound-and-true-p persp-mode)
+                                        (persp-is-current-buffer b)
+                                      t)
+                                    (bufferline-buffers-candidate-p b)))
+                             (buffer-list))))
+      (and (memq buf tabs)
+           (null (cdr tabs)))))
+
+  (defun my/split-window-p (&optional window)
+    (let ((win (or window (selected-window))))
+      (unless (window-dedicated-p win)
+        (> (length (seq-filter (lambda (w) (not (window-dedicated-p w)))
+                               (window-list nil 'no-minibuf)))
+           1))))
+
+  (defun my/tab-close ()
+    (interactive)
+    (let ((buf (current-buffer))
+          (win (selected-window)))
+      (cond
+       ((window-dedicated-p win)
+        (delete-window win))
+       ((my/split-window-p win)
+        (delete-window win)
+        (unless (my/last-tab-p buf)
+          (kill-buffer buf)))
+       ((my/last-tab-p buf)
+        (user-error "Cannot close the last tab%s"
+                    (if (bound-and-true-p persp-mode)
+                        (format " of perspective %s" (persp-current-name))
+                      "")))
+       (t
+        (kill-current-buffer)))))
 
   (defun my/refuse-closing-last-tab (&optional buffer)
-    "Signal a user error when BUFFER is the last tab and a close command runs."
-    (let ((buffer (or buffer (current-buffer))))
+    (let ((buf (or buffer (current-buffer))))
       (when (and (memq this-command my/tab-close-commands)
-                 (my/last-tab-p buffer))
+                 (not (my/split-window-p))
+                 (my/last-tab-p buf))
         (user-error "Cannot close the last tab%s"
                     (if (bound-and-true-p persp-mode)
                         (format " of perspective %s" (persp-current-name))
@@ -40,7 +69,6 @@
     t)
 
   (add-hook 'kill-buffer-query-functions #'my/refuse-closing-last-tab -90)
-  ;; bufferline-close-tab switches away before killing, so stop it first
   (advice-add 'bufferline-close-tab :before #'my/refuse-closing-last-tab)
 
   (defun my/scratch-buffer-p (buffer)

@@ -16,6 +16,7 @@
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my-leader-def)
     (my-leader-def
+      "q"  '(my/tab-close :which-key "Close Buffer / Split")
       "b"  '(:ignore t :which-key "Buffers")
       "bp" '(bufferline-pick :which-key "Pick Buffer")
       "bd" '(bufferline-pick-close :which-key "Pick Close Buffer")
