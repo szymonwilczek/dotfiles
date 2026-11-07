@@ -144,9 +144,9 @@ bindsym --whole-window $mod+button4 exec $ws next
 bindsym --whole-window $mod+button5 exec $ws prev
 
 bindsym $mod+v splitv
-
-# bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
+bindsym $mod+t layout toggle tabbed split
+bindsym $mod+Tab focus parent
+bindsym $mod+Shift+Tab focus child
 
 bindsym $mod+f fullscreen
 bindsym $mod+z exec ~/.config/sway/scripts/toggle-floating.sh
