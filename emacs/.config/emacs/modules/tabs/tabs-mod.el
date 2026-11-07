@@ -8,19 +8,18 @@
   (setq bufferline-show-special-buffers t)
   (global-bufferline-mode 1)
 
-  (defun my/bufferline-persp-filter (tabs)
-    "Keep only TABS belonging to the current perspective."
-    (if (bound-and-true-p persp-mode)
-        (seq-filter (lambda (buf) (persp-is-current-buffer buf)) tabs)
-      tabs))
+  (defun my/bufferline-persp-filter (buffer)
+    "Give BUFFER a tab only when it belongs to the current perspective."
+    (or (not (bound-and-true-p persp-mode))
+        (persp-is-current-buffer buffer)))
 
-  (advice-add 'bufferline-buffers-all :filter-return #'my/bufferline-persp-filter)
+  (setq bufferline-custom-filter #'my/bufferline-persp-filter)
 
   ;; Every perspective keeps at least one tab: closing the last one is
   ;; refused, and the perspective's scratch goes once a real tab exists
   (defvar my/tab-close-commands
     '(kill-current-buffer kill-buffer kill-this-buffer evil-delete-buffer
-      bufferline-close-tab bufferline-pick-close)
+                          bufferline-close-tab bufferline-pick-close)
     "Commands that close a tab and must leave the perspective one.")
 
   (defun my/last-tab-p (buffer)
