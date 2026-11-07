@@ -147,7 +147,7 @@ bindsym $mod+Shift+0 exec $ws move 10
 bindsym --whole-window $mod+button4 exec $ws next
 bindsym --whole-window $mod+button5 exec $ws prev
 
-bindsym $mod+v splitv
+bindsym $mod+v exec ~/.config/sway/scripts/clipboard.sh
 bindsym $mod+t layout toggle tabbed split
 bindsym $mod+Tab focus parent
 bindsym $mod+Shift+Tab focus child
@@ -165,7 +165,7 @@ bindsym $mod+Shift+w exec ~/.config/sway/scripts/modal.sh wallpaper
 bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
 bindsym $mod+n exec ~/.config/sway/scripts/toggle-night-light.sh
 bindsym $mod+grave exec ~/.config/sway/scripts/jot-scratch.sh
-bindsym $mod+c exec ~/.config/sway/scripts/clipboard.sh
+bindsym $mod+c exec ~/.config/sway/scripts/calculator.sh
 bindsym $mod+b exec ~/.config/sway/scripts/window-picker.sh
 
 # Screen recording
