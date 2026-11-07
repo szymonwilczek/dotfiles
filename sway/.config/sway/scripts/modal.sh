@@ -10,7 +10,7 @@ bin=$dir/$name
 pidfile=${XDG_RUNTIME_DIR:-/tmp}/$name.pid
 
 case $name in
-pipewire-mixer | audio-switcher | powermenu | wallpaper) ;;
+pipewire-mixer | audio-switcher | powermenu | wallpaper | calculator) ;;
 *) exit 1 ;;
 esac
 

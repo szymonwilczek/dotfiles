@@ -45,6 +45,7 @@ sway/.config/sway/scripts/spotify-island
 sway/.config/sway/scripts/build
 sway/.config/sway/scripts/*.new
 sway/.config/sway/scripts/night-light
+sway/.config/sway/scripts/calculator
 emacs/.config/emacs/tramp
 emacs/.config/emacs/auto-save
 emacs/.config/emacs/scripts/mutt_oauth2.py
