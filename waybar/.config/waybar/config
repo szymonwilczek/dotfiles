@@ -13,7 +13,7 @@
 
     "modules-left": ["sway/workspaces"],
     "modules-center": ["custom/spotify", "cffi/clock"],
-    "modules-right": ["custom/recording", "tray", "cpu", "temperature", "memory", "network", "pulseaudio", "custom/notification"],
+    "modules-right": ["custom/recording", "tray", "custom/cpu", "temperature", "memory", "network", "pulseaudio", "custom/notification"],
 
     "custom/recording": {
       "exec": "~/.config/sway/scripts/recording-status.sh",
@@ -76,11 +76,12 @@
     },
 
     "network": {
-      "format-wifi": "   {essid}",
-      "format-ethernet": "LAN",
-      "format-disconnected": "   Offline",
-      "tooltip-format": "{ipaddr}",
-      "on-click": "ghostty --class=floating_nmtui -e nmtui"
+      "interval": 2,
+      "format-wifi": "{essid}",
+      "format-ethernet": "ETH",
+      "format-disconnected": "OFFLINE",
+      "tooltip-format": "{ipaddr}\n↓ {bandwidthDownBytes}  ↑ {bandwidthUpBytes}",
+      "on-click": "~/.config/sway/scripts/modal.sh net-info"
     },
 
     "pulseaudio": {
