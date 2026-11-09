@@ -55,6 +55,7 @@ window#waybar {
   border-right: 1px solid @border_subtle;
 }
 
+#custom-cpu,
 #cpu,
 #temperature,
 #memory,
@@ -74,6 +75,7 @@ window#waybar {
   color: @text_main;
 }
 
+#custom-cpu:hover,
 #cpu:hover,
 #temperature:hover,
 #memory:hover,

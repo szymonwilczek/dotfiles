@@ -100,9 +100,11 @@
       "spacing": 8
     },
 
-    "cpu": {
+    "custom/cpu": {
+      "exec": "~/.config/sway/scripts/waybar-cpu.sh",
+      "return-type": "json",
       "interval": 2,
-      "format": "CPU {usage}%"
+      "tooltip": true
     },
 
     "temperature": {

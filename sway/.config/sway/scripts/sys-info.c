@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/statvfs.h>
+#include <sys/utsname.h>
+#include <unistd.h>
 
 // A bar turns red from this fraction of its limit on
 #define CRITICAL 0.85
@@ -19,7 +21,7 @@ typedef struct {
   char gpu_hwmon[300];
   char nvme_hwmon[300];
   unsigned long long prev_idle, prev_total;
-  Row load, cpu_temp;
+  Row load, loadavg, cpu_temp;
   Row gpu_edge, gpu_junction, gpu_mem, gpu_fan, gpu_power;
   Row ram, disk, nvme_temp;
 } App;
@@ -196,6 +198,17 @@ static gboolean update(gpointer data) {
   App *app = data;
   double load = cpu_load(app);
   set_row(&app->load, load, "%.0f %%", load * 100);
+
+  double la1 = 0;
+  FILE *f_la = fopen("/proc/loadavg", "r");
+  if (f_la) {
+    if (fscanf(f_la, "%lf", &la1) != 1)
+      la1 = 0;
+    fclose(f_la);
+  }
+  long nprocs = sysconf(_SC_NPROCESSORS_ONLN);
+  set_row(&app->loadavg, nprocs > 0 ? la1 / nprocs : 0, "%.2f", la1);
+
   set_temp(&app->cpu_temp, app->cpu_hwmon, 1, 95);
 
   set_temp(&app->gpu_edge, app->gpu_hwmon, 1, 100);
@@ -325,8 +338,16 @@ int main(int argc, char *argv[]) {
   if (!disk[0])
     snprintf(disk, sizeof(disk), "/");
 
-  GtkWidget *rows = section(box, "procesor", cpu);
+  struct utsname un;
+  char cpu_hdr[160];
+  if (uname(&un) == 0)
+    snprintf(cpu_hdr, sizeof(cpu_hdr), "%s · %s", cpu, un.release);
+  else
+    snprintf(cpu_hdr, sizeof(cpu_hdr), "%s", cpu);
+
+  GtkWidget *rows = section(box, "procesor", cpu_hdr);
   app.load = row(rows, "obciążenie");
+  app.loadavg = row(rows, "load 1m");
   app.cpu_temp = row(rows, "temperatura");
 
   rows = section(box, "grafika", gpu);
