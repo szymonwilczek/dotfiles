@@ -142,7 +142,7 @@ static void render(Switcher *sw) {
   g_list_free(rows);
 
   if (sw->count == 0) {
-    GtkWidget *l = label("brak wyjść dźwięku", "note");
+    GtkWidget *l = label("BRAK WYJŚĆ AUDIO", "note");
     gtk_label_set_xalign(GTK_LABEL(l), 0);
     gtk_box_pack_start(GTK_BOX(sw->list), l, FALSE, FALSE, 0);
   }
@@ -166,7 +166,7 @@ static void render(Switcher *sw) {
     gtk_label_set_width_chars(GTK_LABEL(nick), 14);
     gtk_box_pack_start(GTK_BOX(row), nick, TRUE, TRUE, 0);
 
-    GtkWidget *state = label(i == sw->current ? "domyślne" : "", "value");
+    GtkWidget *state = label(i == sw->current ? "DEFAULT" : "", "value");
     gtk_label_set_xalign(GTK_LABEL(state), 1);
     gtk_label_set_width_chars(GTK_LABEL(state), 9);
     gtk_box_pack_start(GTK_BOX(row), state, FALSE, FALSE, 0);
@@ -231,7 +231,7 @@ static void on_read(gpointer data, gpointer read) {
       sw->selected = i;
 
   Sink *cur = sw->count ? &sw->sinks[sw->current] : NULL;
-  gtk_label_set_text(GTK_LABEL(sw->device), cur ? cur->device : "brak wyjścia");
+  gtk_label_set_text(GTK_LABEL(sw->device), cur ? cur->device : "BRAK WYJŚCIA");
   gtk_label_set_text(GTK_LABEL(sw->nick), cur ? cur->nick : "");
   render(sw);
 }

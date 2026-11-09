@@ -455,8 +455,6 @@ static GtkWidget *section(GtkWidget *parent, const char *title,
   gtk_widget_set_halign(header, GTK_ALIGN_START);
   gtk_box_pack_start(GTK_BOX(header), label(title, "segment-dark"), FALSE,
                      FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(header), label("", "segment-arrow"), FALSE,
-                     FALSE, 0);
   gtk_box_pack_start(GTK_BOX(header), label(detail, "segment-light"), FALSE,
                      FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), header, FALSE, FALSE, 0);
@@ -478,7 +476,7 @@ static LevelRow level_row(GtkWidget *rows, const char *key) {
 
   GtkWidget *k = label(key, "key");
   gtk_label_set_xalign(GTK_LABEL(k), 0);
-  gtk_label_set_width_chars(GTK_LABEL(k), 14);
+  gtk_label_set_width_chars(GTK_LABEL(k), 16);
   gtk_grid_attach(GTK_GRID(rows), k, 0, y, 1, 1);
 
   LevelRow r = {.bar = gtk_level_bar_new(), .value = label("", "value")};
@@ -505,7 +503,7 @@ static TextRow text_row(GtkWidget *rows, const char *key) {
 
   GtkWidget *k = label(key, "key");
   gtk_label_set_xalign(GTK_LABEL(k), 0);
-  gtk_label_set_width_chars(GTK_LABEL(k), 14);
+  gtk_label_set_width_chars(GTK_LABEL(k), 16);
   gtk_grid_attach(GTK_GRID(rows), k, 0, y, 1, 1);
 
   TextRow r = {.key = k, .value = label("", "value")};
@@ -527,9 +525,9 @@ static void on_show(gpointer data) {
                app->gateway[0] ? app->gateway : "—");
   set_text_row(&app->r_dns, FALSE, "%s", app->dns[0] ? app->dns : "—");
   if (app->tailscale[0])
-    set_text_row(&app->r_tailscale, FALSE, "%s (aktywny)", app->tailscale);
+    set_text_row(&app->r_tailscale, FALSE, "%s (AKTYWNY)", app->tailscale);
   else
-    set_text_row(&app->r_tailscale, FALSE, "nieaktywny");
+    set_text_row(&app->r_tailscale, FALSE, "NIEAKTYWNY");
 
   update(app);
   run_ping(app);
@@ -609,33 +607,33 @@ int main(int argc, char *argv[]) {
   snprintf(iface_hdr, sizeof(iface_hdr), "%s · %d Mb/s %s", app.iface,
            app.speed_mbps > 0 ? app.speed_mbps : 1000,
            app.duplex[0] ? app.duplex : "full");
-  GtkWidget *s1 = section(box, "interfejs", iface_hdr);
-  app.r_chip = text_row(s1, "kontroler");
+  GtkWidget *s1 = section(box, "INTERFEJS", iface_hdr);
+  app.r_chip = text_row(s1, "KONTROLER");
   set_text_row(&app.r_chip, FALSE, "%s (%s)", app.chip, app.driver);
-  app.r_mac = text_row(s1, "adres mac");
+  app.r_mac = text_row(s1, "MAC");
   set_text_row(&app.r_mac, FALSE, "%s", app.mac[0] ? app.mac : "—");
-  app.r_mtu = text_row(s1, "mtu");
+  app.r_mtu = text_row(s1, "MTU");
   set_text_row(&app.r_mtu, FALSE, "%d B", app.mtu ? app.mtu : 1500);
 
-  GtkWidget *s2 = section(box, "adresowanie", "stos ipv4 & routing");
-  app.r_ip = text_row(s2, "ipv4");
-  app.r_gateway = text_row(s2, "brama domyślna");
-  app.r_dns = text_row(s2, "serwery dns");
-  app.r_tailscale = text_row(s2, "tailscale vpn");
+  GtkWidget *s2 = section(box, "ADRESOWANIE", "STOS IPV4 & ROUTING");
+  app.r_ip = text_row(s2, "IPV4");
+  app.r_gateway = text_row(s2, "BRAMA");
+  app.r_dns = text_row(s2, "DNS");
+  app.r_tailscale = text_row(s2, "TAILSCALE");
 
-  GtkWidget *s3 = section(box, "ruch na żywo", "przepustowość");
-  app.r_rx_rate = level_row(s3, "odbieranie (rx)");
-  app.r_tx_rate = level_row(s3, "wysyłanie (tx)");
+  GtkWidget *s3 = section(box, "BANDWIDTH", "PRZEPUSTOWOŚĆ");
+  app.r_rx_rate = level_row(s3, "RECV (RX)");
+  app.r_tx_rate = level_row(s3, "SEND (TX)");
 
-  GtkWidget *s4 = section(box, "liczniki jądra", "od rozruchu systemu");
-  app.r_totals = text_row(s4, "przesłano bajtów");
-  app.r_packets = text_row(s4, "pakiety");
-  app.r_errors = text_row(s4, "błędy (errors)");
-  app.r_drops = text_row(s4, "odrzucone (drops)");
+  GtkWidget *s4 = section(box, "LICZNIKI JĄDRA", "OD ROZRUCHU SYSTEMU");
+  app.r_totals = text_row(s4, "TRANSFER");
+  app.r_packets = text_row(s4, "PAKIETY");
+  app.r_errors = text_row(s4, "ERRORS");
+  app.r_drops = text_row(s4, "DROPS");
 
-  GtkWidget *s5 = section(box, "diagnostyka", "opóźnienie rtt");
-  app.r_ping_gw = text_row(s5, "ping brama");
-  app.r_ping_inet = text_row(s5, "ping 1.1.1.1");
+  GtkWidget *s5 = section(box, "DIAGNOSTYKA", "OPÓŹNIENIE RTT");
+  app.r_ping_gw = text_row(s5, "PING BRAMA");
+  app.r_ping_inet = text_row(s5, "PING 1.1.1.1");
 
   gtk_container_add(GTK_CONTAINER(window), box);
   g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), &app);

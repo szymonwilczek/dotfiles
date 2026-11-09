@@ -10,9 +10,9 @@ typedef struct {
 } Action;
 
 static const Action ACTIONS[] = {
-    {"Wyloguj", "swaymsg exit"},
-    {"Uruchom ponownie", "systemctl reboot"},
-    {"Wyłącz", "systemctl poweroff"},
+    {"WYLOGUJ", "swaymsg exit"},
+    {"URUCHOM PONOWNIE", "systemctl reboot"},
+    {"WYŁĄCZ", "systemctl poweroff"},
 };
 #define COUNT ((int)G_N_ELEMENTS(ACTIONS))
 
@@ -123,12 +123,12 @@ static void read_uptime(Menu *m) {
   long min = (long)secs / 60;
   char text[64];
   if (min >= 24 * 60)
-    snprintf(text, sizeof(text), "działa %ld d %ld h", min / (24 * 60),
+    snprintf(text, sizeof(text), "UPTIME: %ld d %ld h", min / (24 * 60),
              min / 60 % 24);
   else if (min >= 60)
-    snprintf(text, sizeof(text), "działa %ld h %ld min", min / 60, min % 60);
+    snprintf(text, sizeof(text), "UPTIME: %ld h %ld min", min / 60, min % 60);
   else
-    snprintf(text, sizeof(text), "działa %ld min", min);
+    snprintf(text, sizeof(text), "UPTIME: %ld min", min);
   gtk_label_set_text(GTK_LABEL(m->uptime), text);
 }
 
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 
   GtkWidget *section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
   add_class(section, "section");
-  gtk_box_pack_start(GTK_BOX(section), heading("Zasilanie", &m.uptime), FALSE,
+  gtk_box_pack_start(GTK_BOX(section), heading("ZASILANIE", &m.uptime), FALSE,
                      FALSE, 0);
 
   m.list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);

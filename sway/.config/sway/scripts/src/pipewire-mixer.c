@@ -109,7 +109,7 @@ static void render(Mixer *m) {
   g_list_free(rows);
 
   if (m->count == 0) {
-    GtkWidget *l = label("brak odtwarzanych strumieni", "note");
+    GtkWidget *l = label("BRAK AKTYWNYCH STRUMIENI", "note");
     gtk_label_set_xalign(GTK_LABEL(l), 0);
     gtk_box_pack_start(GTK_BOX(m->list), l, FALSE, FALSE, 0);
   }
@@ -145,7 +145,7 @@ static void render(Mixer *m) {
     char text[16];
     snprintf(text, sizeof(text), "%d %%", s->volume);
     GtkWidget *value =
-        label(s->muted ? "wyciszone" : text, s->muted ? "note" : "value");
+        label(s->muted ? "MUTED" : text, s->muted ? "note" : "value");
     gtk_label_set_xalign(GTK_LABEL(value), 1);
     gtk_label_set_width_chars(GTK_LABEL(value), 9);
     gtk_box_pack_start(GTK_BOX(row), value, FALSE, FALSE, 0);

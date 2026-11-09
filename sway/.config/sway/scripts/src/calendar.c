@@ -1,7 +1,8 @@
 // The calendar under the waybar clock, one process for the bar's lifetime,
 // told by waybar-clock.c on its stdin what to do, a command a line:
 //
-//   peek X Y CX   show it unfocused, under the clock at CX on the output at X,Y,
+//   peek X Y CX   show it unfocused, under the clock at CX on the output at
+//   X,Y,
 //                 once the pointer rested on the clock for a moment
 //   leave         the pointer left the clock: hide a peek, and an open one
 //                 too unless the pointer went onto it
@@ -19,9 +20,9 @@
 #define CELLS 42
 
 static const char *MONTHS[] = {
-    "styczeń", "luty",     "marzec",   "kwiecień",    "maj",      "czerwiec",
-    "lipiec",  "sierpień", "wrzesień", "październik", "listopad", "grudzień"};
-static const char *WEEKDAYS[] = {"pn", "wt", "śr", "cz", "pt", "so", "nd"};
+    "STYCZEŃ", "LUTY",     "MARZEC",   "KWIECIEŃ",    "MAJ",      "CZERWIEC",
+    "LIPIEC",  "SIERPIEŃ", "WRZESIEŃ", "PAŹDZIERNIK", "LISTOPAD", "GRUDZIEŃ"};
+static const char *WEEKDAYS[] = {"PN", "WT", "ŚR", "CZ", "PT", "SO", "ND"};
 
 typedef struct {
   GtkWidget *month;

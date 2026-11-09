@@ -248,8 +248,6 @@ static GtkWidget *section(GtkWidget *parent, const char *title,
   gtk_widget_set_halign(header, GTK_ALIGN_START);
   gtk_box_pack_start(GTK_BOX(header), label(title, "segment-dark"), FALSE,
                      FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(header), label("", "segment-arrow"), FALSE,
-                     FALSE, 0);
   gtk_box_pack_start(GTK_BOX(header), label(detail, "segment-light"), FALSE,
                      FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), header, FALSE, FALSE, 0);
@@ -271,7 +269,7 @@ static Row row(GtkWidget *rows, const char *key) {
 
   GtkWidget *k = label(key, "key");
   gtk_label_set_xalign(GTK_LABEL(k), 0);
-  gtk_label_set_width_chars(GTK_LABEL(k), 12);
+  gtk_label_set_width_chars(GTK_LABEL(k), 16);
   gtk_grid_attach(GTK_GRID(rows), k, 0, y, 1, 1);
 
   Row r = {.bar = gtk_level_bar_new(), .value = label("", "value")};
@@ -345,24 +343,24 @@ int main(int argc, char *argv[]) {
   else
     snprintf(cpu_hdr, sizeof(cpu_hdr), "%s", cpu);
 
-  GtkWidget *rows = section(box, "procesor", cpu_hdr);
-  app.load = row(rows, "obciążenie");
-  app.loadavg = row(rows, "load 1m");
-  app.cpu_temp = row(rows, "temperatura");
+  GtkWidget *rows = section(box, "CPU", cpu_hdr);
+  app.load = row(rows, "LOAD");
+  app.loadavg = row(rows, "LOAD 1M");
+  app.cpu_temp = row(rows, "TEMP CPU");
 
-  rows = section(box, "grafika", gpu);
-  app.gpu_edge = row(rows, "rdzeń");
-  app.gpu_junction = row(rows, "hotspot");
-  app.gpu_mem = row(rows, "vram");
-  app.gpu_fan = row(rows, "wentylator");
-  app.gpu_power = row(rows, "pobór mocy");
+  rows = section(box, "GPU", gpu);
+  app.gpu_edge = row(rows, "CORE");
+  app.gpu_junction = row(rows, "HOTSPOT");
+  app.gpu_mem = row(rows, "VRAM");
+  app.gpu_fan = row(rows, "WENTYLATOR");
+  app.gpu_power = row(rows, "POWER");
 
-  rows = section(box, "pamięć", ram);
-  app.ram = row(rows, "ram");
+  rows = section(box, "MEMORY", ram);
+  app.ram = row(rows, "RAM");
 
-  rows = section(box, "dysk", disk);
-  app.disk = row(rows, "zajęte");
-  app.nvme_temp = row(rows, "temperatura");
+  rows = section(box, "DYSK", disk);
+  app.disk = row(rows, "USED");
+  app.nvme_temp = row(rows, "TEMP NVME");
 
   gtk_container_add(GTK_CONTAINER(window), box);
   update(&app);

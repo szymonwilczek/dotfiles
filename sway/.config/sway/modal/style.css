@@ -24,27 +24,26 @@ window {
 
 .segment-dark,
 .segment-light {
-  padding: 1px 12px;
+  padding: 2px 10px;
+  border-radius: 0;
 }
 
 .segment-dark {
   background-color: @bg_active;
   color: @text_focused;
-  padding-right: 6px;
-  border-radius: 0;
+  font-weight: 600;
 }
 
 .segment-arrow {
-  background-color: @border_focused;
-  color: @bg_active;
   padding: 0;
+  min-width: 0;
+  min-height: 0;
 }
 
 .segment-light {
   background-color: @border_focused;
   color: @bg_dark;
   font-weight: 600;
-  border-radius: 0;
 }
 
 /* Heading */
@@ -131,7 +130,7 @@ window.calendar {
 .day {
   min-width: 30px;
   min-height: 30px;
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 .day.weekend {
@@ -173,7 +172,7 @@ levelbar.muted trough block.filled {
 .thumb {
   padding: 2px;
   border: 2px solid transparent;
-  border-radius: 4px;
+  border-radius: 0;
   background-color: @bg_surface;
 }
 
@@ -197,7 +196,7 @@ entry.calc-entry {
   background-color: @bg_surface;
   color: @text_focused;
   border: 1px solid @border_inactive;
-  border-radius: 4px;
+  border-radius: 0;
   padding: 8px 12px;
   font-size: 16px;
   box-shadow: none;
@@ -212,7 +211,7 @@ entry.calc-entry:focus {
   padding: 8px 12px;
   background-color: @bg_surface;
   border: 1px solid @border_subtle;
-  border-radius: 4px;
+  border-radius: 0;
   min-height: 24px;
 }
 

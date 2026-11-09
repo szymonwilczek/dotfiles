@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
   add_class(box, "modal");
   add_class(box, "calc-box");
 
-  GtkWidget *head = heading("Kalkulator");
+  GtkWidget *head = heading("KALKULATOR");
   gtk_box_pack_start(GTK_BOX(box), head, FALSE, FALSE, 0);
 
   c.entry = gtk_entry_new();
