@@ -99,7 +99,7 @@ bindsym Ctrl+Shift+Escape exec $taskmanager
 
 floating_modifier $mod normal
 
-bindsym $mod+Shift+c exec sh -c '~/.config/sway/scripts/generate-tiled-rules.sh; swaymsg reload'
+bindsym $mod+Shift+c exec sh -c '~/.config/sway/scripts/generate-tiled-rules.sh; swaymsg reload; pkill -x waybar; ~/.config/sway/scripts/waybar.sh'
 
 bindsym $mod+$left focus left
 bindsym $mod+$down focus down
