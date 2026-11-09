@@ -16,7 +16,7 @@ GTK = gtk+-3.0
 PROTOCOL = wlr-gamma-control-unstable-v1
 
 PROGRAMS = sys-info calendar pipewire-mixer audio-switcher powermenu \
-	wallpaper night-light spotify-island calculator waybar-clock.so
+	wallpaper night-light spotify-island calculator waybar-clock.so net-info
 
 all: $(PROGRAMS)
 
@@ -47,7 +47,7 @@ pipewire-mixer audio-switcher: %: %.c modal.h pactl.h
 	$(call build,$<,$(GTK) json-c)
 	@$(call restart,$@,pkill -x $@; $(call sway,modal.sh $@ --hidden))
 
-powermenu wallpaper calculator: %: %.c modal.h
+powermenu wallpaper calculator net-info: %: %.c modal.h
 	$(call build,$<,$(GTK))
 	@$(call restart,$@,pkill -x $@; $(call sway,modal.sh $@ --hidden))
 

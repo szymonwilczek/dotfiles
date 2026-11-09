@@ -65,3 +65,4 @@ emacs/.config/emacs/icloud-calendar
 emacs/.config/emacs/gh-radar-cache.eld
 emacs/.config/emacs/projects.eld
 *~
+/sway/.config/sway/scripts/net-info
