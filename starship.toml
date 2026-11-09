@@ -11,13 +11,13 @@ $line_break$character"""
 palette = 'custom'
 
 [palettes.custom]
-color_session_bg = "#ababab"
+color_session_bg = "#707070"
 color_session_fg = "#121212"
 color_window_bg  = "#2c2c2c"
-color_window_fg  = "#f5f5f5"
-color_success    = "#ababab"
+color_window_fg  = "#b2b2b2"
+color_success    = "#707070"
 color_error      = "#e06c75"
-color_vimcmd     = "#707070"
+color_vimcmd     = "#6e6e6e"
 
 [os]
 disabled = false

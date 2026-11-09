@@ -10,15 +10,15 @@ export COLOR_BG_SURFACE="#181818"
 export COLOR_BG_ACTIVE="#2c2c2c"
 
 # Borders
-export COLOR_BORDER_FOCUSED="#ababab"
+export COLOR_BORDER_FOCUSED="#707070"
 export COLOR_BORDER_INACTIVE="#3a3a3a"
 export COLOR_BORDER_UNFOCUSED="#242424"
 export COLOR_BORDER_SUBTLE="#262626"
 
 # Typography / Text
-export COLOR_TEXT_MAIN="#d0d0d0"
-export COLOR_TEXT_MUTED="#707070"
-export COLOR_TEXT_FOCUSED="#f5f5f5"
+export COLOR_TEXT_MAIN="#9e9e9e"
+export COLOR_TEXT_MUTED="#6e6e6e"
+export COLOR_TEXT_FOCUSED="#b2b2b2"
 
 # Accents
 export COLOR_ACCENT_URGENT="#e06c75"
