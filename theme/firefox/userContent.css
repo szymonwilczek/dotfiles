@@ -1,0 +1,14 @@
+/* Generated automatically by dotfiles/theme/apply.sh - DO NOT EDIT MANUALLY */
+/* Edit dotfiles/theme/colors.sh instead! */
+/* Firefox theme 'simple': ntp_background, ntp_card_background, ntp_text */
+
+@-moz-document url-prefix("about:newtab"), url-prefix("about:home"), url-prefix("about:privatebrowsing") {
+  :root {
+    --newtab-background-color: #121212 !important;
+    --newtab-background-color-secondary: #181818 !important;
+    --newtab-background-card: #181818 !important;
+    --newtab-text-primary-color: #b2b2b2 !important;
+    --newtab-primary-action-background: #707070 !important;
+    --focus-outline-color: #707070 !important;
+  }
+}

@@ -12,6 +12,12 @@ hex_raw() {
     echo "$1" | tr -d '#'
 }
 
+# convert '#RRGGBB' to 'rgb(r, g, b)'
+hex_to_rgb() {
+    local hex="${1#"#"}"
+                    printf "rgb(%d, %d, %d)" "0x${hex:0:2}" "0x${hex:2:2}" "0x${hex:4:2}"
+}
+
 HEX_BG_DARK_RAW="$(hex_raw "$COLOR_BG_DARK")"
 HEX_BG_ACTIVE_RAW="$(hex_raw "$COLOR_BG_ACTIVE")"
 HEX_BORDER_FOCUSED_RAW="$(hex_raw "$COLOR_BORDER_FOCUSED")"
@@ -254,6 +260,289 @@ cat <<EOF >"${DOTFILES_DIR}/ghostty/.config/ghostty/theme.conf"
 cursor-color = ${COLOR_BORDER_FOCUSED}
 cursor-text = ${COLOR_BG_DARK}
 EOF
+
+# Firefox theme 'simple': theme/firefox/{userChrome,userContent}.css
+FF_DIR="${DOTFILES_DIR}/theme/firefox"
+mkdir -p "$FF_DIR"
+
+# Theme API key -> palette
+FF_FRAME="${COLOR_BG_DARK}"                          # frame
+FF_FRAME_INACTIVE="${COLOR_BG_DARK}"                 # frame_inactive
+FF_TAB_BG_TEXT="${COLOR_TEXT_MAIN}"                  # tab_background_text
+FF_TAB_SELECTED="${COLOR_BG_ACTIVE}"                 # tab_selected
+FF_TAB_TEXT="${COLOR_TEXT_FOCUSED}"                  # tab_text
+FF_TAB_LINE="${COLOR_BORDER_FOCUSED}"                # tab_line
+FF_TAB_LOADING="${COLOR_TEXT_FOCUSED}"               # tab_loading
+FF_TAB_SEPARATOR="${COLOR_BORDER_INACTIVE}"          # tab_background_separator
+FF_TAB_HOVER="${COLOR_BORDER_UNFOCUSED}"
+FF_TOOLBAR="${COLOR_BG_SURFACE}"                     # toolbar
+FF_TOOLBAR_TEXT="${COLOR_TEXT_FOCUSED}"              # toolbar_text
+FF_ICONS="${COLOR_TEXT_FOCUSED}"                     # icons
+FF_ICONS_ATTENTION="${COLOR_ACCENT_URGENT}"          # icons_attention
+FF_BUTTON_HOVER="${COLOR_BG_ACTIVE}"                 # button_background_hover
+FF_BUTTON_ACTIVE="${COLOR_BORDER_INACTIVE}"          # button_background_active
+FF_FIELD="${COLOR_BG_DARK}"                          # toolbar_field
+FF_FIELD_TEXT="${COLOR_TEXT_FOCUSED}"                # toolbar_field_text
+FF_FIELD_BORDER="${COLOR_BG_DARK}"                   # toolbar_field_border (= field: no seam)
+FF_FIELD_FOCUS="${COLOR_BG_DARK}"                    # toolbar_field_focus
+FF_FIELD_TEXT_FOCUS="${COLOR_TEXT_FOCUSED}"          # toolbar_field_text_focus
+FF_FIELD_BORDER_FOCUS="${COLOR_BORDER_FOCUSED}"      # toolbar_field_border_focus
+FF_FIELD_HIGHLIGHT="${COLOR_BORDER_FOCUSED}"         # toolbar_field_highlight
+FF_FIELD_HIGHLIGHT_TEXT="${COLOR_BG_DARK}"           # toolbar_field_highlight_text
+FF_FIELD_SEPARATOR="${COLOR_BORDER_INACTIVE}"        # toolbar_field_separator
+FF_TOP_SEPARATOR="transparent"                       # toolbar_top_separator
+FF_BOTTOM_SEPARATOR="transparent"                    # toolbar_bottom_separator
+FF_VERTICAL_SEPARATOR="${COLOR_BORDER_INACTIVE}"     # toolbar_vertical_separator
+FF_POPUP="${COLOR_BG_SURFACE}"                       # popup
+FF_POPUP_TEXT="${COLOR_TEXT_FOCUSED}"                # popup_text
+FF_POPUP_BORDER="${COLOR_BORDER_INACTIVE}"           # popup_border
+FF_POPUP_HIGHLIGHT="${COLOR_BG_ACTIVE}"              # popup_highlight
+FF_POPUP_HIGHLIGHT_TEXT="${COLOR_TEXT_FOCUSED}"      # popup_highlight_text
+FF_SIDEBAR="${COLOR_BG_SURFACE}"                     # sidebar
+FF_SIDEBAR_TEXT="${COLOR_TEXT_FOCUSED}"              # sidebar_text
+FF_SIDEBAR_BORDER="${COLOR_BORDER_SUBTLE}"           # sidebar_border
+FF_SIDEBAR_HIGHLIGHT="${COLOR_BG_ACTIVE}"            # sidebar_highlight
+FF_SIDEBAR_HIGHLIGHT_TEXT="${COLOR_TEXT_FOCUSED}"    # sidebar_highlight_text
+FF_NTP="${COLOR_BG_DARK}"                            # ntp_background
+FF_NTP_CARD="${COLOR_BG_SURFACE}"                    # ntp_card_background
+FF_NTP_TEXT="${COLOR_TEXT_FOCUSED}"                  # ntp_text
+FF_ACCENT="${COLOR_BORDER_FOCUSED}"                  # focus rings, primary buttons, links
+
+cat <<EOF >"${FF_DIR}/userChrome.css"
+/* Generated automatically by dotfiles/theme/apply.sh - DO NOT EDIT MANUALLY */
+/* Edit dotfiles/theme/colors.sh instead! */
+/* Firefox theme 'simple': colors only, stock Proton geometry and fonts. */
+
+:root {
+  /* frame, frame_inactive, tab_background_text */
+  --lwt-accent-color: ${FF_FRAME} !important;
+  --lwt-accent-color-inactive: ${FF_FRAME_INACTIVE} !important;
+  --lwt-text-color: ${FF_TAB_BG_TEXT} !important;
+  --toolbox-background-color: ${FF_FRAME} !important;
+  --toolbox-background-color-inactive: ${FF_FRAME_INACTIVE} !important;
+  --toolbox-text-color: ${FF_TAB_BG_TEXT} !important;
+  --toolbox-text-color-inactive: ${FF_TAB_BG_TEXT} !important;
+  --lwt-header-image: none !important;
+  --lwt-additional-images: none !important;
+
+  /* tab_selected, tab_text, tab_line, tab_loading, tab_background_separator */
+  --tab-background-color-selected: ${FF_TAB_SELECTED} !important;
+  --tab-text-color: ${FF_TAB_BG_TEXT} !important;
+  --tab-text-color-hover: ${FF_TAB_TEXT} !important;
+  --tab-text-color-selected: ${FF_TAB_TEXT} !important;
+  --tab-background-color-hover: ${FF_TAB_HOVER} !important;
+  --lwt-tab-line-color: ${FF_TAB_LINE} !important;
+  --tab-border-color-selected: ${FF_TAB_LINE} !important;
+  --tab-icon-fill-loading: ${FF_TAB_LOADING} !important;
+  --lwt-background-tab-separator-color: ${FF_TAB_SEPARATOR} !important;
+
+  /* toolbar, toolbar_text, icons, icons_attention */
+  --toolbar-background-color: ${FF_TOOLBAR} !important;
+  --toolbar-text-color: ${FF_TOOLBAR_TEXT} !important;
+  --toolbar-color: ${FF_TOOLBAR_TEXT} !important;
+  --toolbarbutton-icon-fill: ${FF_ICONS} !important;
+  --toolbarbutton-icon-fill-attention: ${FF_ICONS_ATTENTION} !important;
+  --toolbarbutton-icon-fill-attention-text: ${FF_FRAME} !important;
+
+  /* button_background_hover, button_background_active */
+  --toolbarbutton-background-color-hover: ${FF_BUTTON_HOVER} !important;
+  --toolbarbutton-background-color-active: ${FF_BUTTON_ACTIVE} !important;
+
+  /* toolbar_field*, toolbar_field_focus, toolbar_field_highlight* */
+  --toolbar-field-background-color: ${FF_FIELD} !important;
+  --toolbar-field-text-color: ${FF_FIELD_TEXT} !important;
+  --toolbar-field-border-color: ${FF_FIELD_BORDER} !important;
+  --toolbar-field-background-color-focus: ${FF_FIELD_FOCUS} !important;
+  --toolbar-field-text-color-focus: ${FF_FIELD_TEXT_FOCUS} !important;
+  --toolbar-field-border-color-focus: ${FF_FIELD_BORDER_FOCUS} !important;
+  --lwt-toolbar-field-highlight: ${FF_FIELD_HIGHLIGHT} !important;
+  --lwt-toolbar-field-highlight-text: ${FF_FIELD_HIGHLIGHT_TEXT} !important;
+  /* toolbar_field_separator: Firefox >= 89 draws no separator in the urlbar,
+     the legacy variable is kept so the key stays covered if it comes back */
+  --urlbar-separator-color: ${FF_FIELD_SEPARATOR} !important;
+
+  /* toolbar_top_separator, toolbar_bottom_separator, toolbar_vertical_separator */
+  --tabs-navbar-separator-color: ${FF_TOP_SEPARATOR} !important;
+  --tabs-navbar-separator-style: none !important;
+  --chrome-content-separator-color: ${FF_BOTTOM_SEPARATOR} !important;
+  --toolbarseparator-color: ${FF_VERTICAL_SEPARATOR} !important;
+
+  /* popup, popup_text, popup_border, popup_highlight, popup_highlight_text */
+  --panel-background-color: ${FF_POPUP} !important;
+  --panel-text-color: ${FF_POPUP_TEXT} !important;
+  --panel-border-color: ${FF_POPUP_BORDER} !important;
+  --urlbarview-background-color-selected: ${FF_POPUP_HIGHLIGHT} !important;
+  --urlbarview-text-color-selected: ${FF_POPUP_HIGHLIGHT_TEXT} !important;
+
+  /* sidebar, sidebar_text, sidebar_border, sidebar_highlight, sidebar_highlight_text */
+  --sidebar-background-color: ${FF_SIDEBAR} !important;
+  --sidebar-text-color: ${FF_SIDEBAR_TEXT} !important;
+  --sidebar-border-color: ${FF_SIDEBAR_BORDER} !important;
+  --lwt-sidebar-highlight-background-color: ${FF_SIDEBAR_HIGHLIGHT} !important;
+  --lwt-sidebar-highlight-text-color: ${FF_SIDEBAR_HIGHLIGHT_TEXT} !important;
+
+  /* ntp_background, ntp_card_background, ntp_text (popups over the new tab page) */
+  --tabpanel-background-color: ${FF_NTP} !important;
+  --newtab-background-color: ${FF_NTP} !important;
+  --newtab-background-color-secondary: ${FF_NTP_CARD} !important;
+  --newtab-text-primary-color: ${FF_NTP_TEXT} !important;
+
+  /* Proton grays */
+  --color-gray-100: ${COLOR_BG_DARK} !important;
+  --color-gray-90: ${COLOR_BG_SURFACE} !important;
+  --color-gray-80: ${COLOR_BORDER_UNFOCUSED} !important;
+  --color-gray-70: ${COLOR_TEXT_MUTED} !important;
+  --color-gray-60: ${COLOR_TEXT_MAIN} !important;
+  --color-gray-50: ${COLOR_TEXT_FOCUSED} !important;
+
+  /* Kill whathever Firefox forces */
+  --focus-outline-color: ${FF_ACCENT} !important;
+  --color-accent-primary: ${FF_ACCENT} !important;
+  --color-accent-primary-hover: ${FF_TAB_TEXT} !important;
+  --color-accent-primary-active: ${FF_TAB_TEXT} !important;
+  --color-accent-attention: ${FF_ICONS_ATTENTION} !important;
+  --button-background-color-primary: ${FF_ACCENT} !important;
+  --button-background-color-primary-hover: ${FF_TAB_TEXT} !important;
+  --button-background-color-primary-active: ${FF_TAB_TEXT} !important;
+  --button-text-color-primary: ${FF_FRAME} !important;
+  --link-color: ${FF_TAB_TEXT} !important;
+  --link-color-hover: ${FF_TAB_TEXT} !important;
+  --link-color-active: ${FF_TAB_TEXT} !important;
+}
+
+:root, #urlbar, .urlbar {
+  --background-color-canvas: ${COLOR_BG_DARK} !important;
+  --background-color-box: ${COLOR_BG_SURFACE} !important;
+  --input-background-color: ${FF_FIELD} !important;
+  --input-text-color: ${FF_FIELD_TEXT} !important;
+  --button-background-color: ${COLOR_BG_ACTIVE} !important;
+  --button-background-color-hover: ${COLOR_BORDER_INACTIVE} !important;
+  --button-background-color-active: ${COLOR_BORDER_INACTIVE} !important;
+  --button-text-color: ${COLOR_TEXT_FOCUSED} !important;
+  --urlbar-box-background-color: ${COLOR_BG_ACTIVE} !important;
+  --urlbar-box-background-color-hover: ${COLOR_BORDER_INACTIVE} !important;
+  --urlbar-box-background-color-active: ${COLOR_BORDER_INACTIVE} !important;
+  --urlbar-box-background-color-focus: ${COLOR_BG_ACTIVE} !important;
+  --urlbar-box-text-color: ${COLOR_TEXT_FOCUSED} !important;
+}
+
+:root {
+  background-color: ${FF_FRAME} !important;
+}
+
+richlistbox,
+#fullscreen-exit-button,
+tooltip,
+#statuspanel-label,
+#fullscreen-warning,
+#pointerlock-warning {
+  --tooltip-background: ${FF_POPUP} !important;
+  --tooltip-foreground: ${FF_POPUP_TEXT} !important;
+  --tooltip-border: ${FF_POPUP_BORDER} !important;
+  background-color: ${FF_POPUP} !important;
+  color: ${FF_POPUP_TEXT} !important;
+  border-color: ${FF_POPUP_BORDER} !important;
+}
+
+.toolbarbutton-badge.feature-callout {
+  filter: grayscale(1) !important;
+}
+
+/* Context menus and panels */
+:is(menupopup, panel):not(#ctrlTab-panel) {
+  --panel-background-color: ${FF_POPUP} !important;
+  --panel-text-color: ${FF_POPUP_TEXT} !important;
+  --panel-border-color: ${FF_POPUP_BORDER} !important;
+}
+
+:is(menupopup, panel) :is(menu, menuitem)[_moz-menuactive]:not([disabled]) {
+  background-color: ${FF_POPUP_HIGHLIGHT} !important;
+  color: ${FF_POPUP_HIGHLIGHT_TEXT} !important;
+}
+
+/* sidebar_highlight */
+.sidebar-placesTreechildren::-moz-tree-row(selected) {
+  background-color: ${FF_SIDEBAR_HIGHLIGHT} !important;
+}
+
+.sidebar-placesTreechildren::-moz-tree-cell-text(selected),
+.sidebar-placesTreechildren::-moz-tree-image(selected),
+.sidebar-placesTreechildren::-moz-tree-twisty(selected) {
+  color: ${FF_SIDEBAR_HIGHLIGHT_TEXT} !important;
+}
+
+.item.selected > .item-title-container {
+  background-color: ${FF_SIDEBAR_HIGHLIGHT} !important;
+  color: ${FF_SIDEBAR_HIGHLIGHT_TEXT} !important;
+}
+
+/* toolbar_field_highlight */
+#urlbar-input::selection,
+.searchbar-textbox::selection {
+  background-color: ${FF_FIELD_HIGHLIGHT} !important;
+  color: ${FF_FIELD_HIGHLIGHT_TEXT} !important;
+}
+EOF
+
+cat <<EOF >"${FF_DIR}/userContent.css"
+/* Generated automatically by dotfiles/theme/apply.sh - DO NOT EDIT MANUALLY */
+/* Edit dotfiles/theme/colors.sh instead! */
+/* Firefox theme 'simple': ntp_background, ntp_card_background, ntp_text */
+
+@-moz-document url-prefix("about:newtab"), url-prefix("about:home"), url-prefix("about:privatebrowsing") {
+  :root {
+    --newtab-background-color: ${FF_NTP} !important;
+    --newtab-background-color-secondary: ${FF_NTP_CARD} !important;
+    --newtab-background-card: ${FF_NTP_CARD} !important;
+    --newtab-text-primary-color: ${FF_NTP_TEXT} !important;
+    --newtab-primary-action-background: ${FF_ACCENT} !important;
+    --focus-outline-color: ${FF_ACCENT} !important;
+  }
+}
+EOF
+
+ff_default_profile() {
+    local base ini rel
+    for base in "${HOME}/.config/mozilla/firefox" "${HOME}/.mozilla/firefox"; do
+        ini="${base}/profiles.ini"
+        [ -f "$ini" ] || continue
+        rel=$(awk -F= '
+            /^\[/ { inst = ($0 ~ /^\[Install/); prof = ($0 ~ /^\[Profile/); path = ""; p = 0; next }
+            inst && $1 == "Default" && !i { i = $2 }
+            prof && $1 == "Path" { path = $2 }
+            prof && $1 == "Default" && $2 == "1" { p = 1 }
+            prof && p && path != "" && !d { d = path }
+            END { print (i != "" ? i : d) }' "$ini")
+        if [ -n "$rel" ] && [ -d "${base}/${rel}" ]; then
+            echo "${base}/${rel}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+if FIREFOX_PROFILE="$(ff_default_profile)"; then
+    mkdir -p "${FIREFOX_PROFILE}/chrome"
+    ln -sfn "${FF_DIR}/userChrome.css" "${FIREFOX_PROFILE}/chrome/userChrome.css"
+    ln -sfn "${FF_DIR}/userContent.css" "${FIREFOX_PROFILE}/chrome/userContent.css"
+
+    # user.js: managed block, rewritten in place, other lines untouched
+    USER_JS="${FIREFOX_PROFILE}/user.js"
+    touch "$USER_JS"
+    sed -i '/^\/\/ BEGIN dotfiles theme$/,/^\/\/ END dotfiles theme$/d' "$USER_JS"
+    sed -i '/^user_pref("toolkit.legacyUserProfileCustomizations.stylesheets"/d' "$USER_JS"
+    cat <<EOF >>"$USER_JS"
+// BEGIN dotfiles theme
+user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
+user_pref("extensions.activeThemeID", "firefox-compact-dark@mozilla.org");
+user_pref("browser.theme.toolbar-theme", 0);
+user_pref("browser.theme.content-theme", 0);
+// END dotfiles theme
+EOF
+    echo "Firefox theme linked into ${FIREFOX_PROFILE}"
+else
+    echo "Firefox default profile not found, skipping" >&2
+fi
 
 # reload running waybar, its style does not watch colors.css
 pkill -SIGUSR2 -x waybar 2>/dev/null || true
