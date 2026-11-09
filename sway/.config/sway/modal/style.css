@@ -31,7 +31,7 @@ window {
   background-color: @bg_active;
   color: @text_focused;
   padding-right: 6px;
-  border-radius: 999px 0 0 999px;
+  border-radius: 0;
 }
 
 .segment-arrow {
@@ -44,7 +44,7 @@ window {
   background-color: @border_focused;
   color: @bg_dark;
   font-weight: 600;
-  border-radius: 0 999px 999px 0;
+  border-radius: 0;
 }
 
 /* Heading */
@@ -95,14 +95,14 @@ levelbar trough {
   min-width: 140px;
   padding: 0;
   border: none;
-  border-radius: 999px;
+  border-radius: 0;
   background: @bg_active;
 }
 
 levelbar trough block {
   min-height: 4px;
   border: none;
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 levelbar trough block.filled {
