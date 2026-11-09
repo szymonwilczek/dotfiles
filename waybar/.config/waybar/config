@@ -16,7 +16,7 @@
     "modules-right": ["custom/recording", "tray", "custom/cpu", "temperature", "memory", "network", "pulseaudio", "custom/notification"],
 
     "custom/recording": {
-      "exec": "~/.config/sway/scripts/recording-status.sh",
+      "exec": "~/.config/sway/scripts/sh/recording-status.sh",
       "return-type": "json",
       "interval": "once",
       "signal": 8,
@@ -41,11 +41,11 @@
     },
 
     "cffi/clock": {
-      "module_path": ".config/sway/scripts/waybar-clock.so"
+      "module_path": ".config/sway/scripts/bin/waybar-clock.so"
     },
 
     "custom/spotify": {
-      "exec": "~/.config/sway/scripts/spotify-island",
+      "exec": "~/.config/sway/scripts/bin/spotify-island",
       "restart-interval": 1,
       "return-type": "json",
       "on-click": "playerctl -p spotify play-pause",
@@ -81,14 +81,14 @@
       "format-ethernet": "ETH",
       "format-disconnected": "OFFLINE",
       "tooltip-format": "{ipaddr}\n↓ {bandwidthDownBytes}  ↑ {bandwidthUpBytes}",
-      "on-click": "~/.config/sway/scripts/modal.sh net-info"
+      "on-click": "~/.config/sway/scripts/sh/modal.sh net-info"
     },
 
     "pulseaudio": {
       "format": "VOL {volume}%",
       "format-muted": "VOL MUTED",
-      "on-click": "~/.config/sway/scripts/modal.sh audio-switcher",
-      "on-click-right": "~/.config/sway/scripts/modal.sh pipewire-mixer",
+      "on-click": "~/.config/sway/scripts/sh/modal.sh audio-switcher",
+      "on-click-right": "~/.config/sway/scripts/sh/modal.sh pipewire-mixer",
       "on-click-middle": "pactl set-sink-mute @DEFAULT_SINK@ toggle"
     },
 
@@ -98,7 +98,7 @@
     },
 
     "custom/cpu": {
-      "exec": "~/.config/sway/scripts/waybar-cpu.sh",
+      "exec": "~/.config/sway/scripts/sh/waybar-cpu.sh",
       "return-type": "json",
       "interval": 2,
       "tooltip": true

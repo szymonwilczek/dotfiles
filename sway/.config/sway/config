@@ -13,13 +13,13 @@ set $taskmanager plasma-systemmonitor
 exec dbus-update-activation-environment --systemd QT_QPA_PLATFORMTHEME=kde
 
 exec swaync
-exec ~/.config/sway/scripts/waybar.sh
-exec ~/.config/sway/scripts/modal.sh pipewire-mixer --hidden
-exec ~/.config/sway/scripts/modal.sh audio-switcher --hidden
-exec ~/.config/sway/scripts/modal.sh powermenu --hidden
-exec ~/.config/sway/scripts/modal.sh wallpaper --hidden
-exec ~/.config/sway/scripts/modal.sh calculator --hidden
-exec ~/.config/sway/scripts/modal.sh net-info --hidden
+exec ~/.config/sway/scripts/sh/waybar.sh
+exec ~/.config/sway/scripts/sh/modal.sh pipewire-mixer --hidden
+exec ~/.config/sway/scripts/sh/modal.sh audio-switcher --hidden
+exec ~/.config/sway/scripts/sh/modal.sh powermenu --hidden
+exec ~/.config/sway/scripts/sh/modal.sh wallpaper --hidden
+exec ~/.config/sway/scripts/sh/modal.sh calculator --hidden
+exec ~/.config/sway/scripts/sh/modal.sh net-info --hidden
 exec wl-paste --watch cliphist store
 
 # Output configuration
@@ -100,7 +100,7 @@ bindsym Ctrl+Shift+Escape exec $taskmanager
 
 floating_modifier $mod normal
 
-bindsym $mod+Shift+c exec sh -c '~/.config/sway/scripts/generate-tiled-rules.sh; swaymsg reload; pkill -x waybar; ~/.config/sway/scripts/waybar.sh'
+bindsym $mod+Shift+c exec sh -c '~/.config/sway/scripts/sh/generate-tiled-rules.sh; swaymsg reload; pkill -x waybar; ~/.config/sway/scripts/sh/waybar.sh'
 
 bindsym $mod+$left focus left
 bindsym $mod+$down focus down
@@ -123,7 +123,7 @@ bindsym $mod+Shift+bracketright move container to output right; focus output rig
 
 bindsym $mod+q exec ~/.cargo/bin/sway-easyfocus
 
-set $ws ~/.config/sway/scripts/workspace.sh
+set $ws ~/.config/sway/scripts/sh/workspace.sh
 bindsym $mod+1 exec $ws switch 1
 bindsym $mod+2 exec $ws switch 2
 bindsym $mod+3 exec $ws switch 3
@@ -148,29 +148,29 @@ bindsym $mod+Shift+0 exec $ws move 10
 bindsym --whole-window $mod+button4 exec $ws next
 bindsym --whole-window $mod+button5 exec $ws prev
 
-bindsym $mod+v exec ~/.config/sway/scripts/clipboard.sh
+bindsym $mod+v exec ~/.config/sway/scripts/sh/clipboard.sh
 bindsym $mod+t layout toggle tabbed split
 bindsym $mod+Tab focus parent
 bindsym $mod+Shift+Tab focus child
 
 bindsym $mod+f fullscreen
-bindsym $mod+z exec ~/.config/sway/scripts/toggle-floating.sh
+bindsym $mod+z exec ~/.config/sway/scripts/sh/toggle-floating.sh
 bindsym $mod+space focus mode_toggle
 
 # Alt-Tab
-bindsym Mod1+Tab exec ~/.config/sway/scripts/alt-tab.sh next
-bindsym Mod1+Shift+Tab exec ~/.config/sway/scripts/alt-tab.sh prev
-bindsym $mod+p exec ~/.config/sway/scripts/modal.sh audio-switcher
-bindsym $mod+Shift+p exec ~/.config/sway/scripts/modal.sh pipewire-mixer
-bindsym $mod+Shift+w exec ~/.config/sway/scripts/modal.sh wallpaper
-bindsym $mod+i exec ~/.config/sway/scripts/toggle-sys-info.sh
-bindsym $mod+n exec ~/.config/sway/scripts/toggle-night-light.sh
-bindsym $mod+grave exec ~/.config/sway/scripts/jot-scratch.sh
-bindsym $mod+c exec ~/.config/sway/scripts/modal.sh calculator
-bindsym $mod+b exec ~/.config/sway/scripts/window-picker.sh
+bindsym Mod1+Tab exec ~/.config/sway/scripts/sh/alt-tab.sh next
+bindsym Mod1+Shift+Tab exec ~/.config/sway/scripts/sh/alt-tab.sh prev
+bindsym $mod+p exec ~/.config/sway/scripts/sh/modal.sh audio-switcher
+bindsym $mod+Shift+p exec ~/.config/sway/scripts/sh/modal.sh pipewire-mixer
+bindsym $mod+Shift+w exec ~/.config/sway/scripts/sh/modal.sh wallpaper
+bindsym $mod+i exec ~/.config/sway/scripts/sh/toggle-sys-info.sh
+bindsym $mod+n exec ~/.config/sway/scripts/sh/toggle-night-light.sh
+bindsym $mod+grave exec ~/.config/sway/scripts/sh/jot-scratch.sh
+bindsym $mod+c exec ~/.config/sway/scripts/sh/modal.sh calculator
+bindsym $mod+b exec ~/.config/sway/scripts/sh/window-picker.sh
 
 # Screen recording
-bindsym $mod+Shift+r exec ~/.config/sway/scripts/record-screen.sh
+bindsym $mod+Shift+r exec ~/.config/sway/scripts/sh/record-screen.sh
 
 # Window marks
 include marks.conf
@@ -186,7 +186,7 @@ mode "resize" {
 }
 
 # Utilities
-bindsym $mod+x exec ~/.config/sway/scripts/modal.sh powermenu
+bindsym $mod+x exec ~/.config/sway/scripts/sh/modal.sh powermenu
 bindsym Print exec grim -g "$(slurp)" - | wl-copy
 bindsym $mod+Shift+s exec grim -g "$(slurp)" - | tee "$HOME/Obrazy/Zrzuty ekranu/Zrzut ekranu_$(date +'%Y%m%d_%H%M%S').png" | wl-copy -t image/png
 
@@ -245,7 +245,7 @@ bindsym --locked XF86AudioMicMute exec swayosd-client --input-volume mute-toggle
 exec swayidle -w timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"'
 exec ~/.cargo/bin/wayland-pipewire-idle-inhibit
 
-exec ~/.config/sway/scripts/workspace-init.sh
+exec ~/.config/sway/scripts/sh/workspace-init.sh
 
 # Cursor lock
 for_window [class="steam_app_.*"] {

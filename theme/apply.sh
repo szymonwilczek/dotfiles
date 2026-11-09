@@ -119,7 +119,7 @@ echo "$FUZZEL_CONTENT" >"${DOTFILES_DIR}/fuzzel/.config/fuzzel/fuzzel.ini"
 echo "$FUZZEL_CONTENT" >"${HOME}/.config/fuzzel/fuzzel.ini"
 
 # Powermenu: powermenu.sh
-cat <<EOF >"${DOTFILES_DIR}/sway/.config/sway/scripts/powermenu.sh"
+cat <<EOF >"${DOTFILES_DIR}/sway/.config/sway/scripts/sh/powermenu.sh"
 #!/bin/sh
 
 SELECTION=\$(echo -e "󰍃  Wyloguj\n󰜉  Uruchom ponownie\n  Wyłącz" | fuzzel \\
@@ -143,7 +143,7 @@ case "\$SELECTION" in
 *"Wyłącz"*) systemctl poweroff ;;
 esac
 EOF
-chmod +x "${DOTFILES_DIR}/sway/.config/sway/scripts/powermenu.sh"
+chmod +x "${DOTFILES_DIR}/sway/.config/sway/scripts/sh/powermenu.sh"
 
 # Tmux theme: tmux/.tmux/theme.conf
 mkdir -p "${DOTFILES_DIR}/tmux/.tmux"

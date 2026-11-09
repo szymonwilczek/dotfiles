@@ -12,6 +12,9 @@ CC ?= cc
 CFLAGS ?= -O2 -Wall -Wextra -Wno-unused-parameter
 RESTART ?= 1
 
+BINDIR ?= $(CURDIR)/../bin
+SHDIR  ?= $(CURDIR)/../sh
+
 GTK = gtk+-3.0
 PROTOCOL = wlr-gamma-control-unstable-v1
 
@@ -29,11 +32,12 @@ calc: calculator
 
 .PHONY: all clean mixer switcher clock spotify nightlight calc
 
-build = $(CC) $(CFLAGS) -o $@.new $(1) $$(pkg-config --cflags --libs $(2)) && \
-	mv -f $@.new $@
+build = @mkdir -p $(BINDIR) && \
+	$(CC) $(CFLAGS) -o $(BINDIR)/$@.new $(1) $$(pkg-config --cflags --libs $(2)) && \
+	mv -f $(BINDIR)/$@.new $(BINDIR)/$@
 
 restart = $(if $(RESTART),pgrep -x $(1) >/dev/null && { $(2); } || true)
-sway = swaymsg -q exec "$(CURDIR)/$(1)"
+sway = swaymsg -q exec "$(SHDIR)/modal.sh $(1) --hidden"
 
 sys-info: sys-info.c
 	$(call build,$<,$(GTK))
@@ -45,17 +49,18 @@ calendar: calendar.c
 
 pipewire-mixer audio-switcher: %: %.c modal.h pactl.h
 	$(call build,$<,$(GTK) json-c)
-	@$(call restart,$@,pkill -x $@; $(call sway,modal.sh $@ --hidden))
+	@$(call restart,$@,pkill -x $@; $(call sway,$@))
 
 powermenu wallpaper calculator net-info: %: %.c modal.h
 	$(call build,$<,$(GTK))
-	@$(call restart,$@,pkill -x $@; $(call sway,modal.sh $@ --hidden))
+	@$(call restart,$@,pkill -x $@; $(call sway,$@))
 
 night-light: night-light.c build/$(PROTOCOL)-client-protocol.h \
 		build/$(PROTOCOL)-protocol.c
-	$(CC) $(CFLAGS) -Ibuild -o $@.new $< build/$(PROTOCOL)-protocol.c \
-		-lwayland-client -lm && mv -f $@.new $@
-	@$(call restart,night-light,pkill -x night-light; $(call sway,night-light))
+	@mkdir -p $(BINDIR)
+	$(CC) $(CFLAGS) -Ibuild -o $(BINDIR)/$@.new $< build/$(PROTOCOL)-protocol.c \
+		-lwayland-client -lm && mv -f $(BINDIR)/$@.new $(BINDIR)/$@
+	@$(call restart,night-light,pkill -x night-light; swaymsg -q exec "$(SHDIR)/toggle-night-light.sh")
 
 build/$(PROTOCOL)-client-protocol.h: $(PROTOCOL).xml
 	@mkdir -p build
@@ -73,7 +78,7 @@ spotify-island: spotify-island.c
 # Loaded into waybar, so waybar starts anew
 waybar-clock.so: waybar-clock.c waybar_cffi_module.h
 	$(call build,-fPIC -shared $<,$(GTK))
-	@$(call restart,waybar,pkill -x waybar; $(call sway,waybar.sh))
+	@$(call restart,waybar,pkill -x waybar; swaymsg -q exec "$(SHDIR)/waybar.sh")
 
 clean:
-	rm -rf build $(PROGRAMS)
+	rm -rf build $(addprefix $(BINDIR)/,$(PROGRAMS))

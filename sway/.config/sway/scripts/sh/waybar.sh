@@ -1,7 +1,7 @@
 #!/bin/bash
 # Starts waybar, with what it runs of sway/scripts built by make; a module
 # that fails to build or load leaves the rest of the bar working
-dir=~/.config/sway/scripts
+dir=~/.config/sway/scripts/src
 make -s -k -C "$dir" RESTART= waybar-clock.so calendar spotify-island
 
 # module_path of cffi/clock is relative to it

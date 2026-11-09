@@ -47,7 +47,7 @@ static void start_calendar(Clock *c) {
   if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv) < 0)
     return;
   char *bin =
-      g_build_filename(g_get_user_config_dir(), "sway/scripts/calendar", NULL);
+      g_build_filename(g_get_user_config_dir(), "sway/scripts/bin/calendar", NULL);
   char *argv[] = {bin, NULL};
   if (g_spawn_async_with_fds(NULL, argv, NULL, G_SPAWN_DEFAULT, NULL, NULL,
                              NULL, sv[1], -1, -1, NULL)) {
