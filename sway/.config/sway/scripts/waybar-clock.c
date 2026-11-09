@@ -20,12 +20,19 @@ typedef struct {
 } Clock;
 
 static gboolean tick(gpointer data) {
+  static const char *const days[] = {"",    "PON", "WTO", "SRO",
+                                     "CZW", "PIA", "SOB", "NIE"};
   Clock *c = data;
   GDateTime *now = g_date_time_new_now_local();
-  char *text = g_date_time_format(now, "%A, %d.%m %H:%M");
-  if (text)
-    gtk_label_set_text(GTK_LABEL(c->label), text);
-  g_free(text);
+  int dow = g_date_time_get_day_of_week(now);
+  const char *day = (dow >= 1 && dow <= 7) ? days[dow] : "???";
+
+  char text[64];
+  snprintf(text, sizeof(text), "%s // %04d-%02d-%02d %02d:%02d", day,
+           g_date_time_get_year(now), g_date_time_get_month(now),
+           g_date_time_get_day_of_month(now), g_date_time_get_hour(now),
+           g_date_time_get_minute(now));
+  gtk_label_set_text(GTK_LABEL(c->label), text);
 
   // At the next minute, but within 10 s, as a timer does not run in suspend
   int ms = 60000 - g_date_time_get_second(now) * 1000 -
