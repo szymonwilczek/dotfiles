@@ -9,7 +9,7 @@
 # them themselves.
 
 CC ?= cc
-CFLAGS ?= -O2 -Wall -Wextra -Wno-unused-parameter
+CFLAGS ?= -O3 -march=native -flto -Wall -Wextra -Wno-unused-parameter
 RESTART ?= 1
 
 BINDIR ?= $(CURDIR)/../bin
