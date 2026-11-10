@@ -79,8 +79,8 @@ hide_edge_borders smart
 # Input configuration
 input type:keyboard {
     xkb_layout "pl"
-    repeat_delay 280
-    repeat_rate 40
+    repeat_delay 350
+    repeat_rate 30
 }
 
 input type:pointer {
