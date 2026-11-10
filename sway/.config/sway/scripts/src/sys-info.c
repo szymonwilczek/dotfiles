@@ -333,6 +333,7 @@ int main(int argc, char *argv[])
 	gtk_style_context_add_provider_for_screen(
 		gdk_screen_get_default(), GTK_STYLE_PROVIDER(css),
 		GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+	g_object_unref(css);
 
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window), "Informacje");

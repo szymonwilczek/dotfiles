@@ -626,8 +626,9 @@ int main(int argc, char *argv[])
 	ssize_t len = readlink(path, drv_link, sizeof(drv_link) - 1);
 	if (len > 0) {
 		drv_link[len] = '\0';
-		g_strlcpy(app.driver, g_path_get_basename(drv_link),
-			  sizeof(app.driver));
+		char *base = g_path_get_basename(drv_link);
+		g_strlcpy(app.driver, base, sizeof(app.driver));
+		g_free(base);
 	} else {
 		g_strlcpy(app.driver, "ethernet", sizeof(app.driver));
 	}
