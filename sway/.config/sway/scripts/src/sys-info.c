@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
 		snprintf(disk, sizeof(disk), "/");
 
 	struct utsname un;
-	char cpu_hdr[160];
+	char cpu_hdr[256];
 	if (uname(&un) == 0)
 		snprintf(cpu_hdr, sizeof(cpu_hdr), "%s · %s", cpu, un.release);
 	else

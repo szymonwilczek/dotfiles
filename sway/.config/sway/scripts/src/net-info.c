@@ -32,7 +32,7 @@ typedef struct {
 	char iface[32];
 	char driver[32];
 	char mac[32];
-	char chip[128];
+	char chip[256];
 	int speed_mbps;
 	int mtu;
 	char duplex[16];
