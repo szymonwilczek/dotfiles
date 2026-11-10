@@ -192,6 +192,7 @@ bindsym $mod+x exec ~/.config/sway/scripts/sh/modal.sh powermenu
 bindsym Print exec grim -g "$(slurp)" - | wl-copy
 bindsym $mod+Shift+s exec grim -g "$(slurp)" - | tee "$HOME/Obrazy/Zrzuty ekranu/Zrzut ekranu_$(date +'%Y%m%d_%H%M%S').png" | wl-copy -t image/png
 bindsym $mod+Shift+o exec ~/.config/sway/scripts/sh/ocr-snip.sh
+bindsym $mod+y exec ~/.config/sway/scripts/sh/color-picker.sh
 
 bindsym Scroll_Lock exec wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%-
 bindsym Pause exec wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
