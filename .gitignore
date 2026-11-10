@@ -37,6 +37,9 @@ tmux/.tmux/plugins
 sway/.config/sway/scripts/bin/
 sway/.config/sway/scripts/src/build/
 sway/.config/sway/scripts/src/*.new
+compile_commands.json
+sway/.config/sway/scripts/src/compile_commands.json
+.cache/
 emacs/.config/emacs/tramp
 emacs/.config/emacs/auto-save
 emacs/.config/emacs/scripts/mutt_oauth2.py

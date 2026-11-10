@@ -1,0 +1,103 @@
+# SPDX-License-Identifier: GPL-2.0-only
+#
+#   https://www.kernel.org/doc/html/v4.18/process/clang-format.html
+#   https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+#   Taken from my LOTA (github.com/szymonwilczek/lota) project
+---
+BasedOnStyle: LLVM
+
+# Dimensions
+ColumnLimit: 80
+IndentWidth: 8
+ContinuationIndentWidth: 8
+TabWidth: 8
+UseTab: Always
+
+# Brace placement
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+
+# Never collapse this:
+# block, case, function, if or loop onto one line
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Parameter / argument wrapping
+AlignAfterOpenBracket: Align
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackArguments: true
+BinPackParameters: true
+AlignOperands: Align
+AlignEscapedNewlines: Left
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignTrailingComments:
+  Kind: Never
+
+# Pointer binds to the identifier: `int *p`
+DerivePointerAlignment: false
+PointerAlignment: Right
+
+# Spacing
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatementsExceptControlMacros
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpacesInCStyleCastParentheses: false
+
+# Comments, includes, blank lines
+CommentPragmas: '^ IWYU pragma:'
+ReflowComments: false
+SortIncludes: false
+IncludeBlocks: Preserve
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+
+# Statement
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: false
+BreakStringLiterals: false
+Cpp11BracedListStyle: false
+IndentCaseLabels: false
+IndentGotoLabels: false
+IndentPPDirectives: None
+IndentWrappedFunctionNames: false
+
+# Iterator macros that take a loop body (libbpf):
+# treat like a for loop
+ForEachMacros:
+  - 'bpf_object__for_each_program'
+  - 'bpf_object__for_each_map'
+
+# Penalties
+# Taken from the Linux kernel & git configuration
+PenaltyBreakAssignment: 10
+PenaltyBreakBeforeFirstCallParameter: 30
+PenaltyBreakComment: 10
+PenaltyBreakFirstLessLess: 0
+PenaltyBreakString: 10
+PenaltyExcessCharacter: 100
+PenaltyReturnTypeOnItsOwnLine: 60
+...

@@ -18,6 +18,9 @@ SHDIR  ?= $(CURDIR)/../sh
 GTK = gtk+-3.0
 PROTOCOL = wlr-gamma-control-unstable-v1
 
+CLANG_FORMAT ?= $(shell command -v clang-format 2>/dev/null)
+BEAR ?= $(shell command -v bear 2>/dev/null)
+
 PROGRAMS = sys-info calendar pipewire-mixer audio-switcher powermenu \
 	wallpaper night-light spotify-island calculator waybar-clock.so net-info
 
@@ -30,7 +33,23 @@ spotify: spotify-island
 nightlight: night-light
 calc: calculator
 
-.PHONY: all clean mixer switcher clock spotify nightlight calc
+compile_commands.json compdb:
+	@test -n "$(BEAR)" || { echo "error: bear not found (install bear)" >&2; exit 1; }
+	$(BEAR) --output compile_commands.json -- $(MAKE) -B all RESTART=
+	@cp -f compile_commands.json $(CURDIR)/../../../../compile_commands.json 2>/dev/null || true
+	@echo "Generated compile_commands.json successfully"
+
+format fmt:
+	@test -n "$(CLANG_FORMAT)" || { echo "error: clang-format not found" >&2; exit 1; }
+	$(CLANG_FORMAT) -i *.c *.h
+	@echo "Formatted all C files according to kernel style"
+
+lint-c:
+	@test -n "$(CLANG_FORMAT)" || { echo "error: clang-format not found" >&2; exit 1; }
+	$(CLANG_FORMAT) --dry-run --Werror *.c *.h
+	@echo "lint-c: clean"
+
+.PHONY: all clean mixer switcher clock spotify nightlight calc format fmt lint-c compdb compile_commands.json
 
 build = @mkdir -p $(BINDIR) && \
 	$(CC) $(CFLAGS) -o $(BINDIR)/$@.new $(1) $$(pkg-config --cflags --libs $(2)) && \

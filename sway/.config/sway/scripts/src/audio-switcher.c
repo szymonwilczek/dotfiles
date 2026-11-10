@@ -8,266 +8,285 @@
 #define MAX_SINKS 16
 
 typedef struct {
-  char name[256];
-  char device[96];
-  char nick[64];
+	char name[256];
+	char device[96];
+	char nick[64];
 } Sink;
 
 // What is read of pactl, in a thread
 typedef struct {
-  Sink sinks[MAX_SINKS];
-  int count;
-  int current;
+	Sink sinks[MAX_SINKS];
+	int count;
+	int current;
 } Read;
 
 typedef struct {
-  Sink sinks[MAX_SINKS];
-  int count;
-  int selected;
-  int current;
-  GtkWidget *list;
-  GtkWidget *device, *nick;
-  Modal modal;
-  Watch watch;
+	Sink sinks[MAX_SINKS];
+	int count;
+	int selected;
+	int current;
+	GtkWidget *list;
+	GtkWidget *device, *nick;
+	Modal modal;
+	Watch watch;
 } Switcher;
 
-static gpointer read_sinks(void) {
-  Read *r = g_new0(Read, 1);
-  char *def = pactl("get-default-sink", NULL, NULL, NULL);
-  if (def)
-    g_strstrip(def);
+static gpointer read_sinks(void)
+{
+	Read *r = g_new0(Read, 1);
+	char *def = pactl("get-default-sink", NULL, NULL, NULL);
+	if (def)
+		g_strstrip(def);
 
-  json_object *root = pactl_json("sinks");
-  size_t len = root ? json_object_array_length(root) : 0;
-  for (size_t i = 0; i < len && r->count < MAX_SINKS; i++) {
-    json_object *in = json_object_array_get_idx(root, i), *props = NULL;
-    json_object_object_get_ex(in, "properties", &props);
-    const char *name = str(in, "name");
-    if (!name)
-      continue;
+	json_object *root = pactl_json("sinks");
+	size_t len = root ? json_object_array_length(root) : 0;
+	for (size_t i = 0; i < len && r->count < MAX_SINKS; i++) {
+		json_object *in = json_object_array_get_idx(root, i),
+			    *props = NULL;
+		json_object_object_get_ex(in, "properties", &props);
+		const char *name = str(in, "name");
+		if (!name)
+			continue;
 
-    Sink *s = &r->sinks[r->count];
-    const char *device = str(props, "device.description");
-    const char *nick = str(props, "node.nick");
-    snprintf(s->name, sizeof(s->name), "%s", name);
-    snprintf(s->device, sizeof(s->device), "%s",
-             device                   ? device
-             : str(in, "description") ? str(in, "description")
-                                      : name);
-    snprintf(s->nick, sizeof(s->nick), "%s", nick ? nick : "");
-    if (def && !strcmp(name, def))
-      r->current = r->count;
-    r->count++;
-  }
-  if (root)
-    json_object_put(root);
-  g_free(def);
-  return r;
+		Sink *s = &r->sinks[r->count];
+		const char *device = str(props, "device.description");
+		const char *nick = str(props, "node.nick");
+		snprintf(s->name, sizeof(s->name), "%s", name);
+		snprintf(s->device, sizeof(s->device), "%s",
+			 device			? device :
+			 str(in, "description") ? str(in, "description") :
+						  name);
+		snprintf(s->nick, sizeof(s->nick), "%s", nick ? nick : "");
+		if (def && !strcmp(name, def))
+			r->current = r->count;
+		r->count++;
+	}
+	if (root)
+		json_object_put(root);
+	g_free(def);
+	return r;
 }
 
 // In a thread, as it takes a pactl a stream
 static void move_streams(GTask *task, gpointer src, gpointer data,
-                         GCancellable *c) {
-  const char *name = data;
-  g_free(pactl("set-default-sink", name, NULL, NULL));
+			 GCancellable *c)
+{
+	const char *name = data;
+	g_free(pactl("set-default-sink", name, NULL, NULL));
 
-  json_object *root = pactl_json("sink-inputs");
-  size_t len = root ? json_object_array_length(root) : 0;
-  for (size_t i = 0; i < len; i++) {
-    json_object *v;
-    if (!json_object_object_get_ex(json_object_array_get_idx(root, i), "index",
-                                   &v))
-      continue;
-    char id[16];
-    snprintf(id, sizeof(id), "%d", json_object_get_int(v));
-    g_free(pactl("move-sink-input", id, name, NULL));
-  }
-  if (root)
-    json_object_put(root);
-  g_task_return_boolean(task, TRUE);
+	json_object *root = pactl_json("sink-inputs");
+	size_t len = root ? json_object_array_length(root) : 0;
+	for (size_t i = 0; i < len; i++) {
+		json_object *v;
+		if (!json_object_object_get_ex(
+			    json_object_array_get_idx(root, i), "index", &v))
+			continue;
+		char id[16];
+		snprintf(id, sizeof(id), "%d", json_object_get_int(v));
+		g_free(pactl("move-sink-input", id, name, NULL));
+	}
+	if (root)
+		json_object_put(root);
+	g_task_return_boolean(task, TRUE);
 }
 
-static void on_moved(GObject *src, GAsyncResult *res, gpointer data) {
-  Watch *w = data;
-  if (--w->queued == 0)
-    watch_read(w);
+static void on_moved(GObject *src, GAsyncResult *res, gpointer data)
+{
+	Watch *w = data;
+	if (--w->queued == 0)
+		watch_read(w);
 }
 
 // Hidden at once, the streams moved after
-static void apply(Switcher *sw) {
-  modal_hide(&sw->modal);
-  sw->current = sw->selected;
-  sw->watch.queued++;
-  GTask *task = g_task_new(NULL, NULL, on_moved, &sw->watch);
-  g_task_set_task_data(task, g_strdup(sw->sinks[sw->selected].name), g_free);
-  g_task_run_in_thread(task, move_streams);
-  g_object_unref(task);
+static void apply(Switcher *sw)
+{
+	modal_hide(&sw->modal);
+	sw->current = sw->selected;
+	sw->watch.queued++;
+	GTask *task = g_task_new(NULL, NULL, on_moved, &sw->watch);
+	g_task_set_task_data(task, g_strdup(sw->sinks[sw->selected].name),
+			     g_free);
+	g_task_run_in_thread(task, move_streams);
+	g_object_unref(task);
 }
 
-static void add_class(GtkWidget *w, const char *class) {
-  gtk_style_context_add_class(gtk_widget_get_style_context(w), class);
+static void add_class(GtkWidget *w, const char *class)
+{
+	gtk_style_context_add_class(gtk_widget_get_style_context(w), class);
 }
 
-static GtkWidget *label(const char *text, const char *class) {
-  GtkWidget *l = gtk_label_new(text);
-  add_class(l, class);
-  return l;
+static GtkWidget *label(const char *text, const char *class)
+{
+	GtkWidget *l = gtk_label_new(text);
+	add_class(l, class);
+	return l;
 }
 
 // A title and a muted subtitle over a rule
-static GtkWidget *heading(GtkWidget **title, GtkWidget **subtitle) {
-  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
-  add_class(box, "heading");
-  *title = label("", "title");
-  gtk_label_set_ellipsize(GTK_LABEL(*title), PANGO_ELLIPSIZE_END);
-  gtk_box_pack_start(GTK_BOX(box), *title, FALSE, FALSE, 0);
-  *subtitle = label("", "subtitle");
-  gtk_box_pack_start(GTK_BOX(box), *subtitle, FALSE, FALSE, 0);
-  return box;
+static GtkWidget *heading(GtkWidget **title, GtkWidget **subtitle)
+{
+	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+	add_class(box, "heading");
+	*title = label("", "title");
+	gtk_label_set_ellipsize(GTK_LABEL(*title), PANGO_ELLIPSIZE_END);
+	gtk_box_pack_start(GTK_BOX(box), *title, FALSE, FALSE, 0);
+	*subtitle = label("", "subtitle");
+	gtk_box_pack_start(GTK_BOX(box), *subtitle, FALSE, FALSE, 0);
+	return box;
 }
 
-static gboolean on_click(GtkWidget *w, GdkEventButton *ev, gpointer data) {
-  Switcher *sw = data;
-  if (ev->button != GDK_BUTTON_PRIMARY)
-    return FALSE;
-  sw->selected = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(w), "index"));
-  apply(sw);
-  return TRUE;
+static gboolean on_click(GtkWidget *w, GdkEventButton *ev, gpointer data)
+{
+	Switcher *sw = data;
+	if (ev->button != GDK_BUTTON_PRIMARY)
+		return FALSE;
+	sw->selected = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(w), "index"));
+	apply(sw);
+	return TRUE;
 }
 
-static void render(Switcher *sw) {
-  GList *rows = gtk_container_get_children(GTK_CONTAINER(sw->list));
-  for (GList *r = rows; r; r = r->next)
-    gtk_widget_destroy(r->data);
-  g_list_free(rows);
+static void render(Switcher *sw)
+{
+	GList *rows = gtk_container_get_children(GTK_CONTAINER(sw->list));
+	for (GList *r = rows; r; r = r->next)
+		gtk_widget_destroy(r->data);
+	g_list_free(rows);
 
-  if (sw->count == 0) {
-    GtkWidget *l = label("BRAK WYJŚĆ AUDIO", "note");
-    gtk_label_set_xalign(GTK_LABEL(l), 0);
-    gtk_box_pack_start(GTK_BOX(sw->list), l, FALSE, FALSE, 0);
-  }
+	if (sw->count == 0) {
+		GtkWidget *l = label("BRAK WYJŚĆ AUDIO", "note");
+		gtk_label_set_xalign(GTK_LABEL(l), 0);
+		gtk_box_pack_start(GTK_BOX(sw->list), l, FALSE, FALSE, 0);
+	}
 
-  for (int i = 0; i < sw->count; i++) {
-    Sink *s = &sw->sinks[i];
-    GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 18);
-    add_class(row, "stream");
-    if (i == sw->selected)
-      add_class(row, "selected");
+	for (int i = 0; i < sw->count; i++) {
+		Sink *s = &sw->sinks[i];
+		GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 18);
+		add_class(row, "stream");
+		if (i == sw->selected)
+			add_class(row, "selected");
 
-    GtkWidget *device = label(s->device, "key");
-    gtk_label_set_xalign(GTK_LABEL(device), 0);
-    gtk_label_set_width_chars(GTK_LABEL(device), 36);
-    gtk_label_set_max_width_chars(GTK_LABEL(device), 36);
-    gtk_label_set_ellipsize(GTK_LABEL(device), PANGO_ELLIPSIZE_END);
-    gtk_box_pack_start(GTK_BOX(row), device, FALSE, FALSE, 0);
+		GtkWidget *device = label(s->device, "key");
+		gtk_label_set_xalign(GTK_LABEL(device), 0);
+		gtk_label_set_width_chars(GTK_LABEL(device), 36);
+		gtk_label_set_max_width_chars(GTK_LABEL(device), 36);
+		gtk_label_set_ellipsize(GTK_LABEL(device), PANGO_ELLIPSIZE_END);
+		gtk_box_pack_start(GTK_BOX(row), device, FALSE, FALSE, 0);
 
-    GtkWidget *nick = label(s->nick, "note");
-    gtk_label_set_xalign(GTK_LABEL(nick), 0);
-    gtk_label_set_width_chars(GTK_LABEL(nick), 14);
-    gtk_box_pack_start(GTK_BOX(row), nick, TRUE, TRUE, 0);
+		GtkWidget *nick = label(s->nick, "note");
+		gtk_label_set_xalign(GTK_LABEL(nick), 0);
+		gtk_label_set_width_chars(GTK_LABEL(nick), 14);
+		gtk_box_pack_start(GTK_BOX(row), nick, TRUE, TRUE, 0);
 
-    GtkWidget *state = label(i == sw->current ? "DEFAULT" : "", "value");
-    gtk_label_set_xalign(GTK_LABEL(state), 1);
-    gtk_label_set_width_chars(GTK_LABEL(state), 9);
-    gtk_box_pack_start(GTK_BOX(row), state, FALSE, FALSE, 0);
+		GtkWidget *state =
+			label(i == sw->current ? "DEFAULT" : "", "value");
+		gtk_label_set_xalign(GTK_LABEL(state), 1);
+		gtk_label_set_width_chars(GTK_LABEL(state), 9);
+		gtk_box_pack_start(GTK_BOX(row), state, FALSE, FALSE, 0);
 
-    GtkWidget *click = gtk_event_box_new();
-    g_object_set_data(G_OBJECT(click), "index", GINT_TO_POINTER(i));
-    g_signal_connect(click, "button-press-event", G_CALLBACK(on_click), sw);
-    gtk_container_add(GTK_CONTAINER(click), row);
-    gtk_box_pack_start(GTK_BOX(sw->list), click, FALSE, FALSE, 0);
-  }
-  gtk_widget_show_all(sw->list);
+		GtkWidget *click = gtk_event_box_new();
+		g_object_set_data(G_OBJECT(click), "index", GINT_TO_POINTER(i));
+		g_signal_connect(click, "button-press-event",
+				 G_CALLBACK(on_click), sw);
+		gtk_container_add(GTK_CONTAINER(click), row);
+		gtk_box_pack_start(GTK_BOX(sw->list), click, FALSE, FALSE, 0);
+	}
+	gtk_widget_show_all(sw->list);
 }
 
-static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data) {
-  Switcher *sw = data;
-  switch (ev->keyval) {
-  case GDK_KEY_Escape:
-  case GDK_KEY_q:
-    modal_hide(&sw->modal);
-    return TRUE;
-  }
-  if (sw->count == 0)
-    return TRUE;
+static gboolean on_key(GtkWidget *w, GdkEventKey *ev, gpointer data)
+{
+	Switcher *sw = data;
+	switch (ev->keyval) {
+	case GDK_KEY_Escape:
+	case GDK_KEY_q:
+		modal_hide(&sw->modal);
+		return TRUE;
+	}
+	if (sw->count == 0)
+		return TRUE;
 
-  switch (ev->keyval) {
-  case GDK_KEY_j:
-  case GDK_KEY_Down:
-  case GDK_KEY_Tab:
-    sw->selected = (sw->selected + 1) % sw->count;
-    render(sw);
-    break;
-  case GDK_KEY_k:
-  case GDK_KEY_Up:
-  case GDK_KEY_ISO_Left_Tab:
-    sw->selected = (sw->selected + sw->count - 1) % sw->count;
-    render(sw);
-    break;
-  case GDK_KEY_Return:
-  case GDK_KEY_KP_Enter:
-  case GDK_KEY_l:
-  case GDK_KEY_space:
-    apply(sw);
-    break;
-  }
-  return TRUE;
+	switch (ev->keyval) {
+	case GDK_KEY_j:
+	case GDK_KEY_Down:
+	case GDK_KEY_Tab:
+		sw->selected = (sw->selected + 1) % sw->count;
+		render(sw);
+		break;
+	case GDK_KEY_k:
+	case GDK_KEY_Up:
+	case GDK_KEY_ISO_Left_Tab:
+		sw->selected = (sw->selected + sw->count - 1) % sw->count;
+		render(sw);
+		break;
+	case GDK_KEY_Return:
+	case GDK_KEY_KP_Enter:
+	case GDK_KEY_l:
+	case GDK_KEY_space:
+		apply(sw);
+		break;
+	}
+	return TRUE;
 }
 
 // On the events of pactl, so that it is read before it is shown,
 // as sinks come and go; a sink picked meanwhile stays picked
-static void on_read(gpointer data, gpointer read) {
-  Switcher *sw = data;
-  Read *r = read;
-  char picked[256] = "";
-  if (gtk_widget_get_visible(sw->modal.window) && sw->count)
-    snprintf(picked, sizeof(picked), "%s", sw->sinks[sw->selected].name);
-  memcpy(sw->sinks, r->sinks, sizeof(r->sinks));
-  sw->count = r->count;
-  sw->current = sw->selected = r->current;
-  g_free(r);
-  for (int i = 0; i < sw->count; i++)
-    if (!strcmp(sw->sinks[i].name, picked))
-      sw->selected = i;
+static void on_read(gpointer data, gpointer read)
+{
+	Switcher *sw = data;
+	Read *r = read;
+	char picked[256] = "";
+	if (gtk_widget_get_visible(sw->modal.window) && sw->count)
+		snprintf(picked, sizeof(picked), "%s",
+			 sw->sinks[sw->selected].name);
+	memcpy(sw->sinks, r->sinks, sizeof(r->sinks));
+	sw->count = r->count;
+	sw->current = sw->selected = r->current;
+	g_free(r);
+	for (int i = 0; i < sw->count; i++)
+		if (!strcmp(sw->sinks[i].name, picked))
+			sw->selected = i;
 
-  Sink *cur = sw->count ? &sw->sinks[sw->current] : NULL;
-  gtk_label_set_text(GTK_LABEL(sw->device), cur ? cur->device : "BRAK WYJŚCIA");
-  gtk_label_set_text(GTK_LABEL(sw->nick), cur ? cur->nick : "");
-  render(sw);
+	Sink *cur = sw->count ? &sw->sinks[sw->current] : NULL;
+	gtk_label_set_text(GTK_LABEL(sw->device),
+			   cur ? cur->device : "BRAK WYJŚCIA");
+	gtk_label_set_text(GTK_LABEL(sw->nick), cur ? cur->nick : "");
+	render(sw);
 }
 
 // From the default sink on each show
-static void on_show(gpointer data) {
-  Switcher *sw = data;
-  sw->selected = sw->current;
-  render(sw);
+static void on_show(gpointer data)
+{
+	Switcher *sw = data;
+	sw->selected = sw->current;
+	render(sw);
 }
 
-int main(int argc, char *argv[]) {
-  modal_init(&argc, &argv, "sway-audio-switcher");
+int main(int argc, char *argv[])
+{
+	modal_init(&argc, &argv, "sway-audio-switcher");
 
-  static Switcher sw;
-  sw.modal = (Modal){.on_show = on_show, .data = &sw};
-  GtkWidget *window = modal_window(&sw.modal, "Wyjście dźwięku");
+	static Switcher sw;
+	sw.modal = (Modal){ .on_show = on_show, .data = &sw };
+	GtkWidget *window = modal_window(&sw.modal, "Wyjście dźwięku");
 
-  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  add_class(box, "modal");
+	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	add_class(box, "modal");
 
-  GtkWidget *section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-  add_class(section, "section");
-  gtk_box_pack_start(GTK_BOX(section), heading(&sw.device, &sw.nick), FALSE,
-                     FALSE, 0);
+	GtkWidget *section = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+	add_class(section, "section");
+	gtk_box_pack_start(GTK_BOX(section), heading(&sw.device, &sw.nick),
+			   FALSE, FALSE, 0);
 
-  sw.list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
-  add_class(sw.list, "rows");
-  gtk_box_pack_start(GTK_BOX(section), sw.list, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), section, FALSE, FALSE, 0);
+	sw.list = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+	add_class(sw.list, "rows");
+	gtk_box_pack_start(GTK_BOX(section), sw.list, FALSE, FALSE, 0);
+	gtk_box_pack_start(GTK_BOX(box), section, FALSE, FALSE, 0);
 
-  gtk_container_add(GTK_CONTAINER(window), box);
-  g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), &sw);
+	gtk_container_add(GTK_CONTAINER(window), box);
+	g_signal_connect(window, "key-press-event", G_CALLBACK(on_key), &sw);
 
-  sw.watch = (Watch){.read = read_sinks, .apply = on_read, .data = &sw};
-  pactl_watch(&sw.watch);
-  modal_run(&sw.modal, "audio-switcher", argc, argv);
-  return 0;
+	sw.watch = (Watch){ .read = read_sinks, .apply = on_read, .data = &sw };
+	pactl_watch(&sw.watch);
+	modal_run(&sw.modal, "audio-switcher", argc, argv);
+	return 0;
 }
