@@ -79,7 +79,6 @@ hide_edge_borders smart
 # Input configuration
 input type:keyboard {
     xkb_layout "pl"
-    xkb_options caps:ctrl_modifier
     repeat_delay 280
     repeat_rate 40
 }
