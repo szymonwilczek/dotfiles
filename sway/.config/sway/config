@@ -123,6 +123,8 @@ bindsym $mod+Shift+bracketright move container to output right; focus output rig
 
 bindsym $mod+q exec ~/.cargo/bin/sway-easyfocus
 
+workspace_auto_back_and_forth yes
+
 set $ws ~/.config/sway/scripts/sh/workspace.sh
 bindsym $mod+1 exec $ws switch 1
 bindsym $mod+2 exec $ws switch 2
