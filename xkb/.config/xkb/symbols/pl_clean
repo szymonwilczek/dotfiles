@@ -1,0 +1,17 @@
+default partial alphanumeric_keys
+xkb_symbols "basic" {
+    include "us"
+    name[Group1] = "Polish (Clean)";
+
+    key <AC01> { [ a, A, aogonek, Aogonek ] };
+    key <AB03> { [ c, C, cacute,  Cacute  ] };
+    key <AD03> { [ e, E, eogonek, Eogonek ] };
+    key <AC09> { [ l, L, lstroke, Lstroke ] };
+    key <AB06> { [ n, N, nacute,  Nacute  ] };
+    key <AD09> { [ o, O, oacute,  Oacute  ] };
+    key <AC02> { [ s, S, sacute,  Sacute  ] };
+    key <AB02> { [ x, X, zacute,  Zacute  ] };
+    key <AB01> { [ z, Z, zabovedot, Zabovedot ] };
+
+    include "level3(ralt_switch)"
+};
