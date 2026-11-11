@@ -68,6 +68,16 @@ for a window dedicated to the buffer."
 
   (add-hook 'window-buffer-change-functions #'my/drop-perspective-scratch))
 
+(defun my/persp-switch-buffer ()
+  "Switch to a buffer of the current perspective with `consult-buffer'.
+Without `persp-mode' this is plain `consult-buffer'."
+  (interactive)
+  (require 'consult)
+  (if (bound-and-true-p persp-mode)
+      (let ((consult-buffer-sources '(persp-consult-source)))
+        (consult-buffer))
+    (consult-buffer)))
+
 (require 'tabs-keys)
 
 (provide 'tabs-mod)
