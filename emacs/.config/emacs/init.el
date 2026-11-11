@@ -25,6 +25,6 @@
 (require 'tramp-mod)
 (require 'chashitsu-mod)
 (require 'mail-mod)
-
+(require 'kanso-mod)
 
 (provide 'init)

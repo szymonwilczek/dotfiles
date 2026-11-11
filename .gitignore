@@ -56,6 +56,7 @@ emacs/.config/emacs/eln-cache/*
 emacs/.config/emacs/transient
 emacs/.config/emacs/url/cookies
 emacs/.config/emacs/icloud-calendar
+emacs/.config/emacs/kanso/
 emacs/.config/emacs/gh-radar-cache.eld
 emacs/.config/emacs/projects.eld
 *~
