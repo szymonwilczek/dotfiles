@@ -17,19 +17,6 @@
           kanso-dojo-layout 'hhkb-ansi
           kanso-dojo-adaptive-drills t)
 
-    (kanso-initialize)
-
-    (global-set-key (kbd "C-c k") #'kanso)
-
-    (with-eval-after-load 'general
-      (when (fboundp 'my-leader-def)
-        (my-leader-def
-          "k"   '(:ignore t :which-key "Kanso Dojo")
-          "kk"  '(kanso :which-key "Kanso Menu")
-          "ks"  '(kanso-speedtest :which-key "Speedtest (10FF)")
-          "kd"  '(kanso-dojo :which-key "Dojo Kata")
-          "kh"  '(kanso-heatmap :which-key "Heatmap")
-          "kc"  '(kanso-coach-report :which-key "Coach Report")
-          "ke"  '(kanso-ergonomics-status :which-key "Ergonomics"))))))
+    (kanso-initialize)))
 
 (provide 'kanso-mod)
