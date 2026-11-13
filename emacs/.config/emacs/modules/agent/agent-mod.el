@@ -181,6 +181,10 @@ any window left showing it."
         ("Claude" (my/agent-shell-claude))
         (_        (my/agent-shell-gemini))))))
 
+(defface my/agent-prompt-header
+  '((t :inherit (bold font-lock-function-name-face header-line)))
+  "Face for the header line of the *agent-prompt* buffer.")
+
 (defun my/agent-edit-prompt ()
   "Draft a prompt in a dedicated bottom split under the agent chat window.
 Leaves the chat history visible above. Resizable via mouse / window splits.
@@ -204,7 +208,7 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
             (text-mode)
             (setq-local header-line-format
                         (propertize " [Prompt] C-c C-c: Submit | C-c C-k: Cancel | Drag border to resize "
-                                    'face '(:weight bold :foreground "#268bd2")))
+                                    'face 'my/agent-prompt-header))
             (local-set-key (kbd "C-c C-c")
                            (lambda ()
                              (interactive)
