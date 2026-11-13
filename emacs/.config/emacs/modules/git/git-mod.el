@@ -156,15 +156,21 @@
         "R" #'rere))))
 
 ;; Git gutter indicators
+(defun my/git-gutter-update-on-focus ()
+  "Refresh git gutters when an Emacs frame gains focus."
+  (when (seq-some #'frame-focus-state (frame-list))
+    (git-gutter:update-all-windows)))
+
 (use-package git-gutter
   :ensure t
   :hook (prog-mode . git-gutter-mode)
   :config
   (setq git-gutter:update-interval 1)
   (add-hook 'magit-post-refresh-hook #'git-gutter:update-all-windows)
-  (add-hook 'focus-in-hook           #'git-gutter:update-all-windows)
   (add-hook 'after-save-hook         #'git-gutter:update-all-windows)
-  (add-hook 'after-revert-hook       #'git-gutter:update-all-windows))
+  (add-hook 'after-revert-hook       #'git-gutter:update-all-windows)
+  (add-function :after after-focus-change-function
+                #'my/git-gutter-update-on-focus))
 
 (use-package git-gutter-fringe
   :ensure t
