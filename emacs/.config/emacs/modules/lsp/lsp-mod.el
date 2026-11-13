@@ -13,8 +13,7 @@
                '(astro "https://github.com/virchau13/tree-sitter-astro"))
 
   (add-to-list 'auto-mode-alist '("\\.astro\\'" . astro-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.[cm]js\\'" . javascript-mode))
-  (add-to-list 'auto-mode-alist '("\\.\\(?:s\\|S\\|asm\\|inc\\)\\'" . asm-mode)))
+  (add-to-list 'auto-mode-alist '("\\.[cm]js\\'" . javascript-mode)))
 
 ;; Code folding via Hideshow
 (use-package hideshow
@@ -40,7 +39,7 @@
 
 (use-package php-ts-mode
   :ensure nil
-  :mode "\\.\\(?:php\\|phtml\\|inc\\)\\'"
+  :mode "\\.\\(?:php\\|phtml\\)\\'"
   :hook (php-ts-mode . (lambda ()
                          (setq-local tab-width 4)
                          (setq-local c-basic-offset 4)
