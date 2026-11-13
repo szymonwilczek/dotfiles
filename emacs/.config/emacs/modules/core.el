@@ -189,8 +189,13 @@
 (setq show-paren-not-in-comments-or-strings t)
 
 ;; Automatically delete trailing whitespace on save
-(when (fboundp 'delete-trailing-whitespace-mode)
-  (delete-trailing-whitespace-mode 1))
+(defun my/enable-delete-trailing-whitespace ()
+  "Turn on `delete-trailing-whitespace-mode' outside markdown buffers."
+  (unless (derived-mode-p 'markdown-mode)
+    (delete-trailing-whitespace-mode 1)))
+
+(dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
+  (add-hook hook #'my/enable-delete-trailing-whitespace))
 
 (add-hook 'server-after-make-frame-hook
           (lambda ()
