@@ -5,7 +5,10 @@
   (define-key vertico-map (kbd "C-j") #'vertico-next)
   (define-key vertico-map (kbd "C-k") #'vertico-previous)
   (define-key vertico-map (kbd "M-j") #'vertico-next)
-  (define-key vertico-map (kbd "M-k") #'vertico-previous))
+  (define-key vertico-map (kbd "M-k") #'vertico-previous)
+  (evil-define-key '(insert normal) vertico-map
+    (kbd "C-j") #'vertico-next
+    (kbd "C-k") #'vertico-previous))
 
 ;; In-buffer (Company) navigation & selection
 (with-eval-after-load 'company

@@ -53,6 +53,8 @@
   (define-key minibuffer-local-map (kbd "C-<backspace>") #'backward-kill-word)
   (define-key minibuffer-local-map [C-backspace]         #'backward-kill-word)
 
+  (evil-define-key 'insert minibuffer-local-map (kbd "C-y") #'yank)
+
   ;; Base Leader Bindings
   (my-leader-def
     ;; Window splits
