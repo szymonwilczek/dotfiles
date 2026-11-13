@@ -7,7 +7,7 @@
   (general-evil-setup)
 
   ;; Global Leader SPC definer
-  (general-create-definer my-leader-def
+  (general-create-definer my/leader-def
     :states '(normal motion visual)
     :keymaps 'override
     :prefix "SPC"
@@ -58,7 +58,7 @@
   (evil-define-key 'insert minibuffer-local-map (kbd "C-y") #'yank)
 
   ;; Base Leader Bindings
-  (my-leader-def
+  (my/leader-def
     ;; Window splits
     "s" '(evil-window-vsplit :which-key "Split Vertical")
     "v" '(evil-window-split :which-key "Split Horizontal")

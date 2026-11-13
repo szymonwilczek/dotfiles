@@ -14,8 +14,8 @@
     "]B" #'bufferline-move-tab-to-window-right))
 
 (with-eval-after-load 'evil-keys
-  (when (fboundp 'my-leader-def)
-    (my-leader-def
+  (when (fboundp 'my/leader-def)
+    (my/leader-def
       "b"  '(:ignore t :which-key "Buffers")
       "bb" '(my/persp-switch-buffer :which-key "Switch Buffer")
       "bp" '(bufferline-pick :which-key "Pick Buffer")

@@ -9,8 +9,8 @@
 
 ;; Leader toggles and themes
 (with-eval-after-load 'evil-keys
-  (when (fboundp 'my-leader-def)
-    (my-leader-def
+  (when (fboundp 'my/leader-def)
+    (my/leader-def
       "t"  '(:ignore t :which-key "Toggle")
       "tt" '(my/theme-toggle :which-key "Toggle Theme (Dark/Light)")
       "tp" '(au-themes-select :which-key "Au Themes Picker")

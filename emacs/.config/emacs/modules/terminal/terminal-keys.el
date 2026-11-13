@@ -5,8 +5,8 @@
 
 ;; Evil states & Leader mappings
 (with-eval-after-load 'evil-keys
-  (when (fboundp 'my-leader-def)
-    (my-leader-def
+  (when (fboundp 'my/leader-def)
+    (my/leader-def
       "tb" '(my/ghostel-open-full-buffer :which-key "Terminal Full Buffer"))))
 
 ;; In-terminal toggle back

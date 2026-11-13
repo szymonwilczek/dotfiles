@@ -37,8 +37,8 @@
 
 ;; Leader search keybindings
 (with-eval-after-load 'evil-keys
-  (when (fboundp 'my-leader-def)
-    (my-leader-def
+  (when (fboundp 'my/leader-def)
+    (my/leader-def
 
       ;; Files & Search
       "f"  '(:ignore t :which-key "Files/Search")

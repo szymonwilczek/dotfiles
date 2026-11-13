@@ -217,8 +217,8 @@ The split is selected and stays until q closes it."
 
 ;; Leader code actions & refactoring
 (with-eval-after-load 'evil-keys
-  (when (fboundp 'my-leader-def)
-    (my-leader-def
+  (when (fboundp 'my/leader-def)
+    (my/leader-def
 
       ;; Code & Refactor
       "c"  '(:ignore t :which-key "Code")

@@ -45,8 +45,8 @@
         (find-file sudo-path)))))
 
 (with-eval-after-load 'evil-keys
-  (when (fboundp 'my-leader-def)
-    (my-leader-def
+  (when (fboundp 'my/leader-def)
+    (my/leader-def
       "r"  '(:ignore t :which-key "Remote/TRAMP")
       "rs" '(my/tramp-open-ssh :which-key "SSH Host (Dired)")
       "ru" '(my/tramp-sudo-this-file :which-key "Sudo Edit File"))))

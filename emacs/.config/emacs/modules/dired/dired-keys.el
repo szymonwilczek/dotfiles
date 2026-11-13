@@ -253,8 +253,8 @@ With two dired windows, C and R offer the other one as the target."
    "C-n" #'my/dired-project-root))
 
 (with-eval-after-load 'evil-keys
-  (when (fboundp 'my-leader-def)
-    (my-leader-def
+  (when (fboundp 'my/leader-def)
+    (my/leader-def
       "d"  '(:ignore t :which-key "Dired")
       "dd" '(dired-jump :which-key "Dired (Current File)")
       "df" '(dired :which-key "Open Directory")

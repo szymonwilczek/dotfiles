@@ -35,8 +35,8 @@
 
 ;; Leader bindings
 (with-eval-after-load 'evil-keys
-  (when (fboundp 'my-leader-def)
-    (my-leader-def
+  (when (fboundp 'my/leader-def)
+    (my/leader-def
       ;; Git prefix
       "g"   '(:ignore t :which-key "Git")
       "gg"  '(magit-status :which-key "Magit Status")

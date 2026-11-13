@@ -180,7 +180,7 @@
   (quit-window t)
   (message "Anulowano zmianę koloru"))
 
-(defvar my-color-picker-mode-map
+(defvar my/color-picker-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Hue
     (define-key map (kbd "h") (lambda () (interactive) (my/color-picker-step 'h -1)))
@@ -213,16 +213,16 @@
     (define-key map (kbd "C-g") #'my/color-picker-cancel)
     (define-key map [escape] #'my/color-picker-cancel)
     map)
-  "Keymap for `my-color-picker-mode'.")
+  "Keymap for `my/color-picker-mode'.")
 
-(define-derived-mode my-color-picker-mode special-mode "ColorPicker"
+(define-derived-mode my/color-picker-mode special-mode "ColorPicker"
   "Major mode for the native Emacs color picker buffer."
   (setq buffer-read-only t
         truncate-lines t)
   (buffer-disable-undo))
 
 (with-eval-after-load 'evil
-  (evil-set-initial-state 'my-color-picker-mode 'emacs))
+  (evil-set-initial-state 'my/color-picker-mode 'emacs))
 
 (defun my/color-picker-render ()
   "Render the visual color picker buffer with HSL and RGB sliders."
@@ -338,7 +338,7 @@
               my/color-picker-cur-l (nth 2 hsl))
         (let ((buf (get-buffer-create "*Color Picker*")))
           (with-current-buffer buf
-            (my-color-picker-mode)
+            (my/color-picker-mode)
             (my/color-picker-render))
           (select-window
            (display-buffer-at-bottom buf '((window-height . 17)))))))))
