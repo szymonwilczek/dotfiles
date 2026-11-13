@@ -11,6 +11,10 @@
   :config
   (evil-mode 1)
 
+  ;; Start minibuffer prompts in insert state
+  (evil-set-initial-state 'minibuffer-mode 'insert)
+  (add-hook 'minibuffer-setup-hook #'evil-insert-state 90)
+
   ;; Highlight on yank
   (defun my/evil-highlight-yank (orig-fn beg end &rest args)
     (let ((res (apply orig-fn beg end args)))
