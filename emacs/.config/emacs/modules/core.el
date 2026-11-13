@@ -216,6 +216,19 @@
 (setq doc-view-resolution 180
       doc-view-continuous t)
 
+;; AI agent buffers
+(defvar-local my/agent-buffer-p nil
+  "Non-nil when current buffer is an AI agent terminal.")
+
+(defun my/agent-related-buffer-p (&optional buffer)
+  "Return non-nil if BUFFER belongs to an AI agent.
+That is an agent terminal, or any buffer named *agent-..., which
+includes the *agent-prompt* draft buffer.  BUFFER defaults to the
+current buffer."
+  (let ((buf (or buffer (current-buffer))))
+    (or (buffer-local-value 'my/agent-buffer-p buf)
+        (string-match-p "\\*agent-" (buffer-name buf)))))
+
 ;; Universal Project Root detection
 (defun my/project-root-dwim (&optional dir)
   "Find the project root for DIR or current buffer.

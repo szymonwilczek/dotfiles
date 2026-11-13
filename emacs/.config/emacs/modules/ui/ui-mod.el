@@ -51,8 +51,7 @@
 
 (add-hook 'display-line-numbers-mode-hook
           (lambda ()
-            (when (or (bound-and-true-p my/agent-buffer-p)
-                      (string-match-p "\\*agent-" (buffer-name)))
+            (when (my/agent-related-buffer-p)
               (setq display-line-numbers nil))))
 
 ;; Themes & Theme Persistence

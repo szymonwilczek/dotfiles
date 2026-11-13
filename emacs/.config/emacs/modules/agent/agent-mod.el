@@ -8,14 +8,9 @@
 (defvar my/agent-active-name "Antigravity"
   "Name of the last activated AI agent.")
 
-(defvar-local my/agent-buffer-p nil
-  "Non-nil when current buffer is an AI agent terminal.")
-
 (defun my/agent-window-p (window)
   "Return non-nil if WINDOW shows an AI agent terminal."
-  (let ((buf (window-buffer window)))
-    (or (buffer-local-value 'my/agent-buffer-p buf)
-        (string-match-p "\\*agent-" (buffer-name buf)))))
+  (my/agent-related-buffer-p (window-buffer window)))
 
 (defun my/agent-keep-companion (window frame-too)
   "Return nil if deleting WINDOW would leave only agent windows behind.
@@ -72,8 +67,7 @@ A `display-buffer-alist' condition."
 
 (defun my/agent--ghostel-buffer-name-fn (title)
   "Prevent ghostel from renaming agent buffers (*agent-*) on terminal TITLE updates."
-  (if (or (bound-and-true-p my/agent-buffer-p)
-          (string-prefix-p "*agent-" (buffer-name)))
+  (if (my/agent-related-buffer-p)
       nil
     (and (fboundp 'ghostel-buffer-name-by-title)
          (ghostel-buffer-name-by-title title))))
@@ -142,8 +136,7 @@ Working directory is automatically set to the project root of the current buffer
 This runs before ghostel kills BUF, which then shows another buffer in
 any window left showing it."
   (when (and buf (buffer-live-p buf))
-    (when (or (buffer-local-value 'my/agent-buffer-p buf)
-              (string-match-p "\\*agent-" (buffer-name buf)))
+    (when (my/agent-related-buffer-p buf)
       (dolist (win (get-buffer-window-list buf nil t))
         (when (eq (window-deletable-p win) t)
           (delete-window win))))))
@@ -173,11 +166,7 @@ any window left showing it."
   "Toggle visibility of active agent split."
   (interactive)
   (let* ((all-wins (window-list))
-         (agent-win (cl-find-if (lambda (w)
-                                  (let ((b (window-buffer w)))
-                                    (or (buffer-local-value 'my/agent-buffer-p b)
-                                        (string-match-p "\\*agent-" (buffer-name b)))))
-                                all-wins)))
+         (agent-win (cl-find-if #'my/agent-window-p all-wins)))
     (if agent-win
         (delete-window agent-win)
       (pcase my/agent-active-name
@@ -195,8 +184,7 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
   (interactive)
   (let* ((orig-buf (current-buffer))
          (agent-win (selected-window)))
-    (unless (or (buffer-local-value 'my/agent-buffer-p orig-buf)
-                (string-match-p "\\*agent-" (buffer-name orig-buf)))
+    (unless (my/agent-related-buffer-p orig-buf)
       (user-error "Current buffer is not an AI agent terminal"))
     ;; if prompt window is already open -> focus it
     (let* ((existing-buf (get-buffer "*agent-prompt*"))
@@ -258,9 +246,7 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
           (cond
            ((string-match-p "claude" name) 'claude)
            ((string-match-p "antigravity\\|agy" name) 'antigravity)
-           ((or (bound-and-true-p my/agent-buffer-p)
-                (string-match-p "\\*agent-" name))
-            'generic)
+           ((my/agent-related-buffer-p buf) 'generic)
            (t nil))))))
 
 

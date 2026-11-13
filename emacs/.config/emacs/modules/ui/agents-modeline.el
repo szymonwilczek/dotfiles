@@ -22,9 +22,7 @@
            ((string-match-p "agent-antigravity" name) 'antigravity)
            ((string-match-p "claude" name) 'claude)
            ((string-match-p "antigravity\\|agy" name) 'antigravity)
-           ((or (bound-and-true-p my/agent-buffer-p)
-                (string-match-p "\\*agent-" name))
-            'generic)
+           ((my/agent-related-buffer-p buf) 'generic)
            (t nil))))))
 
 ;; alias for agent-mod compatibility

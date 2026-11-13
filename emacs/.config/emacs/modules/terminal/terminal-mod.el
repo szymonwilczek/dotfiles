@@ -164,8 +164,7 @@
 This runs before ghostel kills BUF, which then shows another buffer in
 any window left showing it."
     (when (and buf (buffer-live-p buf))
-      (unless (or (buffer-local-value 'my/agent-buffer-p buf)
-                  (string-match-p "\\*agent-" (buffer-name buf)))
+      (unless (my/agent-related-buffer-p buf)
         (dolist (win (get-buffer-window-list buf nil t))
           (when (eq (window-deletable-p win) t)
             (delete-window win))))))
