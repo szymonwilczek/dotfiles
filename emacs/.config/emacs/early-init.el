@@ -45,7 +45,7 @@
       inhibit-startup-echo-area-message user-login-name
       native-comp-async-report-warnings-errors nil
       native-comp-async-on-battery-power nil
-      warning-minimum-level :emergency
+      warning-minimum-level :error
       warning-suppress-types '((native-compiler) (with-editor) (files) (comp)))
 
 (setq frame-inhibit-implied-resize t)
