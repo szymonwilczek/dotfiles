@@ -7,11 +7,10 @@
     (add-to-list 'load-path (expand-file-name "modules/speedtest" kanso-dir))
     (add-to-list 'load-path (expand-file-name "modules/coach" kanso-dir))
     (add-to-list 'load-path (expand-file-name "modules/heatmap" kanso-dir))
-    (add-to-list 'load-path (expand-file-name "modules/ergonomics" kanso-dir))
 
     (require 'kanso)
 
-    (setq kanso-enabled-modules '(dojo speedtest coach heatmap ergonomics)
+    (setq kanso-enabled-modules '(dojo speedtest coach heatmap)
           kanso-speedtest-language "pl"
           kanso-speedtest-track-history t
           kanso-dojo-layout 'hhkb-ansi
