@@ -5,6 +5,8 @@
   (setq evil-want-integration t
         evil-want-keybinding nil
         evil-want-C-u-scroll t
+        evil-want-minibuffer t
+        evil-search-module 'evil-search
         evil-undo-system 'undo-redo)
   :config
   (evil-mode 1)
@@ -52,6 +54,8 @@
 (use-package evil-collection
   :after evil
   :demand t
+  :init
+  (setq evil-collection-setup-minibuffer t)
   :config
   (setq evil-collection-mode-list (delq 'org (delq 'org-agenda evil-collection-mode-list)))
   (evil-collection-init))
