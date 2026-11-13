@@ -32,8 +32,10 @@
         (message "Line numbers: absolute"))
     (setq display-line-numbers-type 'relative)
     (message "Line numbers: relative"))
-  (global-display-line-numbers-mode -1)
-  (global-display-line-numbers-mode 1))
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when display-line-numbers-mode
+        (display-line-numbers-mode 1)))))
 
 ;; Disable line numbers in PDF, images, terminal, treemacs and agent windows
 (defun my/disable-line-numbers ()
