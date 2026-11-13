@@ -213,23 +213,9 @@ The file opens in the current perspective, whatever project it is in."
 
 ;; In-Buffer Completion
 ;; (Company with overlay frontend)
-(defcustom my-disabled-completion-modes
-  '(text-mode
-    markdown-mode
-    gfm-mode
-    rst-mode
-    git-commit-mode
-    fundamental-mode)
-  "List of major modes where auto-completion popup is disabled."
-  :type '(repeat symbol))
-
 (use-package company
   :ensure t
-  :hook ((prog-mode . (lambda ()
-                        (unless (or (memq major-mode my-disabled-completion-modes)
-                                    (derived-mode-p 'text-mode 'markdown-mode 'rst-mode))
-                          (company-mode 1))))
-         (conf-mode . company-mode))
+  :hook ((prog-mode conf-mode) . company-mode)
   :config
   (setq company-minimum-prefix-length 1
         company-idle-delay nil
