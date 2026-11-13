@@ -35,10 +35,12 @@
   (define-key evil-normal-state-map (kbd "C-S-<") #'my/window-swap-left)
   (define-key evil-normal-state-map (kbd "C-S->") #'my/window-swap-right)
 
-  ;; Number increment / decrement, repeating while held
+  ;; Number increment / decrement
   (dolist (map (list evil-normal-state-map evil-visual-state-map))
     (define-key map "+" #'evil-numbers/inc-at-pt)
-    (define-key map "-" #'evil-numbers/dec-at-pt))
+    (define-key map "_" #'evil-numbers/dec-at-pt))
+  (define-key evil-normal-state-map "-" nil)
+  (define-key evil-visual-state-map "-" nil)
 
   ;; Ctrl+Backspace to delete whole word backward
   (global-set-key (kbd "C-<backspace>") #'backward-kill-word)
