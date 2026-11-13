@@ -1,5 +1,5 @@
 [Default Applications]
-application/pdf=okularApplication_pdf.desktop
+application/pdf=org.mozilla.firefox.desktop
 application/x-docbook+xml=nvim.desktop;
 image/avif=org.kde.gwenview.desktop;
 image/bmp=org.kde.gwenview.desktop;
@@ -46,6 +46,7 @@ application/xhtml+xml=org.mozilla.firefox.desktop
 text/xml=org.mozilla.firefox.desktop
 
 [Added Associations]
+application/pdf=org.mozilla.firefox.desktop;
 application/x-docbook+xml=nvim.desktop;
 image/avif=org.kde.gwenview.desktop;
 image/bmp=org.kde.gwenview.desktop;
