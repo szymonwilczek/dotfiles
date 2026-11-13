@@ -89,22 +89,19 @@
   (set-face-attribute 'font-lock-type-face nil :weight 'demi-bold)
   (set-face-attribute 'font-lock-preprocessor-face nil :weight 'demi-bold))
 
-(advice-add 'load-theme :after #'my/apply-custom-face-overrides)
+(defun my/load-theme-exclusively (orig-fun theme &optional no-confirm no-enable)
+  "Make THEME the only enabled theme, reapply face overrides, cache it.
+Around advice for `load-theme' (ORIG-FUN, NO-CONFIRM, NO-ENABLE).
+au-themes and bufferline also go through `load-theme', so this is
+the single place these run."
+  (unless no-enable
+    (mapc #'disable-theme custom-enabled-themes))
+  (prog1 (funcall orig-fun theme no-confirm no-enable)
+    (unless no-enable
+      (my/apply-custom-face-overrides)
+      (my/save-theme-to-cache theme))))
 
-(advice-add 'load-theme :around
-            (lambda (orig-fun theme &rest args)
-              (mapc #'disable-theme custom-enabled-themes)
-              (apply orig-fun theme args)
-              (my/apply-custom-face-overrides)
-              (my/save-theme-to-cache theme)))
-
-(add-hook 'au-themes-post-load-hook
-          (lambda ()
-            (when-let* ((theme (car custom-enabled-themes)))
-              (my/save-theme-to-cache theme)
-              (my/apply-custom-face-overrides)
-              (when (fboundp 'bufferline-highlights-apply)
-                (bufferline-highlights-apply)))))
+(advice-add 'load-theme :around #'my/load-theme-exclusively)
 
 (defcustom my/theme-toggle-pair '(au-salina-night au-salina-day)
   "Two themes to switch between via `my/theme-toggle'."
