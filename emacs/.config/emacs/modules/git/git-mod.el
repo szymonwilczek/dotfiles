@@ -80,8 +80,7 @@
   "Open Lazygit inside Ghostel terminal in the current project root or directory."
   (interactive)
   (require 'ghostel nil t)
-  (let* ((proj-root (or (and (fboundp 'projectile-project-root) (projectile-project-root))
-                        default-directory))
+  (let* ((proj-root (my/project-root-dwim))
          (old-buf (get-buffer "*lazygit*"))
          (script-path (expand-file-name "scripts/lazygit-edit.sh" user-emacs-directory))
          (launcher-path (expand-file-name "scripts/run-lazygit.sh" user-emacs-directory))

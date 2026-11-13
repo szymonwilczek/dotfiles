@@ -36,7 +36,9 @@
 (require 'cl-lib)
 
 (defun my/project-root (&optional _may-prompt)
-  "Return the root directory of the current project or perspective."
+  "Return the root directory of the current project or perspective.
+The optional argument is what `consult-project-function' passes; it
+is ignored because this never prompts."
   (or
    ;; directory of the current perspective, while inside it
    (when-let* (((bound-and-true-p persp-mode))
@@ -45,10 +47,8 @@
                ((or (null buffer-file-name)
                     (file-in-directory-p default-directory dir))))
      dir)
-   ;; Projectile if active and recognized
-   (when (and (bound-and-true-p projectile-mode)
-              (fboundp 'projectile-project-root))
-     (projectile-project-root))
+   ;; the project around default-directory
+   (my/project-root--detect default-directory)
    ;; current Perspective's project root
    (when (and (bound-and-true-p persp-mode)
               (fboundp 'persp-current-name)
@@ -62,13 +62,6 @@
                                      name))
                           (projectile-relevant-known-projects))))
          (file-name-as-directory (expand-file-name proj)))))
-   ;; project.el
-   (when-let* ((project (project-current nil)))
-     (project-root project))
-   ;; dominating .git folder
-   (when-let* ((git-dir (locate-dominating-file default-directory ".git")))
-     (file-name-as-directory (expand-file-name git-dir)))
-   ;; fallback to default-directory
    default-directory))
 
 (use-package consult

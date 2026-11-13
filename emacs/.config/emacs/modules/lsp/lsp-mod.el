@@ -287,9 +287,7 @@ stay tab-indented."
   ;; Server configurations
   (defun my/eglot-astro-contact (_interactive)
     "Resolve typescript.tsdk path for astro-ls language server."
-    (let* ((proj-dir (or (and (fboundp 'projectile-project-root) (projectile-project-root))
-                         (and (fboundp 'project-root) (project-current) (project-root (project-current)))
-                         default-directory))
+    (let* ((proj-dir (my/project-root-dwim))
            (local-tsdk (expand-file-name "node_modules/typescript/lib" proj-dir))
            (global-tsdk (or (and (file-directory-p (expand-file-name "~/.npm-global/lib/node_modules/typescript/lib"))
                                  (expand-file-name "~/.npm-global/lib/node_modules/typescript/lib"))

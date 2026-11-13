@@ -230,22 +230,25 @@ current buffer."
         (string-match-p "\\*agent-" (buffer-name buf)))))
 
 ;; Universal Project Root detection
+(defun my/project-root--detect (dir)
+  "Return the project root containing DIR, or nil if there is none.
+Checks Projectile, then project.el, then the nearest .git."
+  (when-let* ((root (or (when (and (fboundp 'projectile-project-root)
+                                   (projectile-project-p dir))
+                          (projectile-project-root dir))
+                        (when (fboundp 'project-current)
+                          (when-let* ((pr (project-current nil dir)))
+                            (project-root pr)))
+                        (locate-dominating-file dir ".git"))))
+    (file-name-as-directory (expand-file-name root))))
+
 (defun my/project-root-dwim (&optional dir)
-  "Find the project root for DIR or current buffer.
-Checks Projectile, project.el, VC root, and fallbacks."
+  "Return the project root for DIR, or DIR itself outside a project.
+DIR defaults to `default-directory'.  Unlike `my/project-root', this
+ignores the current perspective."
   (let ((dir (or dir default-directory)))
-    (file-name-as-directory
-     (expand-file-name
-      (or (when (and (fboundp 'projectile-project-root)
-                     (projectile-project-p dir))
-            (projectile-project-root dir))
-          (when (fboundp 'project-current)
-            (when-let* ((pr (project-current nil dir)))
-              (project-root pr)))
-          (when (fboundp 'vc-root-dir)
-            (let ((default-directory dir))
-              (vc-root-dir)))
-          dir)))))
+    (or (my/project-root--detect dir)
+        (file-name-as-directory (expand-file-name dir)))))
 
 ;; Protect PGTK against accidental X11 / Xwayland frame requests
 (when (featurep 'pgtk)
