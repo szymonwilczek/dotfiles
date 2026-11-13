@@ -126,9 +126,8 @@
       auto-revert-interval 3
       auto-revert-check-vc-info nil)
 
-;; Process read buffer for LSP (3MB) and performance flags
+;; Process read buffer for LSP (3MB)
 (setq read-process-output-max (* 3 1024 1024))
-(setq idle-update-delay 1.0)
 
 ;; Collect only during idle moments
 (run-with-idle-timer 15.0 t #'garbage-collect)
