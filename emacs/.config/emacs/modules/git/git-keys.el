@@ -27,24 +27,6 @@
       (goto-char orig)
       (message "No previous conflict marker"))))
 
-(defun my/git-conflict-keep-upper ()
-  "Keep our / upper version."
-  (interactive)
-  (require 'smerge-mode)
-  (smerge-keep-upper))
-
-(defun my/git-conflict-keep-lower ()
-  "Keep their / lower version."
-  (interactive)
-  (require 'smerge-mode)
-  (smerge-keep-lower))
-
-(defun my/git-conflict-keep-all ()
-  "Keep both versions."
-  (interactive)
-  (require 'smerge-mode)
-  (smerge-keep-all))
-
 ;; Smerge conflict navigation jumps
 (with-eval-after-load 'evil
   (evil-define-key 'normal 'global
