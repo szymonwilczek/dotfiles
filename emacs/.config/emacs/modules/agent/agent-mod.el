@@ -89,6 +89,9 @@ Each perspective gets its own agent; without `persp-mode' there is one."
         (format "*agent-%s<%s>*" base (persp-current-name))
       (format "*agent-%s*" base))))
 
+(defvar-local my/agent-type nil
+  "Lowercase name of the AI agent in this buffer, e.g. \"claude\".")
+
 (defun my/agent-open (name command-name &optional args)
   "Open or switch to an agent buffer with NAME running COMMAND-NAME with ARGS.
 Working directory is automatically set to the project root of the current buffer."
@@ -236,9 +239,6 @@ Press C-c C-c to submit to the agent, or C-c C-k to cancel."
           (select-window prompt-win)
           (when (fboundp 'evil-insert-state)
             (evil-insert-state 1)))))))
-
-(defvar-local my/agent-type nil
-  "Type of the AI agent running in this buffer ('claude, 'antigravity).")
 
 (defvar my/agent-claude-quota-data nil
   "Alist of Claude quota data: ((5h-util . N) (5h-reset . S) (7d-util . N) (7d-reset . S)).")
