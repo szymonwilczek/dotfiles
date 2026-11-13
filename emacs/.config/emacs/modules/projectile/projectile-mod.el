@@ -66,16 +66,6 @@ If killed or missing, seamlessly fall back to an active perspective."
               (setq my/persp-directories
                     (assoc-delete-all (persp-current-name) my/persp-directories)))))
 
-(defun my/persp-directory (name)
-  "Return the directory behind perspective NAME.
-A directory opened with `my/open-directory-anywhere' wins over a
-Projectile known project of the same name."
-  (or (cdr (assoc name (bound-and-true-p my/persp-directories)))
-      (when (fboundp 'projectile-relevant-known-projects)
-        (cl-find-if (lambda (p)
-                      (string= (funcall projectile-project-name-function p) name))
-                    (projectile-relevant-known-projects)))))
-
 (defun my/open-directory-anywhere (dir)
   "Switch to a perspective named after DIR, starting the prompt in home.
 DIR need not be a Projectile project and is not added to the known
