@@ -129,9 +129,6 @@
 ;; Process read buffer for LSP (3MB) and performance flags
 (setq read-process-output-max (* 3 1024 1024))
 (setq idle-update-delay 1.0)
-(setq native-comp-async-report-warnings-errors nil
-      warning-minimum-level :emergency
-      warning-suppress-types '((native-compiler) (with-editor) (files) (comp)))
 
 ;; Collect only during idle moments
 (run-with-idle-timer 15.0 t #'garbage-collect)
