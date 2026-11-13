@@ -108,6 +108,19 @@
         my/find-file--input (minibuffer-contents))
   (abort-recursive-edit))
 
+(defvar-keymap my/find-file-prompt-mode-map
+  "C-h" #'my/find-file-toggle-ignored)
+
+(define-minor-mode my/find-file-prompt-mode
+  "Keys for the `my/project-find-file' prompt."
+  :keymap my/find-file-prompt-mode-map
+  (when (fboundp 'evil-normalize-keymaps)
+    (evil-normalize-keymaps)))
+
+(with-eval-after-load 'evil
+  (evil-define-key '(normal insert) my/find-file-prompt-mode-map
+    (kbd "C-h") #'my/find-file-toggle-ignored))
+
 (defun my/project-find-file ()
   "Find a file in the project with orderless completion.
 Pressing \\`C-h' toggles showing gitignored files."
@@ -142,10 +155,7 @@ Pressing \\`C-h' toggles showing gitignored files."
                    (file
                     (minibuffer-with-setup-hook
                         (lambda ()
-                          (let ((map (make-sparse-keymap)))
-                            (set-keymap-parent map (current-local-map))
-                            (define-key map (kbd "C-h") #'my/find-file-toggle-ignored)
-                            (use-local-map map))
+                          (my/find-file-prompt-mode 1)
                           (when (and my/find-file--input
                                      (not (string-empty-p my/find-file--input)))
                             (insert my/find-file--input)))
