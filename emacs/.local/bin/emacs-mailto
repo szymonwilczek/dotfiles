@@ -2,9 +2,10 @@
 # emacs-mailto URL
 #
 # Opens a mailto: link as a new message in a frame of the running Emacs
-# daemon, starting one if there is none.
+# daemon. mu4e-user-agent (set by mail-mod) makes message-mailto compose
+# through mu4e, so the right context and sent-folder are used.
 
 url=${1:-mailto:}
 url=${url//\\/\\\\}
 url=${url//\"/\\\"}
-exec emacsclient -c -a '' --eval "(message-mailto \"$url\")"
+exec emacsclient -c -a '' --eval "(progn (require 'mu4e) (message-mailto \"$url\"))"
