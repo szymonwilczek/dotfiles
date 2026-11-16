@@ -38,7 +38,7 @@
      default))
  '(global-wakatime-mode t)
  '(package-selected-packages
-   '(astro-ts-mode au-themes avy bufferline citar citar-org colorful-mode
+   '(astro-ts-mode au-themes avy citar citar-org colorful-mode
                    company consult ef-themes emacs embark
                    embark-consult evil evil-collection evil-commentary
                    evil-matchit evil-numbers evil-org evil-surround
@@ -46,15 +46,13 @@
                    git-gutter git-gutter-fringe jot magit marginalia
                    markdown-mode nerd-icons nerd-icons-completion
                    nerd-icons-dired olivetti orderless org-appear
-                   pdf-tools persp-projectile perspective pinentry
-                   plan-polsl projectile rainbow-mode rere treemacs
+                   pdf-tools perspective pinentry
+                   plan-polsl rainbow-mode rere treemacs
                    treemacs-evil treemacs-nerd-icons
-                   treemacs-perspective treemacs-projectile vertico
+                   treemacs-perspective vertico
                    vundo wakatime-mode))
  '(package-vc-selected-packages
    '((jot :url "https://github.com/szymonwilczek/jot.el" :branch "main")
-     (bufferline :url "https://github.com/szymonwilczek/bufferline.el"
-                 :branch "main")
      (rere :url "https://github.com/szymonwilczek/rere.el" :branch
            "main")
      (gh-radar :url "https://github.com/szymonwilczek/gh-radar.el"

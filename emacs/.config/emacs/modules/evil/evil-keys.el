@@ -65,7 +65,10 @@
     "m" '(my/window-maximize-toggle :which-key "Maximize Window / Restore")
 
     ;; Buffer management
-    "q" '(bufferline-close-tab :which-key "Close Tab")
+    "q" '(my/kill-current-buffer :which-key "Close Buffer")
+    "b" '(:ignore t :which-key "Buffers")
+    "bb" '(my/persp-switch-buffer :which-key "Switch Buffer")
+    "bk" '(my/kill-current-buffer :which-key "Kill Buffer")
 
     ;; Elisp Eval
     "e" '(:ignore t :which-key "Eval/Reload")
@@ -215,12 +218,16 @@ PREVIOUS searches backward instead of forward."
     "]a" #'my/next-argument
     "[a" #'my/previous-argument
     "]l" #'my/next-loop
-    "[l" #'my/previous-loop))
+    "[l" #'my/previous-loop
+    "[b" #'my/persp-prev-buffer
+    "]b" #'my/persp-next-buffer))
 
 (with-eval-after-load 'evil-collection-unimpaired
   (evil-define-key 'normal evil-collection-unimpaired-mode-map
     "]l" #'my/next-loop
-    "[l" #'my/previous-loop))
+    "[l" #'my/previous-loop
+    "[b" #'my/persp-prev-buffer
+    "]b" #'my/persp-next-buffer))
 
 ;; which-key names for evil because what the fuck am I supposed to
 ;; know by this cluttered dashboard
@@ -279,10 +286,8 @@ PREVIOUS searches backward instead of forward."
     ("evil-close-folds" . "Fold All")
     ("ispell-word" . "Spelling of Word")
     ;; [ and ]
-    ("bufferline-prev-tab" . "Previous Tab")
-    ("bufferline-next-tab" . "Next Tab")
-    ("bufferline-move-tab-to-window-left" . "Tab to Left Window")
-    ("bufferline-move-tab-to-window-right" . "Tab to Right Window")
+    ("my/persp-prev-buffer" . "Previous Buffer")
+    ("my/persp-next-buffer" . "Next Buffer")
     ("my/previous-function-start" . "Previous Function")
     ("my/next-function-start" . "Next Function")
     ("my/previous-function-end" . "Previous Function End")
@@ -331,7 +336,7 @@ PREVIOUS searches backward instead of forward."
     "evil-scroll-left" "evil-scroll-right"
     "evil-scroll-start-column" "evil-scroll-end-column"
     "evil-scroll-bottom-line-to-top" "evil-scroll-top-line-to-bottom"
-    ;; tab-bar and tags, unused next to bufferline and xref
+    ;; tab-bar and tags, unused next to xref
     "evil-tab-next" "tab-bar-switch-to-prev-tab" "evil-jump-to-tag"
     "evil-backward-section-begin" "evil-backward-section-end"
     "evil-forward-section-begin" "evil-forward-section-end"

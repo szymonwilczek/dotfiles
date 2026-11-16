@@ -94,8 +94,7 @@
 (defun my/load-theme-exclusively (orig-fun theme &optional no-confirm no-enable)
   "Make THEME the only enabled theme, reapply face overrides, cache it.
 Around advice for `load-theme' (ORIG-FUN, NO-CONFIRM, NO-ENABLE).
-au-themes and bufferline also go through `load-theme', so this is
-the single place these run."
+au-themes also goes through `load-theme', so this is the single place these run."
   (unless no-enable
     (mapc #'disable-theme custom-enabled-themes))
   (prog1 (funcall orig-fun theme no-confirm no-enable)
@@ -141,9 +140,7 @@ the single place these run."
             (mapc #'disable-theme custom-enabled-themes)
             (load-theme theme t))
           (enable-theme theme)
-          (my/apply-custom-face-overrides)
-          (when (fboundp 'bufferline-highlights-apply)
-            (bufferline-highlights-apply f)))))))
+          (my/apply-custom-face-overrides))))))
 
 (add-hook 'after-make-frame-functions #'my/setup-frame-theme)
 (add-hook 'server-after-make-frame-hook #'my/setup-frame-theme)

@@ -13,7 +13,6 @@
 (require 'project-mod)
 (require 'git-mod)
 (require 'terminal-mod)
-(require 'tabs-mod)
 (require 'org-mod)
 (require 'markdown-mod)
 (require 'latex-mod)

@@ -71,9 +71,12 @@ If killed or missing, seamlessly fall back to an active perspective."
   (add-to-list 'ido-ignore-buffers "\\`\\*agent-")
 
   (defun my/persp-filter-added-buffers (orig-fn buffer-or-name)
-    "Prevent AI agent buffers from being adopted as project perspective buffers."
+    "Prevent internal buffers and AI agent buffers from being adopted by perspectives."
     (let ((buf (get-buffer buffer-or-name)))
-      (unless (and buf (fboundp 'my/agent-related-buffer-p) (my/agent-related-buffer-p buf))
+      (unless (or (null buf)
+                  (string-prefix-p " " (buffer-name buf))
+                  (and (fboundp 'my/agent-related-buffer-p)
+                       (my/agent-related-buffer-p buf)))
         (funcall orig-fn buffer-or-name))))
 
   (advice-add 'persp-add-buffer :around #'my/persp-filter-added-buffers)
@@ -174,6 +177,89 @@ A new perspective opens DIR in dired, an existing one is just switched to."
 (add-hook 'server-after-make-frame-hook
           (lambda ()
             (run-at-time 0 nil #'my/new-frame-switch-project (selected-frame))))
+
+(defun my/persp-switch-buffer ()
+  "Switch to a buffer of the current perspective with `consult-buffer'.
+Without `persp-mode' this is plain `consult-buffer'."
+  (interactive)
+  (require 'consult)
+  (if (bound-and-true-p persp-mode)
+      (let ((consult-buffer-sources '(persp-consult-source)))
+        (consult-buffer))
+    (consult-buffer)))
+
+(defun my/persp-buffers-clean ()
+  "Return living, user-visible buffers belonging to the current perspective."
+  (seq-filter (lambda (b)
+                (let ((name (buffer-name b)))
+                  (and (buffer-live-p b)
+                       (not (string-prefix-p " " name))
+                       (not (and (fboundp 'my/agent-related-buffer-p)
+                                 (my/agent-related-buffer-p b))))))
+              (persp-current-buffers)))
+
+(defun my/persp-next-buffer ()
+  "Switch to next buffer in the current perspective."
+  (interactive)
+  (let* ((bufs (my/persp-buffers-clean))
+         (pos (cl-position (current-buffer) bufs)))
+    (if (and pos (> (length bufs) 1))
+        (switch-to-buffer (nth (mod (1+ pos) (length bufs)) bufs))
+      (when bufs (switch-to-buffer (car bufs))))))
+
+(defun my/persp-prev-buffer ()
+  "Switch to previous buffer in the current perspective."
+  (interactive)
+  (let* ((bufs (my/persp-buffers-clean))
+         (pos (cl-position (current-buffer) bufs)))
+    (if (and pos (> (length bufs) 1))
+        (switch-to-buffer (nth (mod (1- pos) (length bufs)) bufs))
+      (when bufs (switch-to-buffer (car (last bufs)))))))
+
+(defun my/kill-current-buffer ()
+  "Safely close the current buffer without polluting or destroying the perspective.
+- In an AI agent window: hide/toggle the window, keeping the process running.
+- In a perspective scratch buffer: refuse if no other buffers exist.
+- When closing a buffer: smoothly switch to `persp-other-buffer' (or scratch)
+  first, then kill the buffer."
+  (interactive)
+  (let ((buf (current-buffer))
+        (win (selected-window)))
+    (cond
+     ;; agent split
+     ((and (fboundp 'my/agent-window-p) (my/agent-window-p win))
+      (if (fboundp 'my/agent-shell-toggle)
+          (my/agent-shell-toggle)
+        (delete-window win)))
+
+     ;; perspective scratch buffer
+     ((and (bound-and-true-p persp-mode)
+           (string-match-p "\\`\\*scratch\\*" (buffer-name buf)))
+      (let ((other-bufs (cl-remove-if
+                         (lambda (b)
+                           (let ((name (buffer-name b)))
+                             (or (eq b buf)
+                                 (string-prefix-p " " name)
+                                 (string-match-p "\\`\\*scratch\\*" name)
+                                 (and (fboundp 'my/agent-related-buffer-p)
+                                      (my/agent-related-buffer-p b)))))
+                         (persp-current-buffers))))
+        (if other-bufs
+            (kill-buffer buf)
+          (user-error "Cannot close perspective scratch buffer"))))
+
+     ;; normal buffer in perspective
+     ((bound-and-true-p persp-mode)
+      (let* ((target (persp-other-buffer buf))
+             (start (window-start win))
+             (point (window-point win)))
+        (switch-to-buffer target nil t)
+        (unless (kill-buffer buf)
+          (set-window-buffer-start-and-point win buf start point))))
+
+     ;; outside perspective mode
+     (t
+      (kill-current-buffer)))))
 
 (require 'project-keys)
 
