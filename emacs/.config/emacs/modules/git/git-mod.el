@@ -161,11 +161,22 @@
   (when (seq-some #'frame-focus-state (frame-list))
     (git-gutter:update-all-windows)))
 
+(defun my/git-gutter-safe-live-update (orig-fn &rest args)
+  "Safely run `git-gutter:live-update' only when in a valid VCS repository root."
+  (when (and (bound-and-true-p git-gutter-mode)
+             (fboundp 'git-gutter:base-file)
+             (git-gutter:base-file)
+             (bound-and-true-p git-gutter:vcs-type)
+             (when-let* ((raw-root (git-gutter:vcs-root git-gutter:vcs-type)))
+               (stringp raw-root)))
+    (apply orig-fn args)))
+
 (use-package git-gutter
   :ensure t
   :hook (prog-mode . git-gutter-mode)
   :config
   (setq git-gutter:update-interval 1)
+  (advice-add 'git-gutter:live-update :around #'my/git-gutter-safe-live-update)
   (add-hook 'magit-post-refresh-hook #'git-gutter:update-all-windows)
   (add-hook 'after-save-hook         #'git-gutter:update-all-windows)
   (add-hook 'after-revert-hook       #'git-gutter:update-all-windows)
