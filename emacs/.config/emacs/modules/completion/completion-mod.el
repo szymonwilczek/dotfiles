@@ -1,7 +1,5 @@
-;;; Minad stack minibuffer and Company completion -*- lexical-binding: t; -*-
+;;; Minibuffer and native in-buffer completion -*- lexical-binding: t; -*-
 
-;; Minibuffer Completion
-;; (Vertico + Orderless + Marginalia + Consult)
 (use-package vertico
   :ensure t
   :init
@@ -210,26 +208,21 @@ The file opens in the current perspective, whatever project it is in."
     (message "Saved %d file(s)" saved)))
 
 ;; In-Buffer Completion
-;; (Company with overlay frontend)
-(use-package company
-  :ensure t
-  :hook ((prog-mode conf-mode) . company-mode)
+(use-package completion-preview
+  :ensure nil
+  :hook ((prog-mode conf-mode text-mode) . completion-preview-mode)
+  :custom
+  (completion-preview-minimum-symbol-length 2)
+  (completion-preview-idle-delay 0.1)
   :config
-  (setq company-minimum-prefix-length 1
-        company-idle-delay nil
-        company-selection-wrap-around t
-        company-tooltip-limit 10
-        company-tooltip-align-annotations t
-        company-require-match nil
-        company-dabbrev-other-buffers nil
-        company-frontends '(company-pseudo-tooltip-frontend)
-        company-backends '((company-capf :with company-dabbrev)))
-
-  ;; Clean overlay faces
-  (set-face-attribute 'company-tooltip nil :inherit 'tooltip :background 'unspecified :foreground 'unspecified)
-  (set-face-attribute 'company-tooltip-selection nil :inherit 'highlight :background 'unspecified :foreground 'unspecified :weight 'bold)
-  (set-face-attribute 'company-tooltip-common nil :inherit 'font-lock-keyword-face :background 'unspecified :foreground 'unspecified)
-  (set-face-attribute 'company-tooltip-annotation nil :inherit 'font-lock-comment-face :background 'unspecified :foreground 'unspecified))
+  (with-eval-after-load 'completion-preview
+    (keymap-set completion-preview-active-mode-map "TAB" #'completion-preview-insert)
+    (keymap-set completion-preview-active-mode-map "<tab>" #'completion-preview-insert)
+    (keymap-set completion-preview-active-mode-map "C-i" #'completion-preview-insert)
+    (keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
+    (keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
+    (keymap-set completion-preview-active-mode-map "M-j" #'completion-preview-next-candidate)
+    (keymap-set completion-preview-active-mode-map "M-k" #'completion-preview-prev-candidate)))
 
 (require 'completion-keys)
 

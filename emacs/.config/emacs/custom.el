@@ -39,7 +39,7 @@
  '(global-wakatime-mode t)
  '(package-selected-packages
    '(astro-ts-mode au-themes citar citar-org
-                   company consult emacs embark
+                   consult emacs embark
                    embark-consult evil evil-collection evil-commentary
                    evil-matchit evil-numbers evil-org evil-surround
                    evil-textobj-tree-sitter general gh-radar ghostel

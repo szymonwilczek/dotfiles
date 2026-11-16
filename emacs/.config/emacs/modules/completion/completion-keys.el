@@ -1,6 +1,5 @@
 ;;; Completion keybindings -*- lexical-binding: t; -*-
 
-;; Minibuffer (Vertico) navigation
 (with-eval-after-load 'vertico
   (define-key vertico-map (kbd "C-j") #'vertico-next)
   (define-key vertico-map (kbd "C-k") #'vertico-previous)
@@ -10,32 +9,17 @@
     (kbd "C-j") #'vertico-next
     (kbd "C-k") #'vertico-previous))
 
-;; In-buffer (Company) navigation & selection
-(with-eval-after-load 'company
-  (define-key company-active-map (kbd "M-j") #'company-select-next)
-  (define-key company-active-map (kbd "M-k") #'company-select-previous)
-  (define-key company-active-map (kbd "TAB") #'company-complete-selection)
-  (define-key company-active-map (kbd "<tab>") #'company-complete-selection)
-  (define-key company-active-map (kbd "RET") #'company-complete-selection)
-  (define-key company-active-map (kbd "<return>") #'company-complete-selection)
-  (define-key company-active-map (kbd "<escape>") #'company-abort)
-  (define-key company-active-map (kbd "C-g") #'company-abort)
-  (define-key company-mode-map [remap indent-for-tab-command] #'my/indent-or-insert-tab)
-  (define-key company-mode-map (kbd "C-SPC") #'company-complete)
-  (define-key company-mode-map (kbd "C-@") #'company-complete))
-
-(global-set-key (kbd "C-SPC") #'company-complete)
-(global-set-key (kbd "C-@") #'company-complete)
+(global-set-key (kbd "C-SPC") #'completion-at-point)
+(global-set-key (kbd "C-@") #'completion-at-point)
 (global-set-key (kbd "M-x") #'execute-extended-command)
 (global-set-key (kbd "A-x") #'execute-extended-command)
 
 (global-set-key (kbd "C-.") #'embark-act)
 (with-eval-after-load 'evil
-  (define-key evil-insert-state-map (kbd "C-SPC") #'company-complete)
-  (define-key evil-insert-state-map (kbd "C-@") #'company-complete)
+  (define-key evil-insert-state-map (kbd "C-SPC") #'completion-at-point)
+  (define-key evil-insert-state-map (kbd "C-@") #'completion-at-point)
   (define-key evil-normal-state-map (kbd "C-.") #'embark-act))
 
-;; Leader search keybindings
 (with-eval-after-load 'evil-keys
   (when (fboundp 'my/leader-def)
     (my/leader-def
