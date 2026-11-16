@@ -10,7 +10,7 @@
 (require 'ui-mod)
 (require 'completion-mod)
 (require 'lsp-mod)
-(require 'projectile-mod)
+(require 'project-mod)
 (require 'git-mod)
 (require 'terminal-mod)
 (require 'tabs-mod)

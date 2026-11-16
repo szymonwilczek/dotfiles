@@ -55,8 +55,10 @@
               (setq display-line-numbers nil))))
 
 ;; Themes & Theme Persistence
+(add-to-list 'custom-theme-load-path (expand-file-name
+                                      "~/Dokumenty/GitHub/au-themes"))
 (use-package au-themes
-  :vc (:url "https://github.com/szymonwilczek/au-themes" :branch "main" :rev :newest)
+  :load-path "~/Dokumenty/GitHub/au-themes"
   :demand t)
 
 (defvar my/theme-cache-file

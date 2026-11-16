@@ -29,13 +29,13 @@
     (propertize (format " %s " mode-name) 'face face)))
 
 (defun my/modeline--compute-base-name ()
-  "Compute base filename relative to projectile root."
+  "Compute base filename relative to project root."
   (let* ((file (buffer-file-name))
          (buf-name (buffer-name)))
     (if file
-        (let* ((proj (and (fboundp 'projectile-project-root)
-                          (projectile-project-p)
-                          (projectile-project-root))))
+        (let* ((proj (and (fboundp 'project-current)
+                          (when-let* ((pr (project-current nil default-directory)))
+                            (project-root pr)))))
           (if proj (file-relative-name file proj)
             (abbreviate-file-name file)))
       (if (string-prefix-p "*" buf-name)

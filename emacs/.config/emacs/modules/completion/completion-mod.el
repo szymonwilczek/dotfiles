@@ -52,15 +52,13 @@ is ignored because this never prompts."
    ;; current Perspective's project root
    (when (and (bound-and-true-p persp-mode)
               (fboundp 'persp-current-name)
-              (fboundp 'projectile-relevant-known-projects))
+              (fboundp 'project-known-project-roots))
      (let ((name (persp-current-name)))
        (when-let* ((proj (cl-find-if
                           (lambda (p)
-                            (string= (funcall (or (bound-and-true-p projectile-project-name-function)
-                                                  #'file-name-nondirectory)
-                                              p)
+                            (string= (file-name-nondirectory (directory-file-name p))
                                      name))
-                          (projectile-relevant-known-projects))))
+                          (project-known-project-roots))))
          (file-name-as-directory (expand-file-name proj)))))
    default-directory))
 

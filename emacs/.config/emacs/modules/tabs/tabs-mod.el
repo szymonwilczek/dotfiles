@@ -54,19 +54,7 @@ for a window dedicated to the buffer."
                       ""))))
     t)
 
-  (add-hook 'kill-buffer-query-functions #'my/refuse-closing-last-tab -90)
-
-  (defun my/drop-perspective-scratch (frame)
-    "Kill the perspective's scratch once FRAME's selected window shows a tab."
-    (when (bound-and-true-p persp-mode)
-      (with-selected-frame frame
-        (when-let* ((scratch (get-buffer (persp-scratch-buffer))))
-          (when (and (memq (window-buffer) (bufferline-buffers-all))
-                     (not (buffer-modified-p scratch))
-                     (not (get-buffer-window scratch frame)))
-            (kill-buffer scratch))))))
-
-  (add-hook 'window-buffer-change-functions #'my/drop-perspective-scratch))
+  (add-hook 'kill-buffer-query-functions #'my/refuse-closing-last-tab -90))
 
 (defun my/persp-switch-buffer ()
   "Switch to a buffer of the current perspective with `consult-buffer'.

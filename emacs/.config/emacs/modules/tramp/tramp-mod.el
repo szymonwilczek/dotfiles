@@ -42,10 +42,7 @@
   (setq vc-ignore-dir-regexp
         (format "\\(%s\\)\\|\\(%s\\)"
                 vc-ignore-dir-regexp
-                tramp-file-name-regexp))
-
-  (with-eval-after-load 'projectile
-    (setq projectile-enable-caching t)))
+                tramp-file-name-regexp)))
 
 (require 'tramp-keys)
 

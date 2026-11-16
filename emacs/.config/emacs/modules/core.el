@@ -85,15 +85,6 @@
 
 (setq read-extended-command-predicate nil)
 
-;; Automatically kill *scratch* buffer as soon as a real file is opened
-(defun my/kill-scratch-on-find-file ()
-  "Kill *scratch* if unmodified once a file buffer is loaded."
-  (let ((scratch (get-buffer "*scratch*")))
-    (when (and scratch (buffer-file-name) (not (buffer-modified-p scratch)))
-      (kill-buffer scratch))))
-
-(add-hook 'find-file-hook #'my/kill-scratch-on-find-file)
-
 ;; Jump directly without prompt
 (setq xref-prompt-for-identifier nil)
 
@@ -231,11 +222,8 @@ current buffer."
 ;; Universal Project Root detection
 (defun my/project-root--detect (dir)
   "Return the project root containing DIR, or nil if there is none.
-Checks Projectile, then project.el, then the nearest .git."
-  (when-let* ((root (or (when (and (fboundp 'projectile-project-root)
-                                   (projectile-project-p dir))
-                          (projectile-project-root dir))
-                        (when (fboundp 'project-current)
+Checks project.el, then the nearest .git."
+  (when-let* ((root (or (when (fboundp 'project-current)
                           (when-let* ((pr (project-current nil dir)))
                             (project-root pr)))
                         (locate-dominating-file dir ".git"))))
@@ -271,6 +259,8 @@ ignores the current perspective."
   (interactive)
   (let* ((modules-dir (expand-file-name "modules" user-emacs-directory))
          (module-files (directory-files-recursively modules-dir "\\.el\\'")))
+    (let ((default-directory modules-dir))
+      (normal-top-level-add-subdirs-to-load-path))
     (dolist (file module-files)
       (let ((feat (intern (file-name-base file))))
         (setq features (delq feat features))))
