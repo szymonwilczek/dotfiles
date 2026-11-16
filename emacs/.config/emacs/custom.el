@@ -38,8 +38,8 @@
      default))
  '(global-wakatime-mode t)
  '(package-selected-packages
-   '(astro-ts-mode au-themes avy citar citar-org colorful-mode
-                   company consult ef-themes emacs embark
+   '(astro-ts-mode au-themes citar citar-org
+                   company consult emacs embark
                    embark-consult evil evil-collection evil-commentary
                    evil-matchit evil-numbers evil-org evil-surround
                    evil-textobj-tree-sitter general gh-radar ghostel
@@ -47,9 +47,7 @@
                    markdown-mode nerd-icons nerd-icons-completion
                    nerd-icons-dired olivetti orderless org-appear
                    pdf-tools perspective pinentry
-                   plan-polsl rainbow-mode rere treemacs
-                   treemacs-evil treemacs-nerd-icons
-                   treemacs-perspective vertico
+                   plan-polsl rainbow-mode rere vertico
                    vundo wakatime-mode))
  '(package-vc-selected-packages
    '((jot :url "https://github.com/szymonwilczek/jot.el" :branch "main")

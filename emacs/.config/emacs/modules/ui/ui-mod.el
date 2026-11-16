@@ -121,10 +121,6 @@ au-themes also goes through `load-theme', so this is the single place these run.
       (load-theme next t)
       (message "Theme switched to %s" next))))
 
-(use-package ef-themes
-  :ensure t
-  :config
-  (setq ef-themes-to-toggle my/theme-toggle-pair))
 
 ;; Daemon and per-frame theme application
 (defun my/setup-frame-theme (&optional frame)
