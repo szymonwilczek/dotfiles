@@ -76,7 +76,7 @@ Each entry is a plist (:name NAME :address EMAIL :fullname DISPLAY).")
 
   ;; Compose
   (mu4e-compose-dont-reply-to-self t)
-  (mu4e-compose-format-flowed t)
+  (mu4e-compose-format-flowed nil)
 
   ;; Behaviour
   (mu4e-confirm-quit nil)
