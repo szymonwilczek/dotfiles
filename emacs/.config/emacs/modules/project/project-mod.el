@@ -178,13 +178,37 @@ A new perspective opens DIR in dired, an existing one is just switched to."
           (lambda ()
             (run-at-time 0 nil #'my/new-frame-switch-project (selected-frame))))
 
+(defun my/persp-switch-buffer-p (buf)
+  "Non-nil if BUF is listed by `my/persp-switch-buffer'.
+That is every buffer of the current perspective, special `*...*'
+buffers included, except the agent buffers, which live in their own
+dedicated split."
+  (and (persp-is-current-buffer buf t)
+       (not (my/agent-related-buffer-p buf))))
+
+(defvar my/persp-consult-source
+  (list :name     "Perspective"
+        :narrow   ?s
+        :category 'buffer
+        :state    #'consult--buffer-state
+        :history  'buffer-name-history
+        :default  t
+        :items
+        (lambda ()
+          (consult--buffer-query :sort 'visibility
+                                 :exclude '("\\` ")
+                                 :predicate #'my/persp-switch-buffer-p
+                                 :as #'buffer-name)))
+  "`consult-buffer' source with all buffers of the current perspective.")
+
 (defun my/persp-switch-buffer ()
   "Switch to a buffer of the current perspective with `consult-buffer'.
+Special buffers are listed too; see `my/persp-switch-buffer-p'.
 Without `persp-mode' this is plain `consult-buffer'."
   (interactive)
   (require 'consult)
   (if (bound-and-true-p persp-mode)
-      (let ((consult-buffer-sources '(persp-consult-source)))
+      (let ((consult-buffer-sources '(my/persp-consult-source)))
         (consult-buffer))
     (consult-buffer)))
 
