@@ -181,10 +181,13 @@ A new perspective opens DIR in dired, an existing one is just switched to."
 (defun my/persp-switch-buffer-p (buf)
   "Non-nil if BUF is listed by `my/persp-switch-buffer'.
 That is every buffer of the current perspective, special `*...*'
-buffers included, except the agent buffers, which live in their own
-dedicated split."
+buffers included, except the agent buffers and the bottom terminal
+of `my/ghostel-toggle-bottom', which live in their own split and
+have their own keys.  Ordinary ghostel buffers stay listed."
   (and (persp-is-current-buffer buf t)
-       (not (my/agent-related-buffer-p buf))))
+       (not (my/agent-related-buffer-p buf))
+       (not (and (local-variable-p 'my/ghostel-bottom-buffer-p buf)
+                 (buffer-local-value 'my/ghostel-bottom-buffer-p buf)))))
 
 (defvar my/persp-consult-source
   (list :name     "Perspective"
