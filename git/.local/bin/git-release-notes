@@ -3,8 +3,7 @@
 # Summary: Print the merged pull requests of a milestone for the release notes.
 #
 # Prints the release notes body listing every merged pull request whose
-# milestone is <version>, leaving out the pull requests into main that
-# carry a release there:
+# milestone is <version>:
 #
 #   Merged pull requests:
 #
@@ -16,11 +15,20 @@
 #   - #<number> <title>
 #   ...
 #
-# A rule closes the pull requests each release candidate v<version>-rc<n>
-# took in, those first released by a candidate tag that contains their
-# merge; within a candidate they are listed by number.
+# A rule closes the pull requests each release candidate
+# <prefix><version>-rc<n> took in, those first released by a candidate
+# tag that contains their merge; within a candidate they are listed by
+# number.
+#
+# With release.next set, the pull requests into the default branch are
+# left out: they are the ones that carry a release there.
 #
 # Nothing is published; the output is meant to be pasted into the release.
+#
+# Configuration, from git config:
+#
+#   release.next       the integration branch, if the project has one
+#   release.tagPrefix  what tags put before the version; "v" by default
 
 set -euo pipefail
 
@@ -46,10 +54,26 @@ set -- "${args[@]}"
 [[ $# -eq 1 && -n $1 ]] || usage
 version=$1
 
+remote=origin
+next=$(git config --get release.next || true)
+prefix=$(git config --get release.tagPrefix || echo v)
+
+# with an integration branch, the release pull requests go into the
+# default branch and are not listed
+skip=
+if [[ -n $next ]]; then
+    if stable=$(git symbolic-ref -q --short "refs/remotes/$remote/HEAD"); then
+        stable=${stable#"$remote"/}
+    else
+        stable=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)
+    fi
+    skip=" and .baseRefName != \"$stable\""
+fi
+
 prs=$(gh pr list --state merged --limit 1000 \
          --search "milestone:\"$version\"" \
          --json number,title,milestone,baseRefName,mergeCommit \
-         --jq "[.[] | select(.milestone.title == \"$version\" and .baseRefName != \"main\")] | sort_by(.number)
+         --jq "[.[] | select(.milestone.title == \"$version\"$skip)] | sort_by(.number)
           | .[] | [.number, .mergeCommit.oid, .title] | @tsv")
 
 if [[ -z $prs ]]; then
@@ -57,7 +81,7 @@ if [[ -z $prs ]]; then
     exit 1
 fi
 
-mapfile -t rcs < <(git tag -l "v$version-rc*" --sort=v:refname)
+mapfile -t rcs < <(git tag -l "$prefix$version-rc*" --sort=v:refname)
 
 # index into rcs of the first candidate that released a merge,
 # or the number of candidates when none did yet
