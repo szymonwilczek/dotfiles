@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # git release-merge [-n] <number>
+# Summary: Merge the release pull request into main and fast-forward lota-next.
 # Created for managing my LOTA project
 #
 # Merges release pull request <number>, from lota-next into main,

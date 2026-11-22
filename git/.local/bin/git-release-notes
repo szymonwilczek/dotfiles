@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # git release-notes <version>
+# Summary: Print the merged pull requests of a milestone for the release notes.
 # Created for managing my LOTA project
 #
 # Prints the release notes body listing every merged pull request whose

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # git pr-merge [-n] <number>
+# Summary: Merge a pull request on GitHub with a kernel-style merge message.
 # Created for managing my LOTA project
 #
 #   Merge branch '<head>' into <base> (#<number>)
