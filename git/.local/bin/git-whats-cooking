@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # git whats-cooking
 # Summary: Report where lota-next and every open pull request stand.
-# Created for managing my LOTA project
 #
 # Prints the state of lota-next and of every open pull request,
 # after Junio Hamano's "What's cooking in git.git":

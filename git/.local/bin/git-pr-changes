@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # git pr-changes <pr-number> [-s]
 # Summary: Show, or post, a range-diff of a reworked pull request against GitHub.
-# Created for managing my LOTA project
 #
 # Prints what the local branch of open pull request <pr-number> changes
 # against the head GitHub has, as the comment that announces a new

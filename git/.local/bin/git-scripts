@@ -72,7 +72,7 @@ describe() {
             usage=$line
         elif [[ $line == "Summary: "* ]]; then
             summary=${line#Summary: }
-        elif [[ $line != "Created for managing my LOTA project" ]]; then
+        else
             body+=("$line")
         fi
     done < <(header "$1")

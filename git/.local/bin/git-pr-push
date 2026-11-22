@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # git pr-push <first-pr-number> [<last-pr-number>]
 # Summary: Print one atomic, lease-protected push of the branches behind pull requests.
-# Created for managing my LOTA project
 #
 # Prints, and does not run, the one atomic push that publishes the local
 # branches behind open pull requests <first-pr-number>..<last-pr-number>,

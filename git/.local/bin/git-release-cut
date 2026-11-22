@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # git release-cut <version> [-n]
 # Summary: Bump VERSION on lota-next and tag the release or release candidate.
-# Created for managing my LOTA project
 #
 # Bumps VERSION on lota-next and tags the bump, the way every LOTA
 # release and release candidate is cut:

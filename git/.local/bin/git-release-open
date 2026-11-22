@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # git release-open <version> [-n]
 # Summary: Open the release pull request from lota-next into main.
-# Created for managing my LOTA project
 #
 # Opens the pull request that brings release <version> from lota-next
 # to main:
