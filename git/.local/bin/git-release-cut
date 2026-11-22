@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # git release-cut <version> [-n]
-# Summary: Bump VERSION on lota-next and tag the release or release candidate.
+# Summary: Bump the version on the release branch and tag the release or release candidate.
 #
-# Bumps VERSION on lota-next and tags the bump, the way every LOTA
-# release and release candidate is cut:
+# Bumps the version in release.versionFile on the release branch and tags
+# the bump, the way every release and release candidate is cut:
 #
 #   build: <version>
 #
@@ -11,13 +11,26 @@
 #
 #   Signed-off-by: <user.name> <user.email>
 #
-# The commit is signed, and so is the annotated tag v<version>, whose
-# message is "LOTA <version>".
+# The commit is signed, and so is the annotated tag <prefix><version>,
+# whose message is "<name> <version>".
 # Both messages open in the Git editor, the commit's first, and nothing is
 # changed until both are accepted; an empty message or a cancelled edit aborts.
 # The push that publishes both is printed.
 #
 # -n, --dry-run prints the commit message and changes nothing.
+#
+# Configuration, from git config:
+#
+#   release.next            the integration branch, which releases are cut
+#                           on; the default branch if unset
+#   release.versionFile     the file that holds the version, from the top
+#                           of the repository; required
+#   release.versionPattern  an awk regular expression for what comes before
+#                           the version on its line, such as "^;; Version: ";
+#                           if unset, the version is the whole first line
+#   release.name            the project name in the tag message; the name
+#                           of the repository if unset
+#   release.tagPrefix       what tags put before the version; "v" by default
 
 set -euo pipefail
 shopt -s inherit_errexit
@@ -54,15 +67,46 @@ done
 set -- "${args[@]}"
 [[ $# -eq 1 && $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]] || usage
 version=$1
-tag=v$version
 
 remote=origin
-branch=lota-next
-
 top=$(git rev-parse --show-toplevel)
+file=$(git config --get release.versionFile) ||
+    die "no release.versionFile; set it to the file that holds the version"
+pattern=$(git config --get release.versionPattern || true)
+name=$(git config --get release.name || basename "$top")
+tag=$(git config --get release.tagPrefix || echo v)$version
+if ! branch=$(git config --get release.next); then
+    if branch=$(git symbolic-ref -q --short "refs/remotes/$remote/HEAD"); then
+        branch=${branch#"$remote"/}
+    else
+        branch=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)
+    fi
+fi
+
+# the version $file holds: what follows $pattern on the first line it
+# matches, or the whole first line
+current() {
+    awk -v re="$pattern" '
+	re == "" { print; found = 1; exit }
+	match($0, re) { print substr($0, RSTART + RLENGTH); found = 1; exit }
+	END { exit !found }
+	' "$top/$file"
+}
+
+# $file with the version it holds replaced by $1
+bumped() {
+    awk -v re="$pattern" -v version="$1" '
+	!done && re == "" { $0 = version; done = 1 }
+	!done && match($0, re) { $0 = substr($0, 1, RSTART + RLENGTH - 1) version; done = 1 }
+	{ print }
+	' "$top/$file"
+}
+
 [[ $(git symbolic-ref -q --short HEAD) == "$branch" ]] || die "not on $branch"
 git rev-parse -q --verify "refs/tags/$tag" >/dev/null && die "$tag already exists"
-[[ $(sed -n 1p "$top/VERSION") != "$version" ]] || die "VERSION already says $version"
+[[ -f $top/$file ]] || die "no $file, which release.versionFile names"
+old=$(current) || die "no line of $file matches release.versionPattern"
+[[ $old != "$version" ]] || die "$file already says $version"
 git diff --quiet HEAD -- || die "the working tree has uncommitted changes"
 git fetch -q "$remote" "$branch"
 git merge-base --is-ancestor "$remote/$branch" HEAD || die "$branch is behind $remote/$branch"
@@ -120,11 +164,13 @@ edit() {
     [[ -s $1 ]] || die "empty message, nothing changed"
 }
 
-edit "$dir/COMMIT_EDITMSG" "$msg" "The commit bumping VERSION to $version on $branch."
-edit "$dir/TAG_EDITMSG" "LOTA $version" "The message of tag $tag."
+edit "$dir/COMMIT_EDITMSG" "$msg" "The commit bumping $file from $old to $version on $branch."
+edit "$dir/TAG_EDITMSG" "$name $version" "The message of tag $tag."
 
-echo "$version" >"$top/VERSION"
-git commit -q -S -F "$dir/COMMIT_EDITMSG" -- "$top/VERSION"
+# written in place, so that the file keeps its mode
+bumped "$version" >"$dir/bumped"
+cat "$dir/bumped" >"$top/$file"
+git commit -q -S -F "$dir/COMMIT_EDITMSG" -- "$top/$file"
 git tag -s -F "$dir/TAG_EDITMSG" "$tag"
 
 git log -1 --format='%h %s' "$tag"
