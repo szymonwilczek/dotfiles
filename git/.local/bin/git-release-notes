@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # git release-notes <version>
-# Summary: Print the merged pull requests of a milestone for the release notes.
+# Summary: Print the release notes, from a milestone or from the commits since the last release.
 #
 # Prints the release notes body listing every merged pull request whose
 # milestone is <version>:
@@ -23,11 +23,22 @@
 # With release.next set, the pull requests into the default branch are
 # left out: they are the ones that carry a release there.
 #
+# With release.notes set to "commits", lists instead the commits since
+# the last stable release, oldest first, for projects without milestones:
+#
+#   Changes since <previous release>:
+#
+#   - <commit title>
+#   ...
+#
+# They run up to the tag <prefix><version>, or to HEAD before it exists.
+#
 # Nothing is published; the output is meant to be pasted into the release.
 #
 # Configuration, from git config:
 #
 #   release.next       the integration branch, if the project has one
+#   release.notes      "milestone" or "commits"; "milestone" by default
 #   release.tagPrefix  what tags put before the version; "v" by default
 
 set -euo pipefail
@@ -57,6 +68,29 @@ version=$1
 remote=origin
 next=$(git config --get release.next || true)
 prefix=$(git config --get release.tagPrefix || echo v)
+mode=$(git config --get release.notes || echo milestone)
+
+if [[ $mode == commits ]]; then
+    end=HEAD
+    git rev-parse -q --verify "refs/tags/$prefix$version^{commit}" >/dev/null && end=$prefix$version
+    if base=$(git describe --tags --abbrev=0 --match "$prefix*" --exclude "$prefix*-*" \
+                  --exclude "$prefix$version" "$end" 2>/dev/null); then
+        echo "Changes since $base:"
+        range=$base..$end
+    else
+        echo "Changes:"
+        range=$end
+    fi
+    echo
+    commits=$(git log --reverse --no-merges --format='- %s' "$range")
+    if [[ -z $commits ]]; then
+        echo "git release-notes: no commits in $range" >&2
+        exit 1
+    fi
+    printf '%s\n' "$commits"
+    exit 0
+fi
+[[ $mode == milestone ]] || { echo "git release-notes: release.notes is $mode, not milestone or commits" >&2; exit 1; }
 
 # with an integration branch, the release pull requests go into the
 # default branch and are not listed
