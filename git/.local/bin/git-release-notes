@@ -30,6 +30,20 @@ usage() {
     exit 2
 }
 
+# arguments first, then options
+args=()
+while (($#)) && [[ $1 != -* ]]; do
+    args+=("$1")
+    shift
+done
+while (($#)); do
+    case $1 in
+        -h | --help) exec git scripts release-notes ;;
+        *) usage ;;
+    esac
+    shift
+done
+set -- "${args[@]}"
 [[ $# -eq 1 && -n $1 ]] || usage
 version=$1
 

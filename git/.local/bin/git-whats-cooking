@@ -25,10 +25,26 @@
 
 set -euo pipefail
 
-[[ $# -eq 0 ]] || {
+usage() {
     echo "usage: git whats-cooking" >&2
     exit 2
 }
+
+# arguments first, then options
+args=()
+while (($#)) && [[ $1 != -* ]]; do
+    args+=("$1")
+    shift
+done
+while (($#)); do
+    case $1 in
+        -h | --help) exec git scripts whats-cooking ;;
+        *) usage ;;
+    esac
+    shift
+done
+set -- "${args[@]}"
+[[ $# -eq 0 ]] || usage
 
 remote=origin
 branch=lota-next

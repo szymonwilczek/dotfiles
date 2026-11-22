@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git scripts [-v] [<name>]
+# git scripts [<name>] [-v]
 # Summary: List my Git scripts, or show how to use one of them.
 #
 # Without <name>, prints the usage and the summary of every git-* script
@@ -8,11 +8,14 @@
 #   git <name> <arguments>
 #       <summary>
 #
-# With <name>, prints the usage and the summary of git-<name>; -v adds
-# the rest of its header comment, through a pager on a terminal.
-# The Git aliases that stand for git-<name>, directly or through another
-# alias, are listed under its usage, when it has any; <name> may also be
-# one of those aliases.
+# With <name>, prints the usage and the summary of git-<name>;
+# -v, --verbose adds the rest of its header comment, through a pager on
+# a terminal.  The Git aliases that stand for git-<name>, directly or
+# through another alias, are listed under its usage, when it has any;
+# <name> may also be one of those aliases.
+#
+# Every script takes -h, --help as its last argument to print this help
+# for itself.
 #
 # Both are read from the header comment, which every script starts with:
 #
@@ -25,7 +28,7 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: git scripts [-v] [<name>]" >&2
+    echo "usage: git scripts [<name>] [-v]" >&2
     exit 2
 }
 
@@ -34,11 +37,22 @@ die() {
     exit 1
 }
 
-verbose=0
-if [[ ${1-} == -v ]]; then
-    verbose=1
+# arguments first, then options
+args=()
+while (($#)) && [[ $1 != -* ]]; do
+    args+=("$1")
     shift
-fi
+done
+verbose=0
+while (($#)); do
+    case $1 in
+        -v | --verbose) verbose=1 ;;
+        -h | --help) exec git scripts scripts ;;
+        *) usage ;;
+    esac
+    shift
+done
+set -- "${args[@]}"
 (($# <= 1)) || usage
 ((verbose == 0 || $# == 1)) || usage
 
@@ -139,7 +153,7 @@ done
             printf '%s\n' "${body[@]}"
         fi
     elif ((${#body[@]} > 0)); then
-        printf "\nSee 'git scripts -v %s' for the full description.\n" "$name"
+        printf "\nSee 'git scripts %s -v' for the full description.\n" "$name"
     fi
 } | if ((verbose)) && [[ -t 1 ]]; then
     LESS=${LESS-FRX} $(git var GIT_PAGER)

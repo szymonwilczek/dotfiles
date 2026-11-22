@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# git pr-push <first> [<last>]
+# git pr-push <first-pr-number> [<last-pr-number>]
 # Summary: Print one atomic, lease-protected push of the branches behind pull requests.
 # Created for managing my LOTA project
 #
 # Prints, and does not run, the one atomic push that publishes the local
-# branches behind open pull requests <first>..<last>, both inclusive:
+# branches behind open pull requests <first-pr-number>..<last-pr-number>,
+# both inclusive:
 #
 #   git push --atomic origin \
     #     --force-with-lease=<head>:<sha GitHub has> \
@@ -21,10 +22,24 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: git pr-push <first-pr> [<last-pr>]" >&2
+    echo "usage: git pr-push <first-pr-number> [<last-pr-number>]" >&2
     exit 2
 }
 
+# arguments first, then options
+args=()
+while (($#)) && [[ $1 != -* ]]; do
+    args+=("$1")
+    shift
+done
+while (($#)); do
+    case $1 in
+        -h | --help) exec git scripts pr-push ;;
+        *) usage ;;
+    esac
+    shift
+done
+set -- "${args[@]}"
 [[ $# -ge 1 && $# -le 2 ]] || usage
 first=$1
 last=${2:-$1}

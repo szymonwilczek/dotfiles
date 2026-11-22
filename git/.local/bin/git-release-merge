@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# git release-merge [-n] <number>
+# git release-merge <pr-number> [-n]
 # Summary: Merge the release pull request into main and fast-forward lota-next.
 # Created for managing my LOTA project
 #
-# Merges release pull request <number>, from lota-next into main,
+# Merges release pull request <pr-number>, from lota-next into main,
 # the way git pr-merge merges any other, with the message:
 #
-#   <pull request title> (#<number>)
+#   <pull request title> (#<pr-number>)
 #
 #   <git release-notes <milestone>, wrapped to 72 columns>
 #
@@ -23,7 +23,7 @@
 # lota-next is then fast-forwarded to the merge, on GitHub and locally,
 # so that it and main point at the same commit.  It is never deleted.
 #
-# -n prints the message and merges nothing.
+# -n, --dry-run prints the message and merges nothing.
 
 set -euo pipefail
 
@@ -32,7 +32,7 @@ if [[ ${TERM-} == dumb ]]; then
 fi
 
 usage() {
-    echo "usage: git release-merge [-n] <pr-number>" >&2
+    echo "usage: git release-merge <pr-number> [-n]" >&2
     exit 2
 }
 
@@ -41,11 +41,22 @@ die() {
     exit 1
 }
 
-dry_run=0
-if [[ ${1-} == -n ]]; then
-    dry_run=1
+# arguments first, then options
+args=()
+while (($#)) && [[ $1 != -* ]]; do
+    args+=("$1")
     shift
-fi
+done
+dry_run=0
+while (($#)); do
+    case $1 in
+        -n | --dry-run) dry_run=1 ;;
+        -h | --help) exec git scripts release-merge ;;
+        *) usage ;;
+    esac
+    shift
+done
+set -- "${args[@]}"
 [[ $# -eq 1 && $1 =~ ^[0-9]+$ ]] || usage
 pr=$1
 

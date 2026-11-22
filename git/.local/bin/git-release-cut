@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git release-cut [-n] <version>
+# git release-cut <version> [-n]
 # Summary: Bump VERSION on lota-next and tag the release or release candidate.
 # Created for managing my LOTA project
 #
@@ -18,7 +18,7 @@
 # changed until both are accepted; an empty message or a cancelled edit aborts.
 # The push that publishes both is printed.
 #
-# -n prints the commit message and changes nothing.
+# -n, --dry-run prints the commit message and changes nothing.
 
 set -euo pipefail
 shopt -s inherit_errexit
@@ -28,7 +28,7 @@ if [[ ${TERM-} == dumb ]]; then
 fi
 
 usage() {
-    echo "usage: git release-cut [-n] <version>" >&2
+    echo "usage: git release-cut <version> [-n]" >&2
     exit 2
 }
 
@@ -37,11 +37,22 @@ die() {
     exit 1
 }
 
-dry_run=0
-if [[ ${1-} == -n ]]; then
-    dry_run=1
+# arguments first, then options
+args=()
+while (($#)) && [[ $1 != -* ]]; do
+    args+=("$1")
     shift
-fi
+done
+dry_run=0
+while (($#)); do
+    case $1 in
+        -n | --dry-run) dry_run=1 ;;
+        -h | --help) exec git scripts release-cut ;;
+        *) usage ;;
+    esac
+    shift
+done
+set -- "${args[@]}"
 [[ $# -eq 1 && $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$ ]] || usage
 version=$1
 tag=v$version
