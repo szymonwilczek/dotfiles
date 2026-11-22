@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # git release-merge <pr-number> [-n]
-# Summary: Merge the release pull request into main and fast-forward lota-next.
+# Summary: Merge the release pull request and fast-forward the next branch to it.
 #
-# Merges release pull request <pr-number>, from lota-next into main,
+# Merges release pull request <pr-number>, from the integration branch
+# <next> into the default branch <stable>,
 # the way git pr-merge merges any other, with the message:
 #
 #   <pull request title> (#<pr-number>)
@@ -14,15 +15,20 @@
 # The message opens in the Git editor first; an empty message or
 # a cancelled edit aborts.
 # The merge itself goes through GitHub, with administrator privileges:
-# main requires an approving review, which the author of the release
-# pull request cannot give.  Those privileges also pass over failing
-# checks, so it is refused unless every check has passed or was skipped,
-# and if the pull request head moved after the message was built.
+# <stable> may require an approving review, which the author of the
+# release pull request cannot give.  Those privileges also pass over
+# failing checks, so it is refused unless every check has passed or was
+# skipped, and if the pull request head moved after the message was
+# built.
 #
-# lota-next is then fast-forwarded to the merge, on GitHub and locally,
-# so that it and main point at the same commit.  It is never deleted.
+# <next> is then fast-forwarded to the merge, on GitHub and locally,
+# so that it and <stable> point at the same commit.  It is never deleted.
 #
 # -n, --dry-run prints the message and merges nothing.
+#
+# Configuration, from git config:
+#
+#   release.next  the integration branch; required
 
 set -euo pipefail
 
@@ -60,8 +66,13 @@ set -- "${args[@]}"
 pr=$1
 
 remote=origin
-branch=lota-next
-stable=main
+branch=$(git config --get release.next) ||
+    die "no release.next: this project has no integration branch to release from"
+if stable=$(git symbolic-ref -q --short "refs/remotes/$remote/HEAD"); then
+    stable=${stable#"$remote"/}
+else
+    stable=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)
+fi
 
 IFS=$'\t' read -r state head base oid version title < <(gh pr view "$pr" \
                                                            --json state,headRefName,baseRefName,headRefOid,milestone,title \

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # git release-open <version> [-n]
-# Summary: Open the release pull request from lota-next into main.
+# Summary: Open the release pull request from the next branch into the default branch.
 #
-# Opens the pull request that brings release <version> from lota-next
-# to main:
+# Opens the pull request that brings release <version> from the
+# integration branch <next> to the default branch <stable>:
 #
-#   Merge lota-next updates for <version>
+#   Merge <next> updates for <version>
 #
-# labelled merge-release, in milestone <version>, with a Markdown
+# labelled release.label, if set, in milestone <version>, with a Markdown
 # description of what git request-pull would say:
 #
-#   Pull of [`<previous release>...<end>`](<compare URL>) into `main`.
+#   Pull of [`<previous release>...<end>`](<compare URL>) into `<stable>`.
 #
 #   |           |                 Commit             |                      |
 #   |-----------|------------------------------------|----------------------|
@@ -32,14 +32,21 @@
 #   - <n> deletions(-)
 #   ```
 #
-# The end is the tag v<version>, or lota-next before the tag exists.
-# The previous release is the last stable v* tag before the end commit.
+# The end is the tag <prefix><version>, or <next> before the tag exists.
+# The previous release is the last stable <prefix>* tag before the end
+# commit.
 # The title and the description open in the Git editor first, the title
 # as the first line, and the pull request is opened only once they are
 # accepted; an empty message or a cancelled edit aborts.
-# It is refused while a pull request from lota-next to main is open.
+# It is refused while a pull request from <next> to <stable> is open.
 #
 # -n, --dry-run prints the description and opens nothing.
+#
+# Configuration, from git config:
+#
+#   release.next       the integration branch; required
+#   release.label      the label of release pull requests; none if unset
+#   release.tagPrefix  what tags put before the version; "v" by default
 
 set -euo pipefail
 
@@ -50,6 +57,11 @@ fi
 usage() {
     echo "usage: git release-open <version> [-n]" >&2
     exit 2
+}
+
+die() {
+    echo "git release-open: $*" >&2
+    exit 1
 }
 
 # arguments first, then options
@@ -72,20 +84,26 @@ set -- "${args[@]}"
 version=$1
 
 remote=origin
-branch=lota-next
+branch=$(git config --get release.next) ||
+    die "no release.next: this project has no integration branch to release from"
+if stable=$(git symbolic-ref -q --short "refs/remotes/$remote/HEAD"); then
+    stable=${stable#"$remote"/}
+else
+    stable=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)
+fi
+prefix=$(git config --get release.tagPrefix || echo v)
+label=$(git config --get release.label || true)
 
-if git rev-parse -q --verify "refs/tags/v$version^{commit}" >/dev/null; then
-    end=v$version
-    ref=tags/v$version
+if git rev-parse -q --verify "refs/tags/$prefix$version^{commit}" >/dev/null; then
+    end=$prefix$version
+    ref=tags/$prefix$version
 else
     end=$remote/$branch
     ref=$branch
 fi
 
-if ! base=$(git describe --tags --abbrev=0 --match 'v*' --exclude 'v*-*' "$end^" 2>/dev/null); then
-    echo "git release-open: no stable release before $end" >&2
-    exit 1
-fi
+base=$(git describe --tags --abbrev=0 --match "$prefix*" --exclude "$prefix*-*" "$end^" 2>/dev/null) ||
+    die "no stable release before $end"
 
 notes=$(git release-notes "$version" | sed -E 's/^- (#[0-9]+) .*/- \1/')
 url=$(gh repo view --json url --jq .url)
@@ -107,8 +125,8 @@ stat() {
 compare=${end#"$remote/"}
 
 desc=$(
-    printf 'Pull of [`%s...%s`](%s/compare/%s...%s) into `main`.\n\n' \
-           "$base" "$compare" "$url" "$base" "$compare"
+    printf 'Pull of [`%s...%s`](%s/compare/%s...%s) into `%s`.\n\n' \
+           "$base" "$compare" "$url" "$base" "$compare" "$stable"
     printf '| | Commit | |\n|---|---|---|\n'
     row Since "$base"
     row 'Up to' "$end"
@@ -126,11 +144,8 @@ if ((dry_run)); then
     exit 0
 fi
 
-open=$(gh pr list --state open --base main --head "$branch" --json number --jq '.[0].number // empty')
-if [[ -n $open ]]; then
-    echo "git release-open: #$open already brings $branch to main" >&2
-    exit 1
-fi
+open=$(gh pr list --state open --base "$stable" --head "$branch" --json number --jq '.[0].number // empty')
+[[ -z $open ]] || die "#$open already brings $branch to $stable"
 
 # Named PULLREQ_EDITMSG so Magit's with-editor opens it as a message
 dir=$(mktemp -d "${TMPDIR:-/tmp}/release-open.XXXXXX")
@@ -142,7 +157,7 @@ cat >"$msg" <<-EOF
 
 	$desc
 
-	# Opening the pull request from $branch to main; the first line is its title.
+	# Opening the pull request from $branch to $stable; the first line is its title.
 	# Lines starting with '#' are dropped; an empty message aborts.
 EOF
 
@@ -159,7 +174,7 @@ if [[ ! -s $msg ]]; then
     exit 1
 fi
 
-gh pr create --base main --head "$branch" \
+gh pr create --base "$stable" --head "$branch" \
    --title "$(head -n 1 "$msg")" \
-   --label merge-release --milestone "$version" \
+   ${label:+--label "$label"} --milestone "$version" \
    --body "$(tail -n +3 "$msg")"
