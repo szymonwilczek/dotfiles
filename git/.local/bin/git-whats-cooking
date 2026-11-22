@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # git whats-cooking
-# Summary: Report where lota-next and every open pull request stand.
+# Summary: Report where the integration branch and every open pull request stand.
 #
-# Prints the state of lota-next and of every open pull request,
-# after Junio Hamano's "What's cooking in git.git":
+# Prints the state of the branch pull requests go into and of every open
+# pull request into it, after Junio Hamano's "What's cooking in git.git":
 #
-#   What's cooking in lota (<date>)
+#   What's cooking in <repository> (<date>)
 #   --------------------------------------------------
-#   lota-next is at <describe> (<n> pull requests merged since <last tag>).
+#   <branch> is at <describe> (<n> pull requests merged since <last tag>).
 #
 #   [Ready to merge]                acked, checks passed
 #   [Waiting for review]            checks passed, not acked
@@ -21,6 +21,11 @@
 #
 # A pull request is acked by a review of mine whose text starts with
 # "Acked".  Sections with nothing in them are left out.
+#
+# Configuration, from git config:
+#
+#   release.next       the integration branch; the default branch if unset
+#   release.tagPrefix  what tags put before the version; "v" by default
 
 set -euo pipefail
 
@@ -46,12 +51,26 @@ set -- "${args[@]}"
 [[ $# -eq 0 ]] || usage
 
 remote=origin
-branch=lota-next
+prefix=$(git config --get release.tagPrefix || echo v)
+if ! branch=$(git config --get release.next); then
+    if branch=$(git symbolic-ref -q --short "refs/remotes/$remote/HEAD"); then
+        branch=${branch#"$remote"/}
+    else
+        branch=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)
+    fi
+fi
+repository=$(basename "$(git rev-parse --show-toplevel)")
 
 git fetch -q --tags "$remote" "$branch"
 me=$(gh api user --jq .login)
-last=$(git describe --tags --abbrev=0 --match 'v*' "$remote/$branch")
-merged=$(git rev-list --count --first-parent --merges "$last..$remote/$branch")
+if last=$(git describe --tags --abbrev=0 --match "$prefix*" "$remote/$branch" 2>/dev/null); then
+    since=$last
+    range=$last..$remote/$branch
+else
+    since="the first commit"
+    range=$remote/$branch
+fi
+merged=$(git rev-list --count --first-parent --merges "$range")
 
 declare -A section
 open=0
@@ -66,7 +85,7 @@ while IFS=$'\t' read -r number draft acked created head milestone title; do
     else
         # gh pr checks keeps only the latest run of each check,
         # and exits non-zero while any is failing or pending
-        buckets=$(gh pr checks "$number" --json bucket --jq '[.[].bucket] | unique | join(" ")' || true)
+        buckets=$(gh pr checks "$number" --json bucket --jq '[.[].bucket] | unique | join(" ")' 2>/dev/null || true)
         if [[ $buckets == *fail* || $buckets == *cancel* ]]; then
             state="Checks failing"
         elif [[ $buckets == *pending* ]]; then
@@ -91,11 +110,11 @@ done < <(gh pr list --state open --base "$branch" --limit 100 \
           any(.reviews[]; .author.login == \"$me\" and (.body | test(\"^\\\\s*Acked\"))),
           .createdAt, .headRefName, (.milestone.title // \"\"), .title] | @tsv")
 
-title="What's cooking in lota ($(LC_ALL=C date '+%a, %d %b %Y'))"
+title="What's cooking in $repository ($(LC_ALL=C date '+%a, %d %b %Y'))"
 printf '%s\n%s\n' "$title" "$(printf '%*s' ${#title} '' | tr ' ' -)"
 printf '%s is at %s (%d pull request%s merged since %s).\n' \
-       "$branch" "$(git describe --tags "$remote/$branch")" \
-       "$merged" "$( ((merged == 1)) || echo s)" "$last"
+       "$branch" "$(git describe --tags --always "$remote/$branch")" \
+       "$merged" "$( ((merged == 1)) || echo s)" "$since"
 
 for state in "${order[@]}"; do
     [[ -n ${section[$state]-} ]] || continue
