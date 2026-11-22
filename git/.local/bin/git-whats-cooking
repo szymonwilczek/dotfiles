@@ -10,6 +10,12 @@
 #   <branch> is at <describe> (<n> commits since <last tag>, ...).
 #
 #   [Cooking]                       local commits not pushed yet
+#
+#   * <area> (<n> commits)          on the branch itself
+#     - <subject>
+#   * <topic> (<date>) <n> commits  on a local topic branch
+#     on top of <topic>
+#
 #   [Waiting for release]           pushed since the last tag
 #
 #   * <area> (<n> commits)
@@ -25,8 +31,11 @@
 #    <head branch>
 #    Milestone <version>, or "No milestone."
 #
-# Commits are grouped by the area before the colon of their subject, in
-# the order the areas first appear; a subject without one stands alone.
+# A topic is a local branch GitHub has not got, other than a backup*
+# one.  It counts the commits it adds to the topics it is built on, and
+# names the nearest of them.  Commits on the branch itself are grouped
+# by the area before the colon of their subject, in the order the areas
+# first appear; a subject without one stands alone.
 # A pull request is acked by a review of mine whose text starts with
 # "Acked".  Sections with nothing in them are left out.
 #
@@ -161,12 +170,105 @@ done < <(gh pr list --state open --base "$branch" --limit 100 \
           .createdAt, .headRefName, (.milestone.title // \"\"), .title] | @tsv")
 
 commits=$(git rev-list --count --no-merges "$range")
+# Topics are local branches that GitHub has not got, backups aside.
+# A topic owns the commits below its tip down to the next topic tip or
+# to what GitHub has; the first tip down its first parents is the topic
+# it stands on top of.  Commits GitHub has under another hash, such as
+# what a rebase left behind, do not count.
 cooking=
 if git rev-parse -q --verify "refs/heads/$branch" >/dev/null; then
     cooking=$(areas "$remote/$branch..$branch")
-    local=$(git rev-list --count --no-merges "$remote/$branch..$branch")
-else
-    local=0
+fi
+mapfile -t bases < <(
+    git for-each-ref --format='%(refname:short)' --exclude='refs/heads/backup*' refs/heads |
+        while read -r name; do
+            git merge-base "$remote/$branch" "$name" || true
+        done | sort -u
+        )
+upstream=
+if ((${#bases[@]})); then
+    oldest=$(git merge-base --octopus "${bases[@]}")
+    upstream=$(git log -p --no-merges --format='commit %H' "$remote/$branch" "^$oldest" |
+                   git patch-id --stable | cut -d' ' -f1)
+fi
+topics=$(
+    {
+        printf 'upstream %s\n' $upstream
+        git log -p --no-merges --format='commit %H' --exclude='backup*' --branches --not --remotes |
+            git patch-id --stable | sed 's/^/patch /'
+        git for-each-ref --format='remote %(refname:lstrip=3)' "refs/remotes/$remote"
+        git for-each-ref --sort=-committerdate \
+            --format='tip %(objectname) %(committerdate:short) %(refname:short)' refs/heads
+        echo end
+        git rev-list --parents --exclude='backup*' --branches --not --remotes
+    } | awk -v branch="$branch" '
+        $1 == "upstream" { upstream[$2] = 1; next }
+        $1 == "patch" { if ($2 in upstream) landed[$3] = 1; next }
+        $1 == "remote" { remote[$2] = 1; next }
+        $1 == "tip" {
+            if ($4 in remote && $4 != branch)
+                pushed[$2] = $4
+            if ($4 == branch || $4 ~ /^backup/ || ($4 in remote) || ($2 in owner))
+                next
+            owner[$2] = $4; date[$4] = $3; order[++tips] = $4; tipsha[$4] = $2
+            next
+        }
+        $1 == "end" { walking = 1; next }
+        walking {
+            local[$1] = 1
+            merge[$1] = NF > 2
+            parents[$1] = substr($0, 42)
+        }
+        END {
+            for (i = 1; i <= tips; i++) {
+                name = order[i]
+                if (!(tipsha[name] in local))
+                    continue
+                own = 0; on = ""
+                # first parents first, so the first tip met is the nearest
+                stack[n = 1] = tipsha[name]
+                delete seen
+                while (n > 0) {
+                    c = stack[n--]
+                    if (c in seen)
+                        continue
+                    if (!(c in local)) {
+                        if (on == "" && c in pushed)
+                            on = pushed[c]
+                        continue
+                    }
+                    seen[c] = 1
+                    if (c != tipsha[name] && c in owner) {
+                        if (on == "")
+                            on = owner[c]
+                        continue
+                    }
+                    if (!merge[c] && !(c in landed))
+                        own++
+                    k = split(parents[c], p, " ")
+                    for (j = k; j >= 1; j--)
+                        stack[++n] = p[j]
+                }
+                if (own == 0)
+                    continue
+                total += own
+                printf "* %s (%s) %d commit%s\n", name, date[name], own, own == 1 ? "" : "s"
+                if (on != "")
+                    printf "  on top of %s\n", on
+            }
+            printf "%d\n", total
+        }
+    '
+      )
+local=${topics##*$'\n'}
+topics=${topics%"$local"}
+topics=${topics%$'\n'}
+if [[ -n $topics ]]; then
+    [[ -z $cooking ]] || cooking+=$'\n'
+    cooking+=$topics
+fi
+if git rev-parse -q --verify "refs/heads/$branch" >/dev/null; then
+    local=$((local + $(git rev-list --count --no-merges "$remote/$branch..$branch")))
 fi
 waiting=$(areas "$range")
 
