@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git merge-pr [-n] <number>
+# git pr-merge [-n] <number>
 # Created for managing my LOTA project
 #
 #   Merge branch '<head>' into <base> (#<number>)
@@ -40,7 +40,7 @@ if [[ ${TERM-} == dumb ]]; then
 fi
 
 usage() {
-    echo "usage: git merge-pr [-n] <pr-number>" >&2
+    echo "usage: git pr-merge [-n] <pr-number>" >&2
     exit 2
 }
 
@@ -57,7 +57,7 @@ field() { jq -r "$1" <<<"$json"; }
 
 state=$(field .state)
 if [[ $state != OPEN && $dry_run -eq 0 ]]; then
-    echo "git merge-pr: pull request #$pr is $state" >&2
+    echo "git pr-merge: pull request #$pr is $state" >&2
     exit 1
 fi
 
@@ -132,7 +132,7 @@ elif [[ -n $summary ]]; then
 fi
 
 # Named MERGE_MSG so Magit's with-editor opens it as a commit message
-dir=$(mktemp -d "${TMPDIR:-/tmp}/merge-pr.XXXXXX")
+dir=$(mktemp -d "${TMPDIR:-/tmp}/pr-merge.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 msg=$dir/MERGE_MSG
 
@@ -142,7 +142,7 @@ msg=$dir/MERGE_MSG
     [[ -n $intro ]] && printf '%s\n\n' "$intro"
     echo "* branch '$head':"
     gh api --paginate "repos/{owner}/{repo}/pulls/$pr/commits" \
-        --jq '.[].commit.message | split("\n")[0]' | sed 's/^/  /'
+       --jq '.[].commit.message | split("\n")[0]' | sed 's/^/  /'
     echo
     echo "Signed-off-by: $(git config user.name) <$(git config user.email)>"
 } >"$msg"
@@ -160,14 +160,14 @@ EOF
 
 editor=$(git var GIT_EDITOR)
 if ! sh -c "$editor \"\$@\"" "$editor" "$msg"; then
-    echo "git merge-pr: editor cancelled, not merging" >&2
+    echo "git pr-merge: editor cancelled, not merging" >&2
     exit 1
 fi
 
 git stripspace --strip-comments <"$msg" >"$msg.clean"
 mv "$msg.clean" "$msg"
 if [[ ! -s $msg ]]; then
-    echo "git merge-pr: empty message, not merging" >&2
+    echo "git pr-merge: empty message, not merging" >&2
     exit 1
 fi
 
@@ -175,4 +175,4 @@ subject=$(head -n 1 "$msg")
 body=$(tail -n +3 "$msg")
 
 gh pr merge "$pr" --merge --match-head-commit "$oid" \
-    --subject "$subject" --body "$body"
+   --subject "$subject" --body "$body"

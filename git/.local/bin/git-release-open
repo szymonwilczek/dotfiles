@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git release-pr [-n] <version>
+# git release-open [-n] <version>
 # Created for managing my LOTA project
 #
 # Opens the pull request that brings release <version> from lota-next
@@ -48,7 +48,7 @@ if [[ ${TERM-} == dumb ]]; then
 fi
 
 usage() {
-    echo "usage: git release-pr [-n] <version>" >&2
+    echo "usage: git release-open [-n] <version>" >&2
     exit 2
 }
 
@@ -72,11 +72,11 @@ else
 fi
 
 if ! base=$(git describe --tags --abbrev=0 --match 'v*' --exclude 'v*-*' "$end^" 2>/dev/null); then
-    echo "git release-pr: no stable release before $end" >&2
+    echo "git release-open: no stable release before $end" >&2
     exit 1
 fi
 
-notes=$(git release-for "$version" | sed -E 's/^- (#[0-9]+) .*/- \1/')
+notes=$(git release-notes "$version" | sed -E 's/^- (#[0-9]+) .*/- \1/')
 url=$(gh repo view --json url --jq .url)
 rule=$(printf '%064d' 0 | tr 0 -)
 fence='```'
@@ -117,12 +117,12 @@ fi
 
 open=$(gh pr list --state open --base main --head "$branch" --json number --jq '.[0].number // empty')
 if [[ -n $open ]]; then
-    echo "git release-pr: #$open already brings $branch to main" >&2
+    echo "git release-open: #$open already brings $branch to main" >&2
     exit 1
 fi
 
 # Named PULLREQ_EDITMSG so Magit's with-editor opens it as a message
-dir=$(mktemp -d "${TMPDIR:-/tmp}/release-pr.XXXXXX")
+dir=$(mktemp -d "${TMPDIR:-/tmp}/release-open.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 msg=$dir/PULLREQ_EDITMSG
 
@@ -137,14 +137,14 @@ EOF
 
 editor=$(git var GIT_EDITOR)
 if ! sh -c "$editor \"\$@\"" "$editor" "$msg"; then
-    echo "git release-pr: editor cancelled, not opening" >&2
+    echo "git release-open: editor cancelled, not opening" >&2
     exit 1
 fi
 
 git stripspace --strip-comments <"$msg" >"$msg.clean"
 mv "$msg.clean" "$msg"
 if [[ ! -s $msg ]]; then
-    echo "git release-pr: empty message, not opening" >&2
+    echo "git release-open: empty message, not opening" >&2
     exit 1
 fi
 

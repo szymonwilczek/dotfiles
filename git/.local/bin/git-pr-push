@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# git push-prs <first> [<last>]
+# git pr-push <first> [<last>]
 # Created for managing my LOTA project
 #
 # Prints, and does not run, the one atomic push that publishes the local
 # branches behind open pull requests <first>..<last>, both inclusive:
 #
 #   git push --atomic origin \
-#     --force-with-lease=<head>:<sha GitHub has> \
-#     ... \
-#     <head> <head> ...
+    #     --force-with-lease=<head>:<sha GitHub has> \
+    #     ... \
+    #     <head> <head> ...
 #
 # Each lease is the head GitHub reports for the pull request, not the
 # remote-tracking ref, so a stale fetch cannot let the push overwrite
@@ -20,7 +20,7 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: git push-prs <first-pr> [<last-pr>]" >&2
+    echo "usage: git pr-push <first-pr> [<last-pr>]" >&2
     exit 2
 }
 
@@ -33,22 +33,22 @@ last=${2:-$1}
 remote=origin
 
 json=$(gh pr list --state all --limit 1000 \
-    --json number,state,headRefName,headRefOid \
-    --jq "[.[] | select(.number >= $first and .number <= $last)] | sort_by(.number)")
+          --json number,state,headRefName,headRefOid \
+          --jq "[.[] | select(.number >= $first and .number <= $last)] | sort_by(.number)")
 
 leases=()
 heads=()
 while IFS=$'\t' read -r number state head oid; do
     if [[ $state != OPEN ]]; then
-        echo "git push-prs: #$number ($head) is $state, skipped" >&2
+        echo "git pr-push: #$number ($head) is $state, skipped" >&2
         continue
     fi
     if ! local_oid=$(git rev-parse -q --verify "refs/heads/$head^{commit}"); then
-        echo "git push-prs: #$number ($head) has no local branch, skipped" >&2
+        echo "git pr-push: #$number ($head) has no local branch, skipped" >&2
         continue
     fi
     if [[ $local_oid == "$oid" ]]; then
-        echo "git push-prs: #$number ($head) already matches GitHub, skipped" >&2
+        echo "git pr-push: #$number ($head) already matches GitHub, skipped" >&2
         continue
     fi
     leases+=("--force-with-lease=$head:$oid")
@@ -56,7 +56,7 @@ while IFS=$'\t' read -r number state head oid; do
 done < <(jq -r '.[] | [.number, .state, .headRefName, .headRefOid] | @tsv' <<<"$json")
 
 if ((${#heads[@]} == 0)); then
-    echo "git push-prs: nothing to push in #$first..#$last" >&2
+    echo "git pr-push: nothing to push in #$first..#$last" >&2
     exit 1
 fi
 

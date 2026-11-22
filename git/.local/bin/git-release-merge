@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# git merge-release [-n] <number>
+# git release-merge [-n] <number>
 # Created for managing my LOTA project
 #
 # Merges release pull request <number>, from lota-next into main,
-# the way git merge-pr merges any other, with the message:
+# the way git pr-merge merges any other, with the message:
 #
 #   <pull request title> (#<number>)
 #
-#   <git release-for <milestone>, wrapped to 72 columns>
+#   <git release-notes <milestone>, wrapped to 72 columns>
 #
 #   Signed-off-by: <user.name> <user.email>
 #
@@ -31,12 +31,12 @@ if [[ ${TERM-} == dumb ]]; then
 fi
 
 usage() {
-    echo "usage: git merge-release [-n] <pr-number>" >&2
+    echo "usage: git release-merge [-n] <pr-number>" >&2
     exit 2
 }
 
 die() {
-    echo "git merge-release: $*" >&2
+    echo "git release-merge: $*" >&2
     exit 1
 }
 
@@ -88,14 +88,14 @@ wrap() {
 }
 
 # Named MERGE_MSG so Magit's with-editor opens it as a commit message
-dir=$(mktemp -d "${TMPDIR:-/tmp}/merge-release.XXXXXX")
+dir=$(mktemp -d "${TMPDIR:-/tmp}/release-merge.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 msg=$dir/MERGE_MSG
 
 {
     echo "$title (#$pr)"
     echo
-    git release-for "$version" | wrap 72
+    git release-notes "$version" | wrap 72
     echo
     echo "Signed-off-by: $(git config user.name) <$(git config user.email)>"
 } >"$msg"

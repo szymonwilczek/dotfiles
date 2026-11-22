@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git release-for <version>
+# git release-notes <version>
 # Created for managing my LOTA project
 #
 # Prints the release notes body listing every merged pull request whose
@@ -25,7 +25,7 @@
 set -euo pipefail
 
 usage() {
-    echo "usage: git release-for <version>" >&2
+    echo "usage: git release-notes <version>" >&2
     exit 2
 }
 
@@ -39,7 +39,7 @@ prs=$(gh pr list --state merged --limit 1000 \
           | .[] | [.number, .mergeCommit.oid, .title] | @tsv")
 
 if [[ -z $prs ]]; then
-    echo "git release-for: no merged pull requests in milestone $version" >&2
+    echo "git release-notes: no merged pull requests in milestone $version" >&2
     exit 1
 fi
 

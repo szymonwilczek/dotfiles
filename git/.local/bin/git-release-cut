@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git release-tag [-n] <version>
+# git release-cut [-n] <version>
 # Created for managing my LOTA project
 #
 # Bumps VERSION on lota-next and tags the bump, the way every LOTA
@@ -7,7 +7,7 @@
 #
 #   build: <version>
 #
-#   <git release-for <version>, wrapped to 72 columns; stable releases only>
+#   <git release-notes <version>, wrapped to 72 columns; stable releases only>
 #
 #   Signed-off-by: <user.name> <user.email>
 #
@@ -27,12 +27,12 @@ if [[ ${TERM-} == dumb ]]; then
 fi
 
 usage() {
-    echo "usage: git release-tag [-n] <version>" >&2
+    echo "usage: git release-cut [-n] <version>" >&2
     exit 2
 }
 
 die() {
-    echo "git release-tag: $*" >&2
+    echo "git release-cut: $*" >&2
     exit 1
 }
 
@@ -80,7 +80,7 @@ msg=$(
     echo "build: $version"
     echo
     if [[ $version != *-* ]]; then
-        git release-for "$version" | wrap 72
+        git release-notes "$version" | wrap 72
         echo
     fi
     echo "Signed-off-by: $(git config user.name) <$(git config user.email)>"
@@ -91,7 +91,7 @@ if ((dry_run)); then
     exit 0
 fi
 
-dir=$(mktemp -d "${TMPDIR:-/tmp}/release-tag.XXXXXX")
+dir=$(mktemp -d "${TMPDIR:-/tmp}/release-cut.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
 editor=$(git var GIT_EDITOR)
 
