@@ -303,6 +303,12 @@ if ((!send)); then
     exit 0
 fi
 
+id=$(gh api graphql -F number="$discussion" -f query='
+    query($owner: String!, $repo: String!, $number: Int!) {
+      repository(owner: $owner, name: $repo) { discussion(number: $number) { id } }
+    }' -F owner='{owner}' -F repo='{repo}' --jq .data.repository.discussion.id) ||
+    die "no discussion #$discussion"
+
 # Named PULLREQ_EDITMSG: git-commit-mode, and with it C-c C-c to send
 # and C-c C-k to cancel, takes only the names of Git's own messages
 dir=$(mktemp -d "${TMPDIR:-/tmp}/whats-cooking.XXXXXX")
@@ -323,13 +329,12 @@ fi
 body=$(awk '/^```/ { fence = !fence } fence || !/^#/' "$msg" | git stripspace)
 [[ -n $body ]] || die "empty report, not sending"
 
-id=$(gh api graphql -F number="$discussion" -f query='
-    query($owner: String!, $repo: String!, $number: Int!) {
-      repository(owner: $owner, name: $repo) { discussion(number: $number) { id } }
-    }' -f owner='{owner}' -f repo='{repo}' --jq .data.repository.discussion.id) ||
-    die "no discussion #$discussion"
-url=$(gh api graphql -f id="$id" -f body="$body" -f query='
+if ! url=$(gh api graphql -f id="$id" -f body="$body" -f query='
     mutation($id: ID!, $body: String!) {
       addDiscussionComment(input: {discussionId: $id, body: $body}) { comment { url } }
-    }' --jq .data.addDiscussionComment.comment.url)
+    }' --jq .data.addDiscussionComment.comment.url); then
+    keep=$(git rev-parse --absolute-git-dir)/WHATS_COOKING
+    printf '%s\n' "$body" >"$keep"
+    die "not sent; the report is kept in $keep"
+fi
 echo "git whats-cooking: sent to $url" >&2
