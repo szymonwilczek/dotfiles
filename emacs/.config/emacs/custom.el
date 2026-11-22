@@ -38,17 +38,15 @@
      default))
  '(global-wakatime-mode t)
  '(package-selected-packages
-   '(astro-ts-mode au-themes citar citar-org
-                   consult emacs embark
+   '(astro-ts-mode au-themes citar citar-org consult emacs embark
                    embark-consult evil evil-collection evil-commentary
                    evil-matchit evil-numbers evil-org evil-surround
                    evil-textobj-tree-sitter general gh-radar ghostel
                    git-gutter git-gutter-fringe jot magit marginalia
                    markdown-mode nerd-icons nerd-icons-completion
                    nerd-icons-dired olivetti orderless org-appear
-                   pdf-tools perspective pinentry
-                   plan-polsl rainbow-mode rere vertico
-                   vundo wakatime-mode))
+                   pdf-tools perspective pinentry plan-polsl
+                   rainbow-mode rere vertico vundo wakatime-mode))
  '(package-vc-selected-packages
    '((jot :url "https://github.com/szymonwilczek/jot.el" :branch "main")
      (rere :url "https://github.com/szymonwilczek/rere.el" :branch
@@ -65,6 +63,7 @@
    '((python-shell-interpreter . "python")
      (python-shell-virtualenv-root
       . "/home/wolfie/Dokumenty/GitHub/polibuda-notatki/ADIIO/.venv")))
+ '(send-mail-function 'sendmail-send-it)
  '(tramp-use-connection-share t nil nil "Customized with use-package tramp"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
