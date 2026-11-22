@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# git scripts [-v] [<name>]
+# Summary: List my Git scripts, or show how to use one of them.
+#
+# Without <name>, prints the usage and the summary of every git-* script
+# next to this one:
+#
+#   git <name> <arguments>
+#       <summary>
+#
+# With <name>, prints the usage and the summary of git-<name>; -v adds
+# the rest of its header comment, through a pager on a terminal.
+#
+# Both are read from the header comment, which every script starts with:
+#
+#   # git <name> <arguments>
+#   # Summary: <one line>
+#   # <description, up to the first line that is not a comment>
+#
+# A script is never run to describe it.
+
+set -euo pipefail
+
+usage() {
+    echo "usage: git scripts [-v] [<name>]" >&2
+    exit 2
+}
+
+die() {
+    echo "git scripts: $*" >&2
+    exit 1
+}
+
+verbose=0
+if [[ ${1-} == -v ]]; then
+    verbose=1
+    shift
+fi
+(($# <= 1)) || usage
+((verbose == 0 || $# == 1)) || usage
+
+dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+
+# the header comment of script $1, without the '#' markers
+header() {
+    sed -n '2,${/^#/!q; s/^# \{0,1\}//; p}' "$1"
+}
+
+# usage, summary and description of script $1, separated by tabs
+# in the first two lines
+describe() {
+    local line usage="" summary="" body=()
+    while IFS= read -r line; do
+        if [[ -z $usage ]]; then
+            usage=$line
+        elif [[ $line == "Summary: "* ]]; then
+            summary=${line#Summary: }
+        elif [[ $line != "Created for managing my LOTA project" ]]; then
+            body+=("$line")
+        fi
+    done < <(header "$1")
+    # the blank line that separates the description from the lines above
+    [[ ${body[0]-x} == "" ]] && body=("${body[@]:1}")
+    printf '%s\n%s\n' "$usage" "$summary"
+    ((${#body[@]} == 0)) || printf '%s\n' "${body[@]}"
+}
+
+if (($# == 0)); then
+    for script in "$dir"/git-*; do
+        [[ -x $script ]] || continue
+        { read -r usage; read -r summary; } < <(describe "$script")
+        printf '%s\n    %s\n' "$usage" "${summary:-(no summary)}"
+    done
+    exit 0
+fi
+
+name=${1#git-}
+script=$dir/git-$name
+if [[ ! -x $script ]]; then
+    matches=()
+    for s in "$dir"/git-*; do
+        s=${s##*/git-}
+        [[ $s == *"$name"* ]] && matches+=("$s")
+    done
+    ((${#matches[@]} > 0)) || die "no script '$name'; see 'git scripts'"
+    die "no script '$name'; did you mean $(IFS=,; echo "${matches[*]}" | sed 's/,/, /g')?"
+fi
+
+{
+    read -r usage
+    read -r summary
+    mapfile -t body
+} < <(describe "$script")
+
+{
+    printf 'usage: %s\n\n%s\n' "$usage" "${summary:-(no summary)}"
+    if ((verbose)); then
+        if ((${#body[@]} > 0)); then
+            echo
+            printf '%s\n' "${body[@]}"
+        fi
+    elif ((${#body[@]} > 0)); then
+        printf "\nSee 'git scripts -v %s' for the full description.\n" "$name"
+    fi
+} | if ((verbose)) && [[ -t 1 ]]; then
+    LESS=${LESS-FRX} $(git var GIT_PAGER)
+else
+    cat
+fi
