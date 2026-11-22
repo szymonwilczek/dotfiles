@@ -10,6 +10,9 @@
 #
 # With <name>, prints the usage and the summary of git-<name>; -v adds
 # the rest of its header comment, through a pager on a terminal.
+# The Git aliases that stand for git-<name>, directly or through another
+# alias, are listed under its usage, when it has any; <name> may also be
+# one of those aliases.
 #
 # Both are read from the header comment, which every script starts with:
 #
@@ -74,7 +77,21 @@ if (($# == 0)); then
     exit 0
 fi
 
+# the command alias $1 stands for: the first word of its value,
+# unless the alias runs a shell command
+alias_target() {
+    local value
+    value=$(git config --get "alias.$1") || return 1
+    [[ $value != '!'* ]] || return 1
+    read -r value _ <<<"$value"
+    echo "$value"
+}
+
 name=${1#git-}
+if [[ ! -x $dir/git-$name ]] && target=$(alias_target "$name") &&
+       [[ -x $dir/git-$target ]]; then
+    name=$target
+fi
 script=$dir/git-$name
 if [[ ! -x $script ]]; then
     matches=()
@@ -92,8 +109,30 @@ fi
     mapfile -t body
 } < <(describe "$script")
 
+# the aliases that end up at $name, through any chain of aliases
+aliases=()
+names=("$name")
+while :; do
+    found=0
+    while read -r key _; do
+        key=${key#alias.}
+        [[ " ${names[*]} " != *" $key "* ]] || continue
+        target=$(alias_target "$key") || continue
+        if [[ " ${names[*]} " == *" $target "* ]]; then
+            names+=("$key")
+            aliases+=("git $key")
+            found=1
+        fi
+    done < <(git config --get-regexp '^alias\.' || true)
+    ((found)) || break
+done
+
 {
-    printf 'usage: %s\n\n%s\n' "$usage" "${summary:-(no summary)}"
+    printf 'usage: %s\n' "$usage"
+    if ((${#aliases[@]} > 0)); then
+        printf 'aliases: %s\n' "$(IFS=,; echo "${aliases[*]}" | sed 's/,/, /g')"
+    fi
+    printf '\n%s\n' "${summary:-(no summary)}"
     if ((verbose)); then
         if ((${#body[@]} > 0)); then
             echo
