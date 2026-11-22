@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
-# git whats-cooking
-# Summary: Report where the integration branch and every open pull request stand.
+# git whats-cooking [-s]
+# Summary: Report what is cooking locally, waiting for release, and in pull requests.
 #
-# Prints the state of the branch pull requests go into and of every open
-# pull request into it, after Junio Hamano's "What's cooking in git.git":
+# Prints where the branch pull requests go into stands, after Junio
+# Hamano's "What's cooking in git.git":
 #
 #   What's cooking in <repository> (<date>)
 #   --------------------------------------------------
-#   <branch> is at <describe> (<n> pull requests merged since <last tag>).
+#   <branch> is at <describe> (<n> commits since <last tag>, ...).
+#
+#   [Cooking]                       local commits not pushed yet
+#   [Waiting for release]           pushed since the last tag
+#
+#   * <area> (<n> commits)
+#     - <subject>
 #
 #   [Ready to merge]                acked, checks passed
 #   [Waiting for review]            checks passed, not acked
@@ -19,19 +25,57 @@
 #    <head branch>
 #    Milestone <version>, or "No milestone."
 #
+# Commits are grouped by the area before the colon of their subject, in
+# the order the areas first appear; a subject without one stands alone.
 # A pull request is acked by a review of mine whose text starts with
 # "Acked".  Sections with nothing in them are left out.
 #
+# -s, --send posts the report as a comment to the discussion
+# release.discussion names.  The report opens in the Git editor first;
+# lines starting with '#' outside a code block are dropped, and an
+# empty report or a cancelled edit aborts.
+#
 # Configuration, from git config:
 #
-#   release.next       the integration branch; the default branch if unset
-#   release.tagPrefix  what tags put before the version; "v" by default
+#   release.next        the integration branch; the default branch if unset
+#   release.tagPrefix   what tags put before the version; "v" by default
+#   release.discussion  the number of the discussion --send posts to
 
 set -euo pipefail
 
 usage() {
-    echo "usage: git whats-cooking" >&2
+    echo "usage: git whats-cooking [-s]" >&2
     exit 2
+}
+
+die() {
+    echo "git whats-cooking: $*" >&2
+    exit 1
+}
+
+# Commits of range $1, oldest first, as a list grouped by area
+areas() {
+    git log --reverse --no-merges --format=%s "$1" |
+        awk '
+            match($0, /^[^ :]+: /) {
+                area = substr($0, 1, RLENGTH - 2)
+                if (!(area in n))
+                    order[++areas] = area
+                list[area] = list[area] "  - " substr($0, RLENGTH + 1) "\n"
+                n[area]++
+                next
+            }
+            { order[++areas] = $0; n[$0] = 0 }
+            END {
+                for (i = 1; i <= areas; i++) {
+                    a = order[i]
+                    if (n[a] == 0)
+                        printf "* %s\n", a
+                    else
+                        printf "* %s (%d commit%s)\n%s", a, n[a], n[a] == 1 ? "" : "s", list[a]
+                }
+            }
+        '
 }
 
 # arguments first, then options
@@ -40,8 +84,10 @@ while (($#)) && [[ $1 != -* ]]; do
     args+=("$1")
     shift
 done
+send=0
 while (($#)); do
     case $1 in
+        -s | --send) send=1 ;;
         -h | --help) exec git scripts whats-cooking ;;
         *) usage ;;
     esac
@@ -60,6 +106,10 @@ if ! branch=$(git config --get release.next); then
     fi
 fi
 repository=$(basename "$(git rev-parse --show-toplevel)")
+if ((send)); then
+    discussion=$(git config --get release.discussion) ||
+        die "no release.discussion: set the number of the discussion to post to"
+fi
 
 git fetch -q --tags "$remote" "$branch"
 me=$(gh api user --jq .login)
@@ -110,14 +160,67 @@ done < <(gh pr list --state open --base "$branch" --limit 100 \
           any(.reviews[]; .author.login == \"$me\" and (.body | test(\"^\\\\s*Acked\"))),
           .createdAt, .headRefName, (.milestone.title // \"\"), .title] | @tsv")
 
-title="What's cooking in $repository ($(LC_ALL=C date '+%a, %d %b %Y'))"
-printf '%s\n%s\n' "$title" "$(printf '%*s' ${#title} '' | tr ' ' -)"
-printf '%s is at %s (%d pull request%s merged since %s).\n' \
-       "$branch" "$(git describe --tags --always "$remote/$branch")" \
-       "$merged" "$( ((merged == 1)) || echo s)" "$since"
+commits=$(git rev-list --count --no-merges "$range")
+cooking=
+if git rev-parse -q --verify "refs/heads/$branch" >/dev/null; then
+    cooking=$(areas "$remote/$branch..$branch")
+    local=$(git rev-list --count --no-merges "$remote/$branch..$branch")
+else
+    local=0
+fi
+waiting=$(areas "$range")
 
-for state in "${order[@]}"; do
-    [[ -n ${section[$state]-} ]] || continue
-    printf '\n[%s]\n\n%s' "$state" "${section[$state]%$'\n'}"
-done
-((open > 0)) || printf '\nNo open pull requests.\n'
+plural() { (($1 == 1)) || echo s; }
+state="$commits commit$(plural "$commits") since $since"
+((merged == 0)) || state+=", $merged pull request$(plural "$merged") merged"
+((local == 0)) || state+=", $local cooking locally"
+
+report() {
+    local title
+    title="What's cooking in $repository ($(LC_ALL=C date '+%a, %d %b %Y'))"
+    printf '%s\n%s\n' "$title" "$(printf '%*s' ${#title} '' | tr ' ' -)"
+    printf '%s is at %s (%s).\n' \
+           "$branch" "$(git describe --tags --always "$remote/$branch")" "$state"
+    [[ -z $cooking ]] || printf '\n[Cooking]\n\n%s\n' "$cooking"
+    [[ -z $waiting ]] || printf '\n[Waiting for release]\n\n%s\n' "$waiting"
+    for stage in "${order[@]}"; do
+        [[ -n ${section[$stage]-} ]] || continue
+        printf '\n[%s]\n\n%s' "$stage" "${section[$stage]%$'\n'}"
+    done
+    ((open > 0)) || printf '\nNo open pull requests.\n'
+}
+
+if ((!send)); then
+    report
+    exit 0
+fi
+
+# Named like a Git message so with-editor opens it with C-c C-c to send
+dir=$(mktemp -d "${TMPDIR:-/tmp}/whats-cooking.XXXXXX")
+trap 'rm -rf "$dir"' EXIT
+msg=$dir/COOKING_EDITMSG
+{
+    report
+    echo
+    echo "# Sending to discussion #$discussion as a comment."
+    echo "# Lines starting with '#' outside a code block are dropped;"
+    echo "# an empty report aborts."
+} >"$msg"
+
+editor=$(git var GIT_EDITOR)
+if ! sh -c "$editor \"\$@\"" "$editor" "$msg"; then
+    die "editor cancelled, not sending"
+fi
+body=$(awk '/^```/ { fence = !fence } fence || !/^#/' "$msg" | git stripspace)
+[[ -n $body ]] || die "empty report, not sending"
+
+id=$(gh api graphql -F number="$discussion" -f query='
+    query($owner: String!, $repo: String!, $number: Int!) {
+      repository(owner: $owner, name: $repo) { discussion(number: $number) { id } }
+    }' -f owner='{owner}' -f repo='{repo}' --jq .data.repository.discussion.id) ||
+    die "no discussion #$discussion"
+url=$(gh api graphql -f id="$id" -f body="$body" -f query='
+    mutation($id: ID!, $body: String!) {
+      addDiscussionComment(input: {discussionId: $id, body: $body}) { comment { url } }
+    }' --jq .data.addDiscussionComment.comment.url)
+echo "git whats-cooking: sent to $url" >&2
