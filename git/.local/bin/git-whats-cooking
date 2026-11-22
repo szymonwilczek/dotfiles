@@ -280,7 +280,13 @@ state="$commits commit$(plural "$commits") since $since"
 report() {
     local title
     title="What's cooking in $repository ($(LC_ALL=C date '+%a, %d %b %Y'))"
-    printf '%s\n%s\n' "$title" "$(printf '%*s' ${#title} '' | tr ' ' -)"
+    if ((send)); then
+        # a heading of its own line keeps the second line empty,
+        # as git-commit wants of a message
+        printf '**%s**\n\n' "$title"
+    else
+        printf '%s\n%s\n' "$title" "$(printf '%*s' ${#title} '' | tr ' ' -)"
+    fi
     printf '%s is at %s (%s).\n' \
            "$branch" "$(git describe --tags --always "$remote/$branch")" "$state"
     [[ -z $cooking ]] || printf '\n[Cooking]\n\n%s\n' "$cooking"
@@ -297,10 +303,11 @@ if ((!send)); then
     exit 0
 fi
 
-# Named like a Git message so with-editor opens it with C-c C-c to send
+# Named PULLREQ_EDITMSG: git-commit-mode, and with it C-c C-c to send
+# and C-c C-k to cancel, takes only the names of Git's own messages
 dir=$(mktemp -d "${TMPDIR:-/tmp}/whats-cooking.XXXXXX")
 trap 'rm -rf "$dir"' EXIT
-msg=$dir/COOKING_EDITMSG
+msg=$dir/PULLREQ_EDITMSG
 {
     report
     echo
