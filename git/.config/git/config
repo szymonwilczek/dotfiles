@@ -3,3 +3,4 @@
 
 [alias]
 	keepdate = !GIT_COMMITTER_DATE=\"$(git log -1 --format=%aI)\" git commit --amend --no-edit
+	kd = keepdate
