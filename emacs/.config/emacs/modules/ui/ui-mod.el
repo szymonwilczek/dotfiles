@@ -92,17 +92,24 @@
   (set-face-attribute 'font-lock-preprocessor-face nil :weight 'demi-bold))
 
 (defun my/load-theme-exclusively (orig-fun theme &optional no-confirm no-enable)
-  "Make THEME the only enabled theme, reapply face overrides, cache it.
-Around advice for `load-theme' (ORIG-FUN, NO-CONFIRM, NO-ENABLE).
-au-themes also goes through `load-theme', so this is the single place these run."
+  "Make THEME the only enabled theme.
+Around advice for `load-theme' (ORIG-FUN, NO-CONFIRM, NO-ENABLE)."
   (unless no-enable
     (mapc #'disable-theme custom-enabled-themes))
-  (prog1 (funcall orig-fun theme no-confirm no-enable)
-    (unless no-enable
-      (my/apply-custom-face-overrides)
-      (my/save-theme-to-cache theme))))
+  (funcall orig-fun theme no-confirm no-enable))
 
 (advice-add 'load-theme :around #'my/load-theme-exclusively)
+
+(defun my/on-theme-enabled (theme)
+  "Reapply face overrides and cache THEME after it is enabled.
+Runs from `enable-theme-functions', so it also covers `consult-theme'
+\(used by `au-themes-select'), which enables an already loaded theme
+with `enable-theme'."
+  (unless (eq theme 'user)
+    (my/apply-custom-face-overrides)
+    (my/save-theme-to-cache theme)))
+
+(add-hook 'enable-theme-functions #'my/on-theme-enabled)
 
 (defcustom my/theme-toggle-pair '(au-salina-night au-salina-day)
   "Two themes to switch between via `my/theme-toggle'."

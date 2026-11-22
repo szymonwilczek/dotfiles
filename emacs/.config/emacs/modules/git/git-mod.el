@@ -219,7 +219,7 @@
         (set-face-attribute 'fringe nil :background 'unspecified))))
 
   (my/git-gutter-sync-theme-faces)
-  (advice-add 'load-theme :after #'my/git-gutter-sync-theme-faces))
+  (add-hook 'enable-theme-functions #'my/git-gutter-sync-theme-faces))
 
 ;;;; Merge conflict markers
 ;; Color only the marker lines, with faces inherited from the theme,
