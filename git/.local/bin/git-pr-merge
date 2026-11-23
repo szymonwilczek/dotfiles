@@ -83,12 +83,13 @@ author=$(field '(.author.name | select(. != null and . != "")) // .author.login'
 
 # First paragraph under a "Solution" heading,
 # else the whole description, whose '#' headings would otherwise
-# be stripped as comments after editing
+# be stripped as comments after editing.
 summary=$(field '.body // ""' | tr -d '\r' | awk '
+	done { next }
 	/^#+[ \t]*[Ss]olution:?[ \t]*$/ { insol = 1; next }
-	insol && /^#/ { exit }
+	insol && /^#/ { done = 1; next }
 	insol && NF { found = 1; print; next }
-	insol && found { exit }
+	insol && found { done = 1 }
 ')
 if [[ -z $summary ]]; then
     summary=$(field '.body // ""' | tr -d '\r' | sed -E 's/^#+[[:space:]]*//' | git stripspace)
