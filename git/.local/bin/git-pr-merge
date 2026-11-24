@@ -4,7 +4,7 @@
 #
 #   Merge branch '<head>' into <base> (#<pr-number>)
 #
-#   <first paragraph of the Solution section>
+#   <the Solution section>
 #
 #   * branch '<head>':
 #     <commit titles, oldest first>
@@ -20,7 +20,7 @@
 # A pull request opened by someone else is attributed;
 #
 #   Pull <area> updates from <author>:
-#    "<first paragraph of the Solution section>"
+#    "<the Solution section>"
 #
 # Without a Solution section the whole pull request description is taken instead,
 # with heading markers removed, to cut down by hand.
@@ -81,16 +81,17 @@ area=
 login=$(field .author.login)
 author=$(field '(.author.name | select(. != null and . != "")) // .author.login')
 
-# First paragraph under a "Solution" heading,
-# else the whole description, whose '#' headings would otherwise
-# be stripped as comments after editing.
+# The whole section under a "Solution" heading, up to the next heading
+# outside a code block, else the whole description, whose '#' headings
+# would otherwise be stripped as comments after editing.
 summary=$(field '.body // ""' | tr -d '\r' | awk '
 	done { next }
-	/^#+[ \t]*[Ss]olution:?[ \t]*$/ { insol = 1; next }
-	insol && /^#/ { done = 1; next }
-	insol && NF { found = 1; print; next }
-	insol && found { done = 1 }
-')
+	!insol && /^#+[ \t]*[Ss]olution:?[ \t]*$/ { insol = 1; next }
+	!insol { next }
+	/^[ \t]*(```|~~~)/ { fence = !fence }
+	!fence && /^#/ { done = 1; next }
+	{ print }
+' | git stripspace)
 if [[ -z $summary ]]; then
     summary=$(field '.body // ""' | tr -d '\r' | sed -E 's/^#+[[:space:]]*//' | git stripspace)
 fi
