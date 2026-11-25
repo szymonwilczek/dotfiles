@@ -76,19 +76,45 @@
   :config
   (global-evil-surround-mode 1)
 
-  ;; Surround the word at point without picking a text object:
-  ;; the word is a run of letters, digits and _ . - / :
+  ;; Surround the word at point without picking a text object: the
+  ;; word runs to whitespace like iW, minus trailing , ; . : ! ? and
+  ;; brackets or quotes left unpaired at its edges
   (defun my/evil-surround-thing-bounds ()
     "Return (BEG . END) of the word at point, or nil if there is none."
-    (let ((chars "[:alnum:]_./:-"))
-      (save-excursion
-        (let ((beg (progn (skip-chars-backward chars (line-beginning-position)) (point)))
-              (end (progn (skip-chars-forward chars (line-end-position)) (point))))
-          (while (and (< beg end) (memq (char-before end) '(?. ?:)))
-            (setq end (1- end)))
-          (while (and (< beg end) (memq (char-after beg) '(?. ?:)))
-            (setq beg (1+ beg)))
-          (and (< beg end) (<= beg (point)) (cons beg end))))))
+    (save-excursion
+      (unless (looking-at-p "[ \t]\\|$")
+        (let ((beg (progn (skip-chars-backward "^ \t\n") (point)))
+              (end (let ((depth 0) (eol (line-end-position)))
+                     (while (and (< (point) eol)
+                                 (or (> depth 0)
+                                     (not (memq (char-after) '(?\s ?\t)))))
+                       (pcase (char-after)
+                         ((or ?\( ?\[ ?\{) (cl-incf depth))
+                         ((or ?\) ?\] ?\}) (setq depth (max 0 (1- depth)))))
+                       (forward-char))
+                     (point)))
+              (pairs '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?< . ?>)))
+              (trimmed t))
+          (cl-flet ((count (c) (cl-count c (buffer-substring-no-properties beg end))))
+            (while (and trimmed (< beg end))
+              (let ((first (char-after beg))
+                    (last (char-before end)))
+                (setq trimmed t)
+                (cond
+                 ((memq last '(?, ?\; ?. ?: ?! ??))
+                  (setq end (1- end)))
+                 ((and (rassq last pairs)
+                       (> (count last) (count (car (rassq last pairs)))))
+                  (setq end (1- end)))
+                 ((and (assq first pairs)
+                       (> (count first) (count (cdr (assq first pairs)))))
+                  (setq beg (1+ beg)))
+                 ((and (memq last '(?\" ?' ?`)) (cl-oddp (count last)))
+                  (setq end (1- end)))
+                 ((and (memq first '(?\" ?' ?`)) (cl-oddp (count first)))
+                  (setq beg (1+ beg)))
+                 (t (setq trimmed nil))))))
+          (and (< beg end) (cons beg end))))))
 
   (defun my/evil-surround-thing (char)
     "Surround the word at point with CHAR, the way `ys' would."
