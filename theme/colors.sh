@@ -29,4 +29,4 @@ export FONT_MAIN="Typus Mono 95"
 export FONT_FALLBACK="JetBrainsMono Nerd Font"
 # Terminal font: ghostty squeezes the cells itself, so it takes plain JetBrains Mono
 export FONT_TERM="JetBrainsMono Nerd Font"
-export FONT_TERM_STYLE="SemiBold"
+export FONT_TERM_STYLE="Regular"

@@ -42,7 +42,7 @@
 
 .notification-content .text-box .summary {
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 600;
   color: @text_focused;
   margin-bottom: 3px;
 }

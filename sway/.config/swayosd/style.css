@@ -20,7 +20,7 @@ window#osd image, image {
 
 window#osd label, label {
   color: #d8dee9;
-  font-weight: bold;
+  font-weight: 600;
   font-size: 13px;
 }
 
