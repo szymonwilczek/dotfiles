@@ -120,9 +120,7 @@ width=2
 radius=0"
 
 mkdir -p "${DOTFILES_DIR}/fuzzel/.config/fuzzel"
-mkdir -p "${HOME}/.config/fuzzel"
 echo "$FUZZEL_CONTENT" >"${DOTFILES_DIR}/fuzzel/.config/fuzzel/fuzzel.ini"
-echo "$FUZZEL_CONTENT" >"${HOME}/.config/fuzzel/fuzzel.ini"
 
 # Powermenu: powermenu.sh
 cat <<EOF >"${DOTFILES_DIR}/sway/.config/sway/scripts/sh/powermenu.sh"
@@ -248,8 +246,8 @@ vimcmd_replace_one_symbol = '[](bold fg:color_error)'
 vimcmd_replace_symbol = '[](bold fg:color_error)'
 vimcmd_visual_symbol = '[](bold fg:color_success)'"
 
-echo "$STARSHIP_CONTENT" >"${DOTFILES_DIR}/starship.toml"
-echo "$STARSHIP_CONTENT" >"${HOME}/.config/starship.toml"
+mkdir -p "${DOTFILES_DIR}/starship/.config"
+echo "$STARSHIP_CONTENT" >"${DOTFILES_DIR}/starship/.config/starship.toml"
 
 # Ghostty cursor theme: ghostty/.config/ghostty/theme.conf
 mkdir -p "${DOTFILES_DIR}/ghostty/.config/ghostty"
