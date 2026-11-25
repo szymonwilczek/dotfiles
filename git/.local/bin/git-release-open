@@ -34,7 +34,7 @@
 #
 # The end is the tag <prefix><version>, or <next> before the tag exists.
 # The previous release is the last stable <prefix>* tag before the end
-# commit.
+# commit; the first release starts where <next> leaves <stable>.
 # The title and the description open in the Git editor first, the title
 # as the first line, and the pull request is opened only once they are
 # accepted; an empty message or a cancelled edit aborts.
@@ -102,8 +102,11 @@ else
     ref=$branch
 fi
 
+# The first release has no stable release before it; it starts where
+# <next> leaves <stable>.
 base=$(git describe --tags --abbrev=0 --match "$prefix*" --exclude "$prefix*-*" "$end^" 2>/dev/null) ||
-    die "no stable release before $end"
+    base=$(git merge-base "$remote/$stable" "$end") ||
+    die "no stable release before $end and no common commit with $remote/$stable"
 
 notes=$(git release-notes "$version" | sed -E 's/^- (#[0-9]+) .*/- \1/')
 url=$(gh repo view --json url --jq .url)
