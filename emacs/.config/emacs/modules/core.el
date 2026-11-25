@@ -57,7 +57,8 @@
 
 ;; Clean working directory baseline for daemon
 (setq-default default-directory (expand-file-name "~/"))
-(setq default-directory (expand-file-name "~/"))
+(unless after-init-time
+  (setq default-directory (expand-file-name "~/")))
 
 ;; Environment PATH and Exec-Path for LSP binaries
 (let ((user-paths (list (expand-file-name "~/.local/bin")
