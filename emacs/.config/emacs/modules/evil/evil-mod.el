@@ -74,7 +74,29 @@
 (use-package evil-surround
   :after evil
   :config
-  (global-evil-surround-mode 1))
+  (global-evil-surround-mode 1)
+
+  ;; Surround the word at point without picking a text object:
+  ;; the word is a run of letters, digits and _ . - / :
+  (defun my/evil-surround-thing-bounds ()
+    "Return (BEG . END) of the word at point, or nil if there is none."
+    (let ((chars "[:alnum:]_./:-"))
+      (save-excursion
+        (let ((beg (progn (skip-chars-backward chars (line-beginning-position)) (point)))
+              (end (progn (skip-chars-forward chars (line-end-position)) (point))))
+          (while (and (< beg end) (memq (char-before end) '(?. ?:)))
+            (setq end (1- end)))
+          (while (and (< beg end) (memq (char-after beg) '(?. ?:)))
+            (setq beg (1+ beg)))
+          (and (< beg end) (<= beg (point)) (cons beg end))))))
+
+  (defun my/evil-surround-thing (char)
+    "Surround the word at point with CHAR, the way `ys' would."
+    (interactive (evil-surround-input-char))
+    (let ((bounds (my/evil-surround-thing-bounds)))
+      (unless bounds
+        (user-error "No word at point"))
+      (evil-surround-region (car bounds) (cdr bounds) nil char))))
 
 (use-package evil-matchit
   :after evil

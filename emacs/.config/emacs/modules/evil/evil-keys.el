@@ -40,6 +40,9 @@
     (define-key map "+" #'evil-numbers/inc-at-pt)
     (define-key map "_" #'evil-numbers/dec-at-pt))
   (define-key evil-normal-state-map "-" nil)
+
+  (define-key evil-normal-state-map "gs" #'my/evil-surround-thing)
+  (define-key evil-visual-state-map "gs" #'undefined)
   (define-key evil-visual-state-map "-" nil)
 
   ;; Ctrl+Backspace to delete whole word backward
@@ -268,6 +271,7 @@ PREVIOUS searches backward instead of forward."
     ("evil-fill-and-move" . "Rewrap and Move")
     ("evil-commentary" . "Comment")
     ("evil-commentary-yank" . "Yank and Comment")
+    ("my/evil-surround-thing" . "Surround Word")
     ("evil-ex-repeat-global-substitute" . "Repeat :s on Every Line")
     ("find-file-at-point" . "Open File at Point")
     ("evil-find-file-at-point-with-line" . "Open File at Point, at Line")
