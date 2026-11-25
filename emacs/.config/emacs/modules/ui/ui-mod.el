@@ -1,7 +1,7 @@
 ;;; UI styling, themes and typography -*- lexical-binding: t; -*-
 
 ;; Typography & Frames
-(add-to-list 'default-frame-alist '(font . "Typus Mono 92-13"))
+(add-to-list 'default-frame-alist '(font . "Typus Mono 92-13:weight=light"))
 
 (defun my/set-font-faces (&optional frame)
   "Applies default font to given frame or current frame."
@@ -9,7 +9,8 @@
     (set-face-attribute 'default nil
                         :family "Typus Mono 92"
                         :height 130
-                        :weight 'normal)))
+                        :weight 'light
+                        :slant 'normal)))
 
 (my/set-font-faces)
 (add-hook 'server-after-make-frame-hook #'my/set-font-faces)
@@ -84,9 +85,9 @@
 (defun my/apply-custom-face-overrides (&rest _)
   "Apply custom italic and weight overrides to active font-lock faces."
   (set-face-attribute 'font-lock-comment-face nil
-                      :slant 'italic :weight 'extra-light)
+                      :slant 'italic :weight 'thin)
   (set-face-attribute 'font-lock-comment-delimiter-face nil
-                      :slant 'italic :weight 'extra-light)
+                      :slant 'italic :weight 'thin)
   (set-face-attribute 'font-lock-keyword-face nil :weight 'demi-bold)
   (set-face-attribute 'font-lock-type-face nil :weight 'demi-bold)
   (set-face-attribute 'font-lock-preprocessor-face nil :weight 'demi-bold))
