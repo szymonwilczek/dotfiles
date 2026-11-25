@@ -61,13 +61,13 @@
 (defun my/agents-modeline--usage-face (pct)
   "Return face for usage PCT from active theme: <75 bold, 75-89 warning, >=90 error."
   (cond
-   ((>= pct 90) '(:inherit error :weight bold))
-   ((>= pct 75) '(:inherit warning :weight bold))
-   (t '(:weight bold))))
+   ((>= pct 90) '(:inherit error :weight semi-bold))
+   ((>= pct 75) '(:inherit warning :weight semi-bold))
+   (t '(:weight semi-bold))))
 
 (defun my/agents-modeline--format-quota-item (label pct reset-str)
   "Format LABEL, PCT (warning/error/bold) and RESET-STR (comment face)."
-  (let* ((lbl-face '(:weight bold))
+  (let* ((lbl-face '(:weight semi-bold))
          (val-face (my/agents-modeline--usage-face (or pct 0)))
          (rst-str (my/agents-modeline--format-reset-time reset-str))
          (rst-part (if (string-empty-p rst-str)
@@ -87,7 +87,7 @@
       ('claude
        (when (bound-and-true-p my/agent-claude-quota-data)
          (let* ((c-logo (propertize "󰜡" 'face (if active
-                                                  '(:foreground "#da7756" :weight bold)
+                                                  '(:foreground "#da7756" :weight semi-bold)
                                                 'shadow)))
                 (u5 (alist-get '5h-util my/agent-claude-quota-data))
                 (r5 (alist-get '5h-reset my/agent-claude-quota-data))
@@ -100,7 +100,7 @@
                    " "))))
       ('antigravity
        (let ((g-logo (propertize "󰊭" 'face (if active
-                                               '(:foreground "#4285f4" :weight bold)
+                                               '(:foreground "#4285f4" :weight semi-bold)
                                              'shadow))))
          (concat " " g-logo " ")))
       (_ ""))))

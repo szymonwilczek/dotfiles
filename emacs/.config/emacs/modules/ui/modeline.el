@@ -21,11 +21,11 @@
                       ('emacs "EMACS")
                       (_ "NORMAL")))
          (face (pcase state
-                 ('normal '(:inherit font-lock-keyword-face :weight bold))
-                 ('insert '(:inherit font-lock-string-face :weight bold))
-                 ('visual '(:inherit font-lock-type-face :weight bold))
-                 ('replace '(:inherit error :weight bold))
-                 (_ '(:inherit font-lock-constant-face :weight bold)))))
+                 ('normal '(:inherit font-lock-keyword-face :weight semi-bold))
+                 ('insert '(:inherit font-lock-string-face :weight semi-bold))
+                 ('visual '(:inherit font-lock-type-face :weight semi-bold))
+                 ('replace '(:inherit error :weight semi-bold))
+                 (_ '(:inherit font-lock-constant-face :weight semi-bold)))))
     (propertize (format " %s " mode-name) 'face face)))
 
 (defun my/modeline--compute-base-name ()
@@ -54,11 +54,11 @@
   "Render line and column location matching %2l:%-2v."
   (let* ((state (and (bound-and-true-p evil-mode) evil-state))
          (face (pcase state
-                 ('normal '(:inherit font-lock-keyword-face :weight bold))
-                 ('insert '(:inherit font-lock-string-face :weight bold))
-                 ('visual '(:inherit font-lock-type-face :weight bold))
-                 ('replace '(:inherit error :weight bold))
-                 (_ '(:inherit font-lock-constant-face :weight bold))))
+                 ('normal '(:inherit font-lock-keyword-face :weight semi-bold))
+                 ('insert '(:inherit font-lock-string-face :weight semi-bold))
+                 ('visual '(:inherit font-lock-type-face :weight semi-bold))
+                 ('replace '(:inherit error :weight semi-bold))
+                 (_ '(:inherit font-lock-constant-face :weight semi-bold))))
          (loc (propertize " %2l:%C " 'face face)))
     loc))
 
