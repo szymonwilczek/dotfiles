@@ -441,7 +441,7 @@ cat <<EOF >"${FF_DIR}/userChrome.css"
   --newtab-background-color-secondary: ${FF_NTP_CARD} !important;
   --newtab-text-primary-color: ${FF_NTP_TEXT} !important;
 
-  /* Proton grays */
+  /* Proton grays are violet-tinted (#23222b, #1c1b22, ...): neutralize them */
   --color-gray-100: ${COLOR_BG_DARK} !important;
   --color-gray-90: ${COLOR_BG_SURFACE} !important;
   --color-gray-80: ${COLOR_BORDER_UNFOCUSED} !important;
@@ -449,7 +449,7 @@ cat <<EOF >"${FF_DIR}/userChrome.css"
   --color-gray-60: ${COLOR_TEXT_MAIN} !important;
   --color-gray-50: ${COLOR_TEXT_FOCUSED} !important;
 
-  /* Kill whathever Firefox forces */
+  /* Kill the blue/cyan Firefox forces on themed windows */
   --focus-outline-color: ${FF_ACCENT} !important;
   --color-accent-primary: ${FF_ACCENT} !important;
   --color-accent-primary-hover: ${FF_TAB_TEXT} !important;
@@ -464,6 +464,7 @@ cat <<EOF >"${FF_DIR}/userChrome.css"
   --link-color-active: ${FF_TAB_TEXT} !important;
 }
 
+/* Design tokens that fall back to GTK system colors or hardcoded violet grays */
 :root, #urlbar, .urlbar {
   --background-color-canvas: ${COLOR_BG_DARK} !important;
   --background-color-box: ${COLOR_BG_SURFACE} !important;
@@ -480,6 +481,7 @@ cat <<EOF >"${FF_DIR}/userChrome.css"
   --urlbar-box-text-color: ${COLOR_TEXT_FOCUSED} !important;
 }
 
+/* Chrome surfaces painted straight with system colors (-moz-dialog, InfoBackground) */
 :root {
   background-color: ${FF_FRAME} !important;
 }
@@ -498,11 +500,12 @@ tooltip,
   border-color: ${FF_POPUP_BORDER} !important;
 }
 
+/* Feature-callout badge is a blue SVG image: desaturate it */
 .toolbarbutton-badge.feature-callout {
   filter: grayscale(1) !important;
 }
 
-/* Context menus and panels */
+/* Context menus and panels declare their own GTK (Menu/MenuText) colors */
 :is(menupopup, panel):not(#ctrlTab-panel) {
   --panel-background-color: ${FF_POPUP} !important;
   --panel-text-color: ${FF_POPUP_TEXT} !important;
@@ -514,7 +517,7 @@ tooltip,
   color: ${FF_POPUP_HIGHLIGHT_TEXT} !important;
 }
 
-/* sidebar_highlight */
+/* sidebar_highlight: Firefox applies it only when the theme defines it */
 .sidebar-placesTreechildren::-moz-tree-row(selected) {
   background-color: ${FF_SIDEBAR_HIGHLIGHT} !important;
 }
@@ -530,7 +533,7 @@ tooltip,
   color: ${FF_SIDEBAR_HIGHLIGHT_TEXT} !important;
 }
 
-/* toolbar_field_highlight */
+/* toolbar_field_highlight: selection inside the address/search fields */
 #urlbar-input::selection,
 .searchbar-textbox::selection {
   background-color: ${FF_FIELD_HIGHLIGHT} !important;
