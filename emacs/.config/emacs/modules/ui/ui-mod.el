@@ -92,6 +92,19 @@
   (set-face-attribute 'font-lock-type-face nil :weight 'demi-bold)
   (set-face-attribute 'font-lock-preprocessor-face nil :weight 'demi-bold))
 
+(defun my/bold-to-semi-bold (&rest _)
+  "Turn every face with `bold' weight into `semi-bold'.
+With a Light default, Typus SemiBold pairs with it the way JetBrains
+Mono Bold pairs with Regular.  Runs after each theme and each loaded
+file, since packages and theme hooks set bold faces at those points."
+  (dolist (face (face-list))
+    (when (eq (face-attribute face :weight nil) 'bold)
+      (set-face-attribute face nil :weight 'semi-bold))))
+
+(my/bold-to-semi-bold)
+(add-hook 'enable-theme-functions #'my/bold-to-semi-bold 90)
+(add-hook 'after-load-functions #'my/bold-to-semi-bold)
+
 (defun my/load-theme-exclusively (orig-fun theme &optional no-confirm no-enable)
   "Make THEME the only enabled theme.
 Around advice for `load-theme' (ORIG-FUN, NO-CONFIRM, NO-ENABLE)."
