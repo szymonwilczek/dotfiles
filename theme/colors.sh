@@ -24,5 +24,9 @@ export COLOR_TEXT_FOCUSED="#b2b2b2"
 export COLOR_ACCENT_URGENT="#e06c75"
 
 # Fonts
+# UI font: sway, waybar, swaync, modals, swayosd, fuzzel, easyfocus
 export FONT_MAIN="Typus Mono 95"
 export FONT_FALLBACK="JetBrainsMono Nerd Font"
+# Terminal font: ghostty squeezes the cells itself, so it takes plain JetBrains Mono
+export FONT_TERM="JetBrainsMono Nerd Font"
+export FONT_TERM_STYLE="SemiBold"

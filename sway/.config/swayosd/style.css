@@ -1,3 +1,5 @@
+@import "fonts.css";
+
 window#osd, window {
   background-color: #141418;
   border: 2px solid #4c7899;
@@ -18,7 +20,6 @@ window#osd image, image {
 
 window#osd label, label {
   color: #d8dee9;
-  font-family: monospace;
   font-weight: bold;
   font-size: 13px;
 }

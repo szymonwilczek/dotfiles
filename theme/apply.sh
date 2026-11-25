@@ -88,6 +88,62 @@ cat <<EOF >"${DOTFILES_DIR}/sway/.config/sway/modal/colors.css"
 @define-color accent_urgent ${COLOR_ACCENT_URGENT};
 EOF
 
+# GTK font family: fonts.css for waybar, swaync, sway modals and swayosd
+for css_dir in \
+    "${DOTFILES_DIR}/waybar/.config/waybar" \
+    "${DOTFILES_DIR}/swaync/.config/swaync" \
+    "${DOTFILES_DIR}/sway/.config/sway/modal" \
+    "${DOTFILES_DIR}/sway/.config/swayosd"; do
+    cat <<EOF >"${css_dir}/fonts.css"
+/* Generated automatically by dotfiles/theme/apply.sh - DO NOT EDIT MANUALLY */
+/* Edit dotfiles/theme/colors.sh instead! */
+
+* {
+  font-family: "${FONT_MAIN}", "${FONT_FALLBACK}", monospace;
+}
+EOF
+done
+
+# Sway font: sway/.config/sway/font.conf
+cat <<EOF >"${DOTFILES_DIR}/sway/.config/sway/font.conf"
+# Generated automatically by dotfiles/theme/apply.sh - DO NOT EDIT MANUALLY
+# Edit dotfiles/theme/colors.sh instead!
+
+font pango:${FONT_MAIN}, ${FONT_FALLBACK} 11
+EOF
+
+# Ghostty font: ghostty/.config/ghostty/font.conf
+cat <<EOF >"${DOTFILES_DIR}/ghostty/.config/ghostty/font.conf"
+# Generated automatically by dotfiles/theme/apply.sh - DO NOT EDIT MANUALLY
+# Edit dotfiles/theme/colors.sh instead!
+
+font-family = ${FONT_TERM}
+font-style = ${FONT_TERM_STYLE}
+EOF
+
+# Sway easyfocus: sway/.config/sway-easyfocus/config.yaml
+cat <<EOF >"${DOTFILES_DIR}/sway/.config/sway-easyfocus/config.yaml"
+# Generated automatically by dotfiles/theme/apply.sh - DO NOT EDIT MANUALLY
+# Edit dotfiles/theme/colors.sh instead!
+chars: "fjghdkslaemuvitywoqpcbnxz"
+window_background_color: "#121212"
+window_background_opacity: 0.25
+label_background_color: "#2c2c2c"
+label_background_opacity: 1.0
+label_text_color: "#f5f5f5"
+focused_background_color: "#ababab"
+focused_background_opacity: 1.0
+focused_text_color: "#121212"
+font_family: "${FONT_MAIN}"
+font_weight: 600
+font_size: "18pt"
+label_padding_x: 12
+label_padding_y: 6
+label_margin_x: 4
+label_margin_y: 2
+show_confirmation: true
+EOF
+
 # Fuzzel config: fuzzel.ini
 FUZZEL_CONTENT="[main]
 font=${FONT_MAIN}:size=12,${FONT_FALLBACK}:size=12

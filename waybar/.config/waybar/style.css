@@ -1,7 +1,7 @@
 @import "colors.css";
+@import "fonts.css";
 
 * {
-  font-family: "Typus Mono 95", "JetBrainsMono Nerd Font", monospace;
   font-size: 16px;
   font-weight: normal;
   border: none;

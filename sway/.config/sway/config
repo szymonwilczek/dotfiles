@@ -229,7 +229,8 @@ for_window [app_id="sway-wallpaper"] floating enable, border pixel 2, move posit
 for_window [app_id="sway-calculator"] floating enable, border pixel 2, move position center
 for_window [app_id="sway-net-info"] floating enable, border pixel 2, move position center
 
-font pango:Typus Mono 95, JetBrainsMono Nerd Font 11
+# Font (managed by dotfiles/theme/colors.sh)
+include font.conf
 
 # Window Colors (managed by dotfiles/theme/colors.sh)
 include colors.conf

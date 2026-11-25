@@ -9,8 +9,6 @@ window-position-y = 10
 window-padding-balance = true
 
 font-size = 13
-font-family = JetBrainsMono Nerd Font
-font-style = SemiBold
 font-style-italic = Italic
 font-feature = -calt
 adjust-cell-width = -1
@@ -28,3 +26,4 @@ app-notifications = false
 
 config-file = themes/current.conf
 config-file = theme.conf
+config-file = font.conf

@@ -3,9 +3,9 @@
    and nothing louder than that. */
 
 @import "colors.css";
+@import "fonts.css";
 
 * {
-  font-family: "Typus Mono 95", "JetBrainsMono Nerd Font", monospace;
   font-size: 15px;
   color: @text_main;
   text-shadow: none;
