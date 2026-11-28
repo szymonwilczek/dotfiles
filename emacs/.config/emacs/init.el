@@ -25,5 +25,6 @@
 (require 'chashitsu-mod)
 (require 'mail-mod)
 (require 'kanso-mod)
+(require 'talos-mod)
 
 (provide 'init)
