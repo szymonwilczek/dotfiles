@@ -243,6 +243,10 @@ bindsym --locked XF86AudioLowerVolume exec swayosd-client --output-volume lower
 bindsym --locked XF86AudioMute exec swayosd-client --output-volume mute-toggle
 bindsym --locked XF86AudioMicMute exec swayosd-client --input-volume mute-toggle
 
+# Vesktop
+bindsym XF86Tools exec printf 'run-shortcut toggleMute\n' | socat - UNIX-CONNECT:$XDG_RUNTIME_DIR/vesktop.sock
+bindsym XF86Launch5 exec printf 'run-shortcut toggleDeafen\n' | socat - UNIX-CONNECT:$XDG_RUNTIME_DIR/vesktop.sock
+
 # Idle management
 exec swayidle -w timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"'
 exec ~/.cargo/bin/wayland-pipewire-idle-inhibit
