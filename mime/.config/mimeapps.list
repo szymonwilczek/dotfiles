@@ -44,6 +44,7 @@ x-scheme-handler/about=org.mozilla.firefox.desktop
 x-scheme-handler/unknown=org.mozilla.firefox.desktop
 application/xhtml+xml=org.mozilla.firefox.desktop
 text/xml=org.mozilla.firefox.desktop
+x-scheme-handler/discord=vesktop.desktop
 
 [Added Associations]
 application/pdf=org.mozilla.firefox.desktop;
